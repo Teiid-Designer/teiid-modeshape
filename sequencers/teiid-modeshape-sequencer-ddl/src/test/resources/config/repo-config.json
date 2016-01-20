@@ -1,0 +1,11 @@
+{
+    "name" : "TeiidDdlSequencer Test Repository",
+    "sequencing" : {
+        "sequencers" : {
+            "Teiid DDL sequencer test" : {
+                "classname" : "org.teiid.modeshape.sequencer.ddl.TeiidDdlSequencer",
+                "pathExpressions" : [ "default://(*.ddl)/jcr:content[@jcr:data] => default:/ddl" ]
+            }
+        }
+    }
+}

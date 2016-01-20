@@ -1,0 +1,111 @@
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+
+    <!-- ================================================================== -->
+    <!-- Parent -->
+    <!-- ================================================================== -->
+    <parent>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>16</version>
+    </parent>
+
+    <!-- ================================================================== -->
+    <!-- Self -->
+    <!-- ================================================================== -->
+    <artifactId>teiid-modeshape-parent</artifactId>
+    <description>A collection of ModeShape projects related to Teiid artifacts.</description>
+    <groupId>org.jboss.teiid.modeshape</groupId>
+    <modelVersion>4.0.0</modelVersion>
+    <name>Teiid ModeShape</name>
+    <packaging>pom</packaging>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <!-- ================================================================== -->
+    <!-- Properties -->
+    <!-- ================================================================== -->
+    <properties>
+        <hamcrest.version>1.3</hamcrest.version>
+        <junit.version>4.11</junit.version>
+        <log4j.version>1.2.16</log4j.version>
+        <modeshape.version>4.5.0.Final</modeshape.version>
+        <slf4j.api.version>1.7.2</slf4j.api.version>
+        <slf4j.log4j.version>1.7.2</slf4j.log4j.version>
+    </properties>
+
+    <!-- ================================================================== -->
+    <!-- Modules -->
+    <!-- ================================================================== -->
+    <modules>
+        <module>sequencers</module>
+    </modules>
+
+    <!-- ================================================================== -->
+    <!-- Dependency Management -->
+    <!-- ================================================================== -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Sub-projects -->
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-sequencer-ddl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-sequencer-vdb</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- ModeShape -->
+            <dependency>
+                <groupId>org.modeshape.bom</groupId>
+                <artifactId>modeshape-bom-embedded</artifactId>
+                <version>${modeshape.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Testing -->
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- Logging -->
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>${log4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.api.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.log4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

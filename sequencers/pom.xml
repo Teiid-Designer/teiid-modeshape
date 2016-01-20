@@ -1,0 +1,103 @@
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+
+    <!-- ================================================================== -->
+    <!-- Parent -->
+    <!-- ================================================================== -->
+    <parent>
+        <groupId>org.jboss.teiid.modeshape</groupId>
+        <artifactId>teiid-modeshape-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <!-- ================================================================== -->
+    <!-- Self -->
+    <!-- ================================================================== -->
+    <artifactId>teiid-modeshape-sequencers</artifactId>
+    <description>A collection of ModeShape sequencers related to Teiid VDBs and Teiid DDL.</description>
+    <modelVersion>4.0.0</modelVersion>
+    <name>Teiid ModeShape Sequencers</name>
+    <packaging>pom</packaging>
+
+    <!-- ================================================================== -->
+    <!-- Dependencies -->
+    <!-- ================================================================== -->
+    <dependencies>
+        <dependency>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-jcr</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-jcr-api</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-common</artifactId>
+            <version>${modeshape.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-jcr</artifactId>
+            <type>test-jar</type>
+            <version>${modeshape.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-schematic</artifactId>
+            <version>${modeshape.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!-- ================================================================== -->
+    <!-- Modules -->
+    <!-- ================================================================== -->
+    <modules>
+        <module>teiid-modeshape-sequencer-ddl</module>
+        <module>teiid-modeshape-sequencer-vdb</module>
+    </modules>
+</project>

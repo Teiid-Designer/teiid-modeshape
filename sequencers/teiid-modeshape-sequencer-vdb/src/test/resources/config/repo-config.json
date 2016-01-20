@@ -1,0 +1,19 @@
+{
+    "name" : "TeiidSequencer Test Repository",
+    "sequencing" : {
+        "sequencers" : {
+            "Teiid Sequencer in different location for container vdbs" : {
+                "classname" : "org.teiid.modeshape.sequencer.vdb.VdbSequencer",
+                "pathExpressions" : [ "default://(*.vdb)/jcr:content[@jcr:data] => /vdbs" ]
+            },
+            "Teiid Sequencer for Dynamic Vdbs" : {
+                "classname" : "org.teiid.modeshape.sequencer.vdb.VdbDynamicSequencer",
+                "pathExpressions" : [ "default://(*-vdb.xml)/jcr:content[@jcr:data] => /vdbs" ]
+            },
+            "Teiid Model Sequencer in different location" : {
+                "classname" : "org.teiid.modeshape.sequencer.vdb.model.ModelSequencer",
+                "pathExpressions" : [ "default://(*.xmi)/jcr:content[@jcr:data] => /models" ]
+            }
+        }
+    }
+}
