@@ -21,23 +21,4 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Teiid DDL ModeShape Sequencer</name>
     <packaging>jar</packaging>
-
-    <!-- ================================================================== -->
-    <!-- Dependencies -->
-    <!-- ================================================================== -->
-    <dependencies>
-        <dependency>
-            <groupId>org.modeshape</groupId>
-            <artifactId>modeshape-sequencer-ddl</artifactId>
-        </dependency>
-
-        <!-- Testing -->
-        <dependency>
-            <groupId>org.modeshape</groupId>
-            <artifactId>modeshape-sequencer-ddl</artifactId>
-            <version>${modeshape.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

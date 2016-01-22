@@ -21,8 +21,6 @@
  */
 package org.teiid.modeshape.sequencer.ddl;
 
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
-
 /**
  * The DDL lexicon for the Teiid DDL dialect.
  */

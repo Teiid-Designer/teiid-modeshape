@@ -26,9 +26,8 @@ import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.modeshape.common.text.ParsingException;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.datatype.DataType;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidDataType;
+import org.teiid.modeshape.sequencer.ddl.datatype.DataType;
 
 /**
  * A test class for {@link TeiidDataTypeParser}.

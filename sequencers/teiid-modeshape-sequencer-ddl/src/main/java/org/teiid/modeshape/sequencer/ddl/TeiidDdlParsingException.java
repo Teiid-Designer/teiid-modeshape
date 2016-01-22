@@ -23,7 +23,6 @@ package org.teiid.modeshape.sequencer.ddl;
 
 import org.modeshape.common.text.ParsingException;
 import org.modeshape.common.text.Position;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
 
 /**
  * A Teiid parsing error.

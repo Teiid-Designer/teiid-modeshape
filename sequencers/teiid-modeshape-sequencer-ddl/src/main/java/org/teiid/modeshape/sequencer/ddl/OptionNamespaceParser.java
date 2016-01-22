@@ -22,10 +22,9 @@
 package org.teiid.modeshape.sequencer.ddl;
 
 import org.modeshape.common.text.ParsingException;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.node.AstNode;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.DdlStatement;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidReservedWord;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A parser for the Teiid <option namespace> DDL statement
@@ -43,7 +42,7 @@ final class OptionNamespaceParser extends StatementParser {
     /**
      * {@inheritDoc}
      * 
-     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#matches(org.modeshape.sequencer.ddl.DdlTokenStream)
+     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#matches(org.teiid.modeshape.sequencer.ddl.DdlTokenStream)
      */
     @Override
     boolean matches( final DdlTokenStream tokens ) {
@@ -53,8 +52,8 @@ final class OptionNamespaceParser extends StatementParser {
     /**
      * {@inheritDoc}
      * 
-     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#parse(org.modeshape.sequencer.ddl.DdlTokenStream,
-     *      org.modeshape.sequencer.ddl.node.AstNode)
+     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#parse(org.teiid.modeshape.sequencer.ddl.DdlTokenStream,
+     *      org.teiid.modeshape.sequencer.ddl.node.AstNode)
      */
     @Override
     AstNode parse( final DdlTokenStream tokens,

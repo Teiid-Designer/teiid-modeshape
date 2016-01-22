@@ -25,7 +25,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.modeshape.jcr.api.JcrConstants.NT_UNSTRUCTURED;
-import static org.modeshape.sequencer.ddl.StandardDdlLexicon.PARSER_ID;
+import static org.teiid.modeshape.sequencer.ddl.StandardDdlLexicon.PARSER_ID;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -34,9 +34,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.modeshape.common.FixFor;
 import org.modeshape.common.junit.SkipLongRunning;
-import org.modeshape.sequencer.ddl.AbstractDdlSequencerTest;
-import org.modeshape.sequencer.ddl.DdlConstants;
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.SchemaElementType;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidDataType;
 

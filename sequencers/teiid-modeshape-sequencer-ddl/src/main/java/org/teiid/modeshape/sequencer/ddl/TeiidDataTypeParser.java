@@ -22,10 +22,9 @@
 package org.teiid.modeshape.sequencer.ddl;
 
 import org.modeshape.common.text.ParsingException;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.datatype.DataType;
-import org.modeshape.sequencer.ddl.datatype.DataTypeParser;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidDataType;
+import org.teiid.modeshape.sequencer.ddl.datatype.DataType;
+import org.teiid.modeshape.sequencer.ddl.datatype.DataTypeParser;
 
 class TeiidDataTypeParser extends DataTypeParser {
 
@@ -34,7 +33,7 @@ class TeiidDataTypeParser extends DataTypeParser {
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.datatype.DataTypeParser#isCustomDataType(org.modeshape.sequencer.ddl.DdlTokenStream)
+     * @see org.teiid.modeshape.sequencer.ddl.datatype.DataTypeParser#isCustomDataType(org.teiid.modeshape.sequencer.ddl.DdlTokenStream)
      */
     @Override
     protected boolean isCustomDataType( final DdlTokenStream tokens ) throws ParsingException {
@@ -44,7 +43,7 @@ class TeiidDataTypeParser extends DataTypeParser {
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.datatype.DataTypeParser#parse(org.modeshape.sequencer.ddl.DdlTokenStream)
+     * @see org.teiid.modeshape.sequencer.ddl.datatype.DataTypeParser#parse(org.teiid.modeshape.sequencer.ddl.DdlTokenStream)
      */
     @Override
     public DataType parse( final DdlTokenStream tokens ) throws ParsingException {
