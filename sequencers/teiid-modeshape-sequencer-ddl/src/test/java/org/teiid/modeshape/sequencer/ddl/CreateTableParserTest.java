@@ -35,13 +35,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.modeshape.common.text.ParsingException;
 import org.modeshape.jcr.api.JcrConstants;
-import org.modeshape.sequencer.ddl.DdlConstants;
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
-import org.modeshape.sequencer.ddl.node.AstNode;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.SchemaElementType;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidDataType;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidNonReservedWord;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidReservedWord;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A test class for {@link CreateTableParser}.

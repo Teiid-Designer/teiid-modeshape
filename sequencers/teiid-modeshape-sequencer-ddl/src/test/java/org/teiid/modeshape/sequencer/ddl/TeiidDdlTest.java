@@ -23,8 +23,7 @@ package org.teiid.modeshape.sequencer.ddl;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.node.AstNode;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 public abstract class TeiidDdlTest {
 

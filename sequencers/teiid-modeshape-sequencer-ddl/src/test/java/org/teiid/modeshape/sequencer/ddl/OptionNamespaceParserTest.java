@@ -25,7 +25,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import org.modeshape.sequencer.ddl.node.AstNode;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A test class for {@link OptionNamespaceParser}.

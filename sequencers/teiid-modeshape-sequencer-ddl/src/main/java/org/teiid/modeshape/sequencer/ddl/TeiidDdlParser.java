@@ -27,9 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.StandardDdlParser;
-import org.modeshape.sequencer.ddl.node.AstNode;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A DDL parser for the Teiid dialect.
@@ -82,7 +80,7 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.StandardDdlParser#getCustomDataTypeStartWords()
+     * @see org.teiid.modeshape.sequencer.ddl.StandardDdlParser#getCustomDataTypeStartWords()
      */
     @Override
     protected List<String> getCustomDataTypeStartWords() {
@@ -92,7 +90,7 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.StandardDdlParser#getId()
+     * @see org.teiid.modeshape.sequencer.ddl.StandardDdlParser#getId()
      */
     @Override
     public String getId() {
@@ -110,7 +108,7 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.StandardDdlParser#getValidSchemaChildTypes()
+     * @see org.teiid.modeshape.sequencer.ddl.StandardDdlParser#getValidSchemaChildTypes()
      */
     @Override
     protected String[] getValidSchemaChildTypes() {
@@ -120,7 +118,7 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.StandardDdlParser#initializeTokenStream(org.modeshape.sequencer.ddl.DdlTokenStream)
+     * @see org.teiid.modeshape.sequencer.ddl.StandardDdlParser#initializeTokenStream(org.teiid.modeshape.sequencer.ddl.DdlTokenStream)
      */
     @Override
     protected void initializeTokenStream( final DdlTokenStream tokens ) {
@@ -136,8 +134,8 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.StandardDdlParser#parseNextStatement(org.modeshape.sequencer.ddl.DdlTokenStream,
-     *      org.modeshape.sequencer.ddl.node.AstNode)
+     * @see org.teiid.modeshape.sequencer.ddl.StandardDdlParser#parseNextStatement(org.teiid.modeshape.sequencer.ddl.DdlTokenStream,
+     *      org.teiid.modeshape.sequencer.ddl.node.AstNode)
      */
     @Override
     protected AstNode parseNextStatement( final DdlTokenStream tokens,
@@ -158,7 +156,7 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
     /**
      * {@inheritDoc}
      * 
-     * @see org.modeshape.sequencer.ddl.DdlParser#postProcess(org.modeshape.sequencer.ddl.node.AstNode)
+     * @see org.teiid.modeshape.sequencer.ddl.DdlParser#postProcess(org.teiid.modeshape.sequencer.ddl.node.AstNode)
      */
     @Override
     public void postProcess( AstNode rootNode ) {

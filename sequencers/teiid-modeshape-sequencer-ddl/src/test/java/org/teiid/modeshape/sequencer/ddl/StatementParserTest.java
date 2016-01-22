@@ -29,10 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.modeshape.common.text.ParsingException;
 import org.modeshape.common.util.StringUtil;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
-import org.modeshape.sequencer.ddl.node.AstNode;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidReservedWord;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A test class for {@link StatementParser}.
@@ -229,22 +227,11 @@ public class StatementParserTest extends TeiidDdlTest {
             super(teiidDdlParser);
         }
 
-        /**
-         * {@inheritDoc}
-         * 
-         * @see org.teiid.modeshape.sequencer.ddl.StatementParser#matches(org.modeshape.sequencer.ddl.DdlTokenStream)
-         */
         @Override
         boolean matches( DdlTokenStream tokens ) {
             return false;
         }
 
-        /**
-         * {@inheritDoc}
-         * 
-         * @see org.teiid.modeshape.sequencer.ddl.StatementParser#parse(org.modeshape.sequencer.ddl.DdlTokenStream,
-         *      org.modeshape.sequencer.ddl.node.AstNode)
-         */
         @Override
         AstNode parse( DdlTokenStream tokens,
                        AstNode parentNode ) throws ParsingException {

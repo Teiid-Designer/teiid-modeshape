@@ -23,7 +23,6 @@ package org.teiid.modeshape.sequencer.ddl;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.modeshape.sequencer.ddl.DdlConstants;
 
 /**
  * DDL constants specific to the Teiid dialect. Teiid's <a

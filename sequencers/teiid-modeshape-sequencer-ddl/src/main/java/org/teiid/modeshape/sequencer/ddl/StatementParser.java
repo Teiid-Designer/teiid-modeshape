@@ -29,14 +29,11 @@ import org.modeshape.common.logging.Logger;
 import org.modeshape.common.text.ParsingException;
 import org.modeshape.common.text.Position;
 import org.modeshape.common.util.StringUtil;
-import org.modeshape.sequencer.ddl.DdlConstants;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.DdlTokenStream.DdlTokenizer;
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
-import org.modeshape.sequencer.ddl.datatype.DataTypeParser;
-import org.modeshape.sequencer.ddl.node.AstNode;
-import org.modeshape.sequencer.ddl.node.AstNodeFactory;
+import org.teiid.modeshape.sequencer.ddl.DdlTokenStream.DdlTokenizer;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidReservedWord;
+import org.teiid.modeshape.sequencer.ddl.datatype.DataTypeParser;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
+import org.teiid.modeshape.sequencer.ddl.node.AstNodeFactory;
 
 /**
  * A parser for a particular DDL statement.

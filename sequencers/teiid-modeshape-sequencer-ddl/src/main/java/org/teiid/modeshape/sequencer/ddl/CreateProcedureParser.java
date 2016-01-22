@@ -21,24 +21,22 @@
  */
 package org.teiid.modeshape.sequencer.ddl;
 
-import static org.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_ARRAY_DIMENSIONS;
-import static org.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_LENGTH;
-import static org.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_NAME;
-import static org.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_PRECISION;
-import static org.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_SCALE;
+import static org.teiid.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_ARRAY_DIMENSIONS;
+import static org.teiid.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_LENGTH;
+import static org.teiid.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_NAME;
+import static org.teiid.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_PRECISION;
+import static org.teiid.modeshape.sequencer.ddl.StandardDdlLexicon.DATATYPE_SCALE;
 import java.util.HashMap;
 import java.util.Map;
 import org.modeshape.common.text.ParsingException;
 import org.modeshape.common.text.Position;
 import org.modeshape.common.util.StringUtil;
-import org.modeshape.sequencer.ddl.DdlTokenStream;
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
-import org.modeshape.sequencer.ddl.datatype.DataType;
-import org.modeshape.sequencer.ddl.node.AstNode;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.DdlStatement;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.SchemaElementType;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidNonReservedWord;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidReservedWord;
+import org.teiid.modeshape.sequencer.ddl.datatype.DataType;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A parser for the Teiid <create procedure> DDL statement.
@@ -56,7 +54,7 @@ final class CreateProcedureParser extends StatementParser {
     /**
      * {@inheritDoc}
      *
-     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#matches(org.modeshape.sequencer.ddl.DdlTokenStream)
+     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#matches(org.teiid.modeshape.sequencer.ddl.DdlTokenStream)
      */
     @Override
     boolean matches( final DdlTokenStream tokens ) {
@@ -70,8 +68,8 @@ final class CreateProcedureParser extends StatementParser {
     /**
      * {@inheritDoc}
      *
-     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#parse(org.modeshape.sequencer.ddl.DdlTokenStream,
-     *      org.modeshape.sequencer.ddl.node.AstNode)
+     * @see org.teiid.modeshape.sequencer.ddl.StatementParser#parse(org.teiid.modeshape.sequencer.ddl.DdlTokenStream,
+     *      org.teiid.modeshape.sequencer.ddl.node.AstNode)
      */
     @Override
     AstNode parse( final DdlTokenStream tokens,

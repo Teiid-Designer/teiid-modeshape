@@ -30,9 +30,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.modeshape.common.text.ParsingException;
-import org.modeshape.sequencer.ddl.StandardDdlLexicon;
-import org.modeshape.sequencer.ddl.node.AstNode;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.SchemaElementType;
+import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
  * A test class for {@link AlterOptionsParser}.
