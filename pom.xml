@@ -29,6 +29,8 @@
     <!-- ================================================================== -->
     <properties>
         <hamcrest.version>1.3</hamcrest.version>
+        <jboss.kit.modules.location>modules/system/layers/dv/org/jboss/teiid/modeshape/sequencer</jboss.kit.modules.location>
+        <jboss.scripts.location>cli-scripts</jboss.scripts.location>
         <junit.version>4.11</junit.version>
         <log4j.version>1.2.16</log4j.version>
         <modeshape.version>4.5.0.Final</modeshape.version>
@@ -41,6 +43,7 @@
     <!-- ================================================================== -->
     <modules>
         <module>sequencers</module>
+        <module>build</module>
     </modules>
 
     <!-- ================================================================== -->
