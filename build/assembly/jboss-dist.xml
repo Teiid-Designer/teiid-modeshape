@@ -1,0 +1,76 @@
+<!--This script builds a zipfile for server installation of the Teiid ModeShape sequencers -->
+<assembly>
+
+    <id>jboss-dist</id>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <formats>
+        <format>zip</format>
+    </formats>
+
+    <moduleSets>
+        <!-- Teiid ModeShape DDL sequencer -->
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+
+            <includes>
+                <include>org.jboss.teiid.modeshape:teiid-modeshape-sequencer-ddl</include>
+            </includes>
+
+            <binaries>
+                <outputDirectory>${jboss.kit.modules.location}/ddl/main</outputDirectory>
+                <unpack>false</unpack>
+            </binaries>
+        </moduleSet>
+
+        <!-- Teiid ModeShape VDB sequencer -->
+        <moduleSet>
+            <useAllReactorProjects>true</useAllReactorProjects>
+
+            <includes>
+                <include>org.jboss.teiid.modeshape:teiid-modeshape-sequencer-vdb</include>
+            </includes>
+
+            <binaries>
+                <outputDirectory>${jboss.kit.modules.location}/vdb/main</outputDirectory>
+                <unpack>false</unpack>
+            </binaries>
+        </moduleSet>
+    </moduleSets>
+
+    <fileSets>
+        <!-- Teiid ModeShape DDL sequencer -->
+        <fileSet>
+            <directory>kits/jboss/org/teiid/modeshape/sequencer/ddl/main</directory>
+            <outputDirectory>${jboss.kit.modules.location}/ddl/main</outputDirectory>
+            <filtered>false</filtered>
+            
+            <includes>
+                <include>module.xml</include>
+            </includes>
+        </fileSet>
+
+        <!-- Teiid ModeShape VDB sequencer -->
+        <fileSet>
+            <directory>kits/jboss/org/teiid/modeshape/sequencer/vdb/main</directory>
+            <outputDirectory>${jboss.kit.modules.location}/vdb/main</outputDirectory>
+            <filtered>false</filtered>
+
+            <includes>
+                <include>module.xml</include>
+            </includes>
+        </fileSet>
+
+        <!-- Server scripts -->
+        <fileSet>
+            <directory>kits/jboss/cli-scripts</directory>
+            <outputDirectory>${jboss.scripts.location}</outputDirectory>
+            <filtered>false</filtered>
+
+            <includes>
+                <include>*.cli</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+</assembly>
