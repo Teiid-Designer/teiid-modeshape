@@ -685,7 +685,7 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     @FixFor( "MODE-2445" )
     @SkipLongRunning
     public void shouldVerifyForeignKeyReferences() throws Exception {
-        this.statementsNode = sequenceDdl("ddl/sfddl.ddl");
+        this.statementsNode = sequenceDdl("ddl/sfddl.ddl", 120);
         assertThat(this.statementsNode.getNodes().getSize(), is(1026L));
 
         // make sure foreign references exist
