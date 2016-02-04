@@ -32,7 +32,7 @@ import org.modeshape.jcr.api.sequencer.Sequencer;
 /**
  * A {@link Sequencer sequencer} for Teiid DDL.
  */
-public final class TeiidDdlSequencer extends DdlSequencer {
+public class TeiidDdlSequencer extends DdlSequencer {
 
 	private static final String[] GRAMMARS = new String[] { TeiidDdlParser.ID };
 
