@@ -277,7 +277,7 @@ abstract class StatementParser implements DdlConstants {
      */
     boolean parseOptionsClause( final DdlTokenStream tokens,
                                 final AstNode parentNode ) throws ParsingException {
-        final Map<String, String> options = new HashMap<>();
+        final Map<String, String> options = new HashMap<String, String>();
 
         if (parseOptionsClause(tokens, options)) {
             createOptionNodes(options, parentNode);

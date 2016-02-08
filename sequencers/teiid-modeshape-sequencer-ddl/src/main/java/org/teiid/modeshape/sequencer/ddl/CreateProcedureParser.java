@@ -304,7 +304,7 @@ final class CreateProcedureParser extends StatementParser {
                                 final AstNode procedureNode ) {
         if (tokens.canConsume(TeiidReservedWord.RETURNS.toDdl())) {
             // may have options associated with the result set
-            final Map<String, String> options = new HashMap<>();
+            final Map<String, String> options = new HashMap<String, String>();
             final boolean optionsExist = parseOptionsClause(tokens, options);
 
             // result set must have either one or more result columns or be a data type

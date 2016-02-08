@@ -50,9 +50,7 @@
         <dependency>
             <groupId>org.modeshape</groupId>
             <artifactId>modeshape-common</artifactId>
-            <version>${modeshape.version}</version>
             <type>test-jar</type>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -65,16 +63,12 @@
             <groupId>org.modeshape</groupId>
             <artifactId>modeshape-jcr</artifactId>
             <type>test-jar</type>
-            <version>${modeshape.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.modeshape</groupId>
             <artifactId>modeshape-schematic</artifactId>
-            <version>${modeshape.version}</version>
             <type>test-jar</type>
-            <scope>test</scope>
         </dependency>
 
         <!-- Logging -->
