@@ -33,7 +33,7 @@
         <jboss.scripts.location>cli-scripts</jboss.scripts.location>
         <junit.version>4.11</junit.version>
         <log4j.version>1.2.16</log4j.version>
-        <modeshape.version>3.8.4.GA</modeshape.version>
+        <modeshape.version>4.5.0.Final</modeshape.version>
         <slf4j.api.version>1.7.2</slf4j.api.version>
         <slf4j.log4j.version>1.7.2</slf4j.log4j.version>
     </properties>
