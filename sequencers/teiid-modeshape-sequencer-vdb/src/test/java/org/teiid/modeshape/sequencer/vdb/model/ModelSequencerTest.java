@@ -28,7 +28,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -37,13 +36,10 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.RowIterator;
-
 import org.junit.Test;
-import org.modeshape.common.FixFor;
-import org.modeshape.common.junit.SkipLongRunning;
 import org.modeshape.jcr.JcrMixLexicon;
 import org.modeshape.jcr.JcrRepository;
-import org.modeshape.jcr.sequencer.AbstractSequencerTest;
+import org.teiid.modeshape.sequencer.AbstractSequencerTest;
 import org.teiid.modeshape.sequencer.vdb.lexicon.CoreLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.JdbcLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.ModelExtensionDefinitionLexicon;
@@ -624,7 +620,6 @@ public class ModelSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    @SkipLongRunning
     public void shouldNotSequenceXmlDocumentModelForEmployees() throws Exception {
         createNodeWithContentFromFile("EmpDoc.xmi", "model/QuickEmployees/EmpDoc.xmi");
         Node outputNode = getOutputNode(this.rootNode, "models/EmpDoc.xmi");
@@ -1032,7 +1027,6 @@ public class ModelSequencerTest extends AbstractSequencerTest {
     }
     
     @Test
-    @FixFor( "MODE-2476" )
     public void shouldSequenceSuccessiveModels() throws Exception {
         createNodeWithContentFromFile("first.xmi", "model/BQT1.xmi");
         assertNotNull(getOutputNode(this.rootNode, "models/first.xmi"));

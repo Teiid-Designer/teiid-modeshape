@@ -16,25 +16,25 @@
     <!-- ================================================================== -->
     <!-- Self -->
     <!-- ================================================================== -->
-    <artifactId>teiid-modeshape-sequencers</artifactId>
-    <description>A collection of ModeShape sequencers related to Teiid VDBs and Teiid DDL.</description>
+    <artifactId>teiid-modeshape-utils</artifactId>
+    <description>Classes supporting Teiid's ModeShape Sequencers</description>
     <modelVersion>4.0.0</modelVersion>
-    <name>Teiid ModeShape Sequencers</name>
-    <packaging>pom</packaging>
+    <name>Teiid ModeShape Sequencer Framework</name>
+    <packaging>jar</packaging>
 
     <!-- ================================================================== -->
     <!-- Dependencies -->
     <!-- ================================================================== -->
     <dependencies>
         <dependency>
-            <groupId>org.jboss.teiid.modeshape</groupId>
-            <artifactId>teiid-modeshape-utils</artifactId>
-            <type>test-jar</type>
+            <groupId>org.modeshape</groupId>
+            <artifactId>modeshape-common</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.modeshape</groupId>
-            <artifactId>modeshape-common</artifactId>
+            <artifactId>modeshape-jcr</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -49,26 +49,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-            <type>test-jar</type>
-        </dependency>
-
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.modeshape</groupId>
-            <artifactId>modeshape-jcr</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.modeshape</groupId>
-            <artifactId>modeshape-schematic</artifactId>
-            <type>test-jar</type>
         </dependency>
 
         <!-- Logging -->
@@ -87,12 +69,4 @@
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
     </dependencies>
-
-    <!-- ================================================================== -->
-    <!-- Modules -->
-    <!-- ================================================================== -->
-    <modules>
-        <module>teiid-modeshape-sequencer-ddl</module>
-        <module>teiid-modeshape-sequencer-vdb</module>
-    </modules>
 </project>

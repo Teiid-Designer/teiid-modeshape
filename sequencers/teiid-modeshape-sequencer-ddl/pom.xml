@@ -21,4 +21,5 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Teiid DDL ModeShape Sequencer</name>
     <packaging>jar</packaging>
+
 </project>
