@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.jboss.integration-platform</groupId>
         <artifactId>jboss-integration-platform-parent</artifactId>
-        <version>6.0.0.CR30</version>
+        <version>6.0.0.Final</version>
     </parent>
 
     <!-- ================================================================== -->
@@ -33,7 +33,7 @@
         <jboss.scripts.location>cli-scripts</jboss.scripts.location>
         <junit.version>4.11</junit.version>
         <log4j.version>1.2.16</log4j.version>
-        <modeshape.version>3.8.1.Final</modeshape.version>
+        <modeshape.version>3.8.4.GA</modeshape.version>
         <slf4j.api.version>1.7.2</slf4j.api.version>
         <slf4j.log4j.version>1.7.2</slf4j.log4j.version>
     </properties>
@@ -42,6 +42,7 @@
     <!-- Modules -->
     <!-- ================================================================== -->
     <modules>
+        <module>teiid-modeshape-utils</module>
         <module>sequencers</module>
         <module>build</module>
     </modules>
@@ -52,6 +53,14 @@
     <dependencyManagement>
         <dependencies>
             <!-- Sub-projects -->
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-utils</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+
             <dependency>
                 <groupId>org.jboss.teiid.modeshape</groupId>
                 <artifactId>teiid-modeshape-sequencer-ddl</artifactId>
@@ -80,34 +89,18 @@
             <!-- ModeShape Test -->
             <dependency>
                 <groupId>org.modeshape</groupId>
-                <artifactId>modeshape-common</artifactId>
+                <artifactId>modeshape-jcr</artifactId>
                 <version>${modeshape.version}</version>
-                <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.modeshape</groupId>
-                <artifactId>modeshape-jcr</artifactId>
-                <version>${modeshape.version}</version>
-                <scope>test</scope>
-            </dependency>
-    
-            <dependency>
-                <groupId>org.modeshape</groupId>
-                <artifactId>modeshape-jcr</artifactId>
-                <version>${modeshape.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
-            </dependency>
-            
             <dependency>
                 <groupId>org.modeshape</groupId>
                 <artifactId>modeshape-schematic</artifactId>
                 <version>${modeshape.version}</version>
                 <scope>test</scope>
             </dependency>
-                   
+
             <dependency>
                 <groupId>org.modeshape</groupId>
                 <artifactId>modeshape-schematic</artifactId>
@@ -121,6 +114,14 @@
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-library</artifactId>
                 <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-core</artifactId>
+                <version>${version.org.infinispan}</version>
+                <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
 
@@ -171,6 +172,24 @@
                     <showDeprecation>false</showDeprecation>
                     <showWarnings>false</showWarnings>
                 </configuration>
+            </plugin>
+
+            <!--
+                   Build a test-jar for each project, so that src/test/* resources and
+                   classes can be used in other projects. Also customize how the jar
+                   files are assembled.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>test-jar</id>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

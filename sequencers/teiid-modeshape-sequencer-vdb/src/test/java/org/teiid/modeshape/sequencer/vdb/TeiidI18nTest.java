@@ -21,7 +21,7 @@
  */
 package org.teiid.modeshape.sequencer.vdb;
 
-import org.modeshape.common.AbstractI18nTest;
+import org.teiid.modeshape.i18n.AbstractI18nTest;
 
 /**
  * @author John Verhaeg
