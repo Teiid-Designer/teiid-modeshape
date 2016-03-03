@@ -34,9 +34,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.Value;
 
 import org.junit.Test;
-import org.modeshape.common.FixFor;
-import org.modeshape.common.junit.SkipLongRunning;
-import org.modeshape.jcr.sequencer.AbstractSequencerTest;
+import org.teiid.modeshape.sequencer.AbstractSequencerTest;
 import org.teiid.modeshape.sequencer.vdb.lexicon.CoreLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.RelationalLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.TransformLexicon;
@@ -444,7 +442,6 @@ public class VdbSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    @SkipLongRunning
     public void shouldSequenceVdbBqtVdb() throws Exception {
         createNodeWithContentFromFile("vdb/BqtVdb.vdb", "vdb/BqtVdb.vdb");
         Node outputNode = getOutputNode(this.rootNode, "vdbs/BqtVdb.vdb", 60);
@@ -670,7 +667,6 @@ public class VdbSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    @FixFor( "MODE-2476" )
     public void shouldSequenceSuccessiveVDBs() throws Exception {
         createNodeWithContentFromFile("first.vdb", "vdb/BooksVdb.vdb");
         assertNotNull(getOutputNode(this.rootNode, "vdbs/first.vdb"));
@@ -683,7 +679,6 @@ public class VdbSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    @FixFor( "MODE-2477" )
     public void shouldSequenceModelValidationErrorsWithNoPath() throws Exception {
         createNodeWithContentFromFile("QT_Vanilla_Hive_Push.vdb", "vdb/QT_Vanilla_Hive_Push.vdb");
         assertNotNull(getOutputNode(this.rootNode, "vdbs/QT_Vanilla_Hive_Push.vdb"));

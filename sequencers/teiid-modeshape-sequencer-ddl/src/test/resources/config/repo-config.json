@@ -1,5 +1,5 @@
 {
-    "name" : "TeiidDdlSequencer Test Repository",
+    "name" : "teiid-modeshape-sequencer-test-repository",
     "sequencing" : {
         "sequencers" : {
             "Teiid DDL sequencer test" : {
