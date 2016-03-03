@@ -32,8 +32,6 @@ import javax.jcr.Property;
 import javax.jcr.Value;
 import org.junit.After;
 import org.junit.Test;
-import org.modeshape.common.FixFor;
-import org.modeshape.common.junit.SkipLongRunning;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.SchemaElementType;
 import org.teiid.modeshape.sequencer.ddl.TeiidDdlConstants.TeiidDataType;
 
@@ -636,7 +634,6 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     }
 
     @Test
-    @SkipLongRunning
     public void shouldSequenceGreenPlumDdl() throws Exception {
         // this DDL has column with type of OBJECT with a length
         this.statementsNode = sequenceDdl("ddl/GreenPlum.ddl");
@@ -682,8 +679,6 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     }
 
     @Test
-    @FixFor( "MODE-2445" )
-    @SkipLongRunning
     public void shouldVerifyForeignKeyReferences() throws Exception {
         this.statementsNode = sequenceDdl("ddl/sfddl.ddl", 120);
         assertThat(this.statementsNode.getNodes().getSize(), is(1026L));
@@ -704,7 +699,6 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     }
 
     @Test
-    @FixFor( "MODE-2534" )
     public void shouldSequenceForeignTemporaryTable() throws Exception {
         this.statementsNode = sequenceDdl("ddl/foreignTemporaryTable.ddl");
         assertThat(this.statementsNode.getNodes().getSize(), is(1L));
@@ -716,7 +710,6 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     }
 
     @Test
-    @FixFor( "MODE-2534" )
     public void shouldSequenceLocalTemporaryTable() throws Exception {
         this.statementsNode = sequenceDdl("ddl/localTemporaryTable.ddl");
         assertThat(this.statementsNode.getNodes().getSize(), is(2L)); // create table, create temp table
@@ -749,7 +742,6 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     }
 
     @Test
-    @FixFor( "MODE-2508" )
     public void shouldSequenceResultSetWithOptions() throws Exception {
         this.statementsNode = sequenceDdl("ddl/resultSetOptions.ddl");
         assertThat(this.statementsNode.getNodes().getSize(), is(2L)); // create procedure, create function

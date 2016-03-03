@@ -44,7 +44,7 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
-import org.modeshape.jcr.sequencer.AbstractSequencerTest;
+import org.teiid.modeshape.sequencer.AbstractSequencerTest;
 
 /**
  * Base class for all the {@link DdlSequencer} tests.
@@ -156,15 +156,6 @@ public abstract class AbstractDdlSequencerTest extends AbstractSequencerTest {
     }
 
     protected Node sequenceDdl( String ddlFile ) throws Exception {
-        String fileName = ddlFile.substring(ddlFile.lastIndexOf("/") + 1);
-        createNodeWithContentFromFile(fileName, ddlFile);
-        Node outputNode = getOutputNode(rootNode, "ddl/" + fileName);
-
-        assertNotNull(outputNode);
-        assertThat(outputNode.getNodes().getSize(), is(1l));
-
-        Node statementsNode = outputNode.getNode(STATEMENTS_CONTAINER);
-        assertNotNull(statementsNode);
-        return statementsNode;
+        return sequenceDdl( ddlFile, DEFAULT_WAIT_TIME_SECONDS );
     }
 }

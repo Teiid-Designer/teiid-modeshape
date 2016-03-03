@@ -29,11 +29,12 @@
     <!-- ================================================================== -->
     <properties>
         <hamcrest.version>1.3</hamcrest.version>
+        <infinispan.version>7.2.4.Final</infinispan.version>
         <jboss.kit.modules.location>modules/system/layers/dv/org/jboss/teiid/modeshape/sequencer</jboss.kit.modules.location>
         <jboss.scripts.location>cli-scripts</jboss.scripts.location>
         <junit.version>4.11</junit.version>
         <log4j.version>1.2.16</log4j.version>
-        <modeshape.version>4.5.0.Final</modeshape.version>
+        <modeshape.version>4.6.0.Final</modeshape.version>
         <slf4j.api.version>1.7.2</slf4j.api.version>
         <slf4j.log4j.version>1.7.2</slf4j.log4j.version>
     </properties>
@@ -42,6 +43,7 @@
     <!-- Modules -->
     <!-- ================================================================== -->
     <modules>
+        <module>teiid-modeshape-utils</module>
         <module>sequencers</module>
         <module>build</module>
     </modules>
@@ -52,6 +54,14 @@
     <dependencyManagement>
         <dependencies>
             <!-- Sub-projects -->
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-utils</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+
             <dependency>
                 <groupId>org.jboss.teiid.modeshape</groupId>
                 <artifactId>teiid-modeshape-sequencer-ddl</artifactId>
@@ -73,20 +83,14 @@
 
             <dependency>
                 <groupId>org.modeshape</groupId>
-                <artifactId>modeshape-jcr</artifactId>
-                <version>${modeshape.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.modeshape</groupId>
                 <artifactId>modeshape-jcr-api</artifactId>
                 <version>${modeshape.version}</version>
             </dependency>
 
+            <!-- ModeShape Test -->
             <dependency>
                 <groupId>org.modeshape</groupId>
-                <artifactId>modeshape-schematic</artifactId>
+                <artifactId>modeshape-jcr</artifactId>
                 <version>${modeshape.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -146,6 +150,24 @@
                     <showDeprecation>false</showDeprecation>
                     <showWarnings>false</showWarnings>
                 </configuration>
+            </plugin>
+
+            <!--
+                   Build a test-jar for each project, so that src/test/* resources and
+                   classes can be used in other projects. Also customize how the jar
+                   files are assembled.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>test-jar</id>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

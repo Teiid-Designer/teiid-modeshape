@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
-import org.modeshape.common.FixFor;
 import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
@@ -374,7 +373,6 @@ public class TeiidDdlParserTest extends DdlParserTestHelper implements TeiidDdlC
     }
 
     @Test
-    @FixFor("MODE-2444")
     public void shouldParseHanaDdl() {
         // the HANA DDL uncovered 2 problems:
         // (1) a column called INDEX was being parsed as a constraint instead of a column definition, and
