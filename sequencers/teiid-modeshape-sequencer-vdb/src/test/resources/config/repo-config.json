@@ -1,5 +1,8 @@
 {
     "name" : "teiid-modeshape-sequencer-test-repository",
+    "monitoring" : {
+        "enabled" : false
+     },
     "sequencing" : {
         "sequencers" : {
             "Teiid Sequencer in different location for container vdbs" : {

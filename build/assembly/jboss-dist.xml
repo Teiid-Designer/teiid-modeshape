@@ -19,6 +19,7 @@
 
             <binaries>
                 <outputDirectory>${jboss.kit.modules.location}/ddl/main</outputDirectory>
+                <includeDependencies>false</includeDependencies>
                 <unpack>false</unpack>
             </binaries>
         </moduleSet>
@@ -33,6 +34,7 @@
 
             <binaries>
                 <outputDirectory>${jboss.kit.modules.location}/vdb/main</outputDirectory>
+                <includeDependencies>false</includeDependencies>
                 <unpack>false</unpack>
             </binaries>
         </moduleSet>
@@ -71,6 +73,17 @@
                 <include>*.cli</include>
             </includes>
         </fileSet>
-    </fileSets>
+
+        <!-- Modeshape VDB -->
+        <fileSet>
+            <directory>kits/jboss/vdb</directory>
+            <outputDirectory>${jboss.vdb.location}</outputDirectory>
+            <filtered>false</filtered>
+
+            <includes>
+                <include>*.vdb</include>
+            </includes>
+        </fileSet>
+     </fileSets>
 
 </assembly>

@@ -1,6 +1,9 @@
 {
     "name" : "teiid-modeshape-sequencer-test-repository",
-    "sequencing" : {
+    "monitoring" : {
+        "enabled" : false
+     },
+     "sequencing" : {
         "sequencers" : {
             "Teiid DDL sequencer test" : {
                 "classname" : "org.teiid.modeshape.sequencer.ddl.TeiidDdlSequencer",
