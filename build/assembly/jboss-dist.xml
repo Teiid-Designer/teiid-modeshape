@@ -43,7 +43,7 @@
     <fileSets>
         <!-- Teiid ModeShape DDL sequencer -->
         <fileSet>
-            <directory>kits/jboss/org/teiid/modeshape/sequencer/ddl/main</directory>
+            <directory>kits/jboss/org/jboss/teiid/modeshape/sequencer/ddl/main</directory>
             <outputDirectory>${jboss.kit.modules.location}/ddl/main</outputDirectory>
             <filtered>true</filtered>
             
@@ -54,7 +54,7 @@
 
         <!-- Teiid ModeShape VDB sequencer -->
         <fileSet>
-            <directory>kits/jboss/org/teiid/modeshape/sequencer/vdb/main</directory>
+            <directory>kits/jboss/org/jboss/teiid/modeshape/sequencer/vdb/main</directory>
             <outputDirectory>${jboss.kit.modules.location}/vdb/main</outputDirectory>
             <filtered>true</filtered>
 
