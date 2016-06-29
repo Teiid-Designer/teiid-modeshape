@@ -1,0 +1,55 @@
+/*
+ * JBoss, Home of Professional Open Source.
+ * See the COPYRIGHT.txt file distributed with this work for information
+ * regarding copyright ownership.  Some portions may be licensed
+ * to Red Hat, Inc. under one or more contributor license agreements.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA.
+ */
+
+//------------------------------------------------------------------------------
+// N A M E S P A C E S
+//------------------------------------------------------------------------------
+
+<nt  = "http://www.jcp.org/jcr/nt/1.0">
+<mode = "http://www.modeshape.org/1.0">
+<vdb = "http://www.metamatrix.com/metamodels/VirtualDatabase">
+<dv = "http://www.metamatrix.com/metamodels/DataVirtualization">
+
+/*
+ * DataVirtualization DataService
+ */
+[dv:dataService] > nt:unstructured, mode:hashed
+  - dv:serviceVdb (reference) 
+  - dv:vdbs (reference) multiple
+  - dv:dataSources (reference) multiple
+  - dv:drivers (reference) multiple
+
+/*
+ * DataVirtualization DataSource
+ */
+[dv:dataSource] > nt:unstructured, mix:referenceable
+  - dv:type (string) < 'JDBC','RESOURCE'
+  - dv:jndiName (string)
+  - dv:driverName (string)
+  - dv:className (string)
+  
+/*
+ * DataVirtualization Driver
+ */
+[dv:driver] > nt:file, mix:referenceable
+
+ 

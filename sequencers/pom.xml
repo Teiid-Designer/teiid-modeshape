@@ -17,7 +17,7 @@
     <!-- Self -->
     <!-- ================================================================== -->
     <artifactId>teiid-modeshape-sequencers</artifactId>
-    <description>A collection of ModeShape sequencers related to Teiid VDBs and Teiid DDL.</description>
+    <description>A collection of ModeShape sequencers related to Teiid Dataservices, VDBs and DDL.</description>
     <modelVersion>4.0.0</modelVersion>
     <name>Teiid ModeShape Sequencers</name>
     <packaging>pom</packaging>
@@ -82,5 +82,6 @@
     <modules>
         <module>teiid-modeshape-sequencer-ddl</module>
         <module>teiid-modeshape-sequencer-vdb</module>
+        <module>teiid-modeshape-sequencer-dataservice</module>
     </modules>
 </project>

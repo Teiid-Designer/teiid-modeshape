@@ -1,0 +1,9 @@
+<dataSourceSet>
+     <dataSource name="raSource" type="RESOURCE">
+         <property name="jndiName">java:/jndiName</property>
+         <property name="driverName">dsDriver</property>
+         <property name="className">dsClassname</property>
+         <property name="prop2">prop2Value</property>
+         <property name="prop1">prop1Value</property>
+     </dataSource>
+</dataSourceSet>
