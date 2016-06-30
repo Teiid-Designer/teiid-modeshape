@@ -31,10 +31,7 @@ import javax.jcr.Node;
 
 import org.junit.Test;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.CoreLexicon;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.DataserviceLexicon;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.TransformLexicon;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.VdbLexicon;
+import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 
 /**
  *
@@ -54,7 +51,7 @@ public class DataserviceSequencerTest extends AbstractSequencerTest {
         registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/relational.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/transformation.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/vdb.cnd");
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/dataservice.cnd");
+        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/dv.cnd");
     }
 
     @Test
@@ -62,13 +59,13 @@ public class DataserviceSequencerTest extends AbstractSequencerTest {
         createNodeWithContentFromFile("MyDataservice.zip", "dataservice/sample-ds.zip");
         Node outputNode = getOutputNode(this.rootNode, "dataservices/MyDataservice.zip");
         assertNotNull(outputNode);
-        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataserviceLexicon.Dataservice.DATA_SERVICE));
+        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Dataservice.DATASERVICE));
 
         // check properties
-        assertThat(outputNode.getProperty(DataserviceLexicon.ManifestIds.SERVICE_VDB).getString(), is("myService-vdb.xml"));
-        assertThat(outputNode.getProperty(DataserviceLexicon.ManifestIds.VDBS).getString(), is("Portfolio-vdb.xml, twitter-vdb.xml"));
-        assertThat(outputNode.getProperty(DataserviceLexicon.ManifestIds.DATASOURCES).getString(), is("datasource.xml"));
-        assertThat(outputNode.getProperty(DataserviceLexicon.ManifestIds.DRIVERS).getString(), is("mysql-connector-java-5.1.39-bin.jar"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Dataservice.SERVICE_VDB).getString(), is("myService-vdb.xml"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Dataservice.VDBS).getString(), is("Portfolio-vdb.xml, twitter-vdb.xml"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Dataservice.DATASOURCES).getString(), is("datasource.xml"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Dataservice.DRIVERS).getString(), is("mysql-connector-java-5.1.39-bin.jar"));
 
 //
 //        { // check child node translators

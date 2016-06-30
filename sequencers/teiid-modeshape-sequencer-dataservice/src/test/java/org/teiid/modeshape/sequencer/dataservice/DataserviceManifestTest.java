@@ -35,7 +35,7 @@ import org.junit.Test;
 public class DataserviceManifestTest {
 
     @Test
-    public void shouldReadVdbManifestFromBooksVDB() throws Exception {
+    public void shouldReadDataserviceManifest() throws Exception {
         DataserviceManifest manifest = DataserviceManifest.read(streamFor("/dataservice/dataserviceManifest.xml"), null/*, context*/);
         assertThat(manifest.getServiceVdbName(), is("myService-vdb.xml"));
         assertThat(manifest.getVdbNames(), is("Portfolio-vdb.xml, twitter-vdb.xml"));

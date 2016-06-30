@@ -25,13 +25,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.CheckArg;
@@ -39,9 +37,8 @@ import org.modeshape.common.util.StringUtil;
 import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.modeshape.jcr.api.sequencer.Sequencer;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.DataserviceLexicon;
-import org.teiid.modeshape.sequencer.vdb.VdbDynamicSequencer;
-import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
+import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
+import org.teiid.modeshape.sequencer.dataservice.lexicon.VdbLexicon;
 
 /**
  * A sequencer of Teiid Dataservice files.
@@ -58,6 +55,7 @@ public class DataserviceSequencer extends Sequencer {
     private static final String DATASOURCE_SUFFIX = ".xml";
 
     private VdbDynamicSequencer vdbSequencer; // constructed during initialize method
+    private DatasourceSequencer datasourceSequencer;  // constructed during initialize method
     
     /**
      * @see org.modeshape.jcr.api.sequencer.Sequencer#execute(javax.jcr.Property, javax.jcr.Node,
@@ -83,15 +81,29 @@ public class DataserviceSequencer extends Sequencer {
                 } else if ( entryName.endsWith(MANIFEST_FILE))  {
                     manifest = readManifest(binaryValue, dataserviceStream, outputNode, context);
                 } else if ( entryName.startsWith(VDBS) && entryName.endsWith(VDB_SUFFIX) ) {
-                	boolean sequenced = this.vdbSequencer.execute(inputProperty, outputNode, context);
+                    LOGGER.debug("----before sequencing vdb '{0}'", entryName);
+
+                    final Node vdbNode = outputNode.addNode(entryName, VdbLexicon.Vdb.VIRTUAL_DATABASE);
+                	boolean sequenced = this.vdbSequencer.execute(inputProperty, vdbNode, context);
                 	
                     if (!sequenced) {
-                        LOGGER.debug(">>>>Vdb entry NOT sequenced '{0}'\n\n", entryName);
+                        LOGGER.debug(">>>>Vdb NOT sequenced '{0}'\n\n", entryName);
                     } else {
                         LOGGER.debug(">>>>done sequencing Vdb '{0}'\n\n", entryName);
                     }
-                } else if ( entryName.startsWith(DATASOURCES) && entryName.endsWith(DATASOURCE_SUFFIX) ) {
-                    LOGGER.debug("----Processing Datasource '{0}'", entryName);
+                } else if ( entryName.startsWith(DATASOURCES) && this.datasourceSequencer.hasDatasourceFileExtension(entryName) ) {
+                    LOGGER.debug("----before reading datasource '{0}'", entryName);
+
+                    final Node datasourceNode = outputNode.addNode(entryName, DataVirtLexicon.Datasource.DATASOURCE);
+                    
+                    final boolean sequenced = this.datasourceSequencer.execute(inputProperty, datasourceNode, context);
+
+                    if (!sequenced) {
+                    	datasourceNode.remove();
+                        LOGGER.debug(">>>>datasource NOT sequenced '{0}'\n\n", entryName);
+                    } else {
+                        LOGGER.debug(">>>>done sequencing datasource '{0}'\n\n", entryName);
+                    }
                 } else if ( entryName.startsWith(DRIVERS) ) {
                     LOGGER.debug("----Processing Driver '{0}'", entryName);
                 } else {
@@ -113,12 +125,12 @@ public class DataserviceSequencer extends Sequencer {
         assert (manifest != null) : "manifest is null";
 
         // Create the output node for the VDB ...
-        outputNode.setPrimaryType(DataserviceLexicon.Dataservice.DATA_SERVICE);
+        outputNode.setPrimaryType(DataVirtLexicon.Dataservice.DATASERVICE);
         outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
-        outputNode.setProperty(DataserviceLexicon.ManifestIds.SERVICE_VDB, manifest.getServiceVdbName());
-        outputNode.setProperty(DataserviceLexicon.ManifestIds.VDBS, manifest.getVdbNames());
-        outputNode.setProperty(DataserviceLexicon.ManifestIds.DATASOURCES, manifest.getDatasourceNames());
-        outputNode.setProperty(DataserviceLexicon.ManifestIds.DRIVERS, manifest.getDriverNames());
+        outputNode.setProperty(DataVirtLexicon.Dataservice.SERVICE_VDB, manifest.getServiceVdbName());
+        outputNode.setProperty(DataVirtLexicon.Dataservice.VDBS, manifest.getVdbNames());
+        outputNode.setProperty(DataVirtLexicon.Dataservice.DATASOURCES, manifest.getDatasourceNames());
+        outputNode.setProperty(DataVirtLexicon.Dataservice.DRIVERS, manifest.getDriverNames());
 
         LOGGER.debug(">>>>done reading manifest xml\n\n");
         return manifest;
@@ -148,11 +160,14 @@ public class DataserviceSequencer extends Sequencer {
         registerNodeTypes("vdb.cnd", nodeTypeManager, true);
         LOGGER.debug("vdb.cnd loaded");
 
-        registerNodeTypes("dataservice.cnd", nodeTypeManager, true);
-        LOGGER.debug("dataservice.cnd loaded");
+        registerNodeTypes("dv.cnd", nodeTypeManager, true);
+        LOGGER.debug("dv.cnd loaded");
 
         this.vdbSequencer = new VdbDynamicSequencer();
         this.vdbSequencer.initialize(registry, nodeTypeManager);
+
+        this.datasourceSequencer = new DatasourceSequencer();
+        this.datasourceSequencer.initialize(registry, nodeTypeManager);
 
         LOGGER.debug("exit initialize");
     }
