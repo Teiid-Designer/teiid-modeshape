@@ -22,6 +22,9 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -37,7 +40,7 @@ import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
  * 
  * Format of the datasource xml :
  *  <dataSourceSet>
- *       <dataSource name="mySource" jdbc="false">
+ *       <dataSource name="mySource" type="RESOURCE">
  *           <property name="prop2">prop2Value</property>
  *           <property name="preview">true</property>
  *           <property name="profileName">dsProfileName</property>
@@ -52,36 +55,68 @@ public class DataserviceDatasource implements Comparable<DataserviceDatasource> 
 
     static final Logger LOGGER = Logger.getLogger(DataserviceDatasource.class);
 
-    public static DataserviceDatasource read( final InputStream stream,
-                                    final Context context ) throws Exception {
+    /**
+     * Datasource types
+     */
+    public enum Type {
+        /**
+         * JDBC
+         */
+        JDBC,
 
-        return new Reader().read(stream, context);
+        /**
+         * ResourceAdapter
+         */
+        RESOURCE
     }
 
-    public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public boolean isJdbc() {
-		return jdbc;
-	}
-
-	public void setJdbc(boolean jdbc) {
-		this.jdbc = jdbc;
-	}
-
-
 	private String name;
-    private boolean jdbc;
+    private Type type;
+    private Properties props = new Properties();
 
     /**
      * Constructor
      */
     public DataserviceDatasource( ) {
+    	this.props.clear();
+    }
+
+    public static DataserviceDatasource read( final InputStream stream,
+    		final Context context ) throws Exception {
+
+    	return new Reader().read(stream, context);
+    }
+
+    public String getName() {
+    	return name;
+    }
+
+    public void setName(String name) {
+    	this.name = name;
+    }
+
+    public Type getType() {
+    	return type;
+    }
+
+    public void setType(Type type) {
+    	this.type = type;
+    }
+
+    public void setProperty(String propName, String propValue) {
+    	this.props.put(propName, propValue);
+    }
+
+    public boolean hasProperty(String propName) {
+    	return this.props.containsKey(propName);
+    }
+
+    public String getPropertyValue(String propName) {
+    	return this.props.getProperty(propName);
+    }
+    
+    public Properties getProperties() {
+    	return this.props;
     }
 
     /**
@@ -100,7 +135,7 @@ public class DataserviceDatasource implements Comparable<DataserviceDatasource> 
 
     protected static class Reader {
         private DataserviceDatasource parseDatasource( final XMLStreamReader streamReader ) throws Exception {
-            assert DataVirtLexicon.ManifestIds.DATASOURCE_SET.equals(streamReader.getLocalName());
+            assert DataVirtLexicon.DatasourceXml.DATASOURCE_SET.equals(streamReader.getLocalName());
 
             // collect VDB attributes
             final DataserviceDatasource ds = new DataserviceDatasource();
@@ -113,19 +148,21 @@ public class DataserviceDatasource implements Comparable<DataserviceDatasource> 
                 if (streamReader.isStartElement()) {
                     final String elementName = streamReader.getLocalName();
 
-                    if (DataVirtLexicon.ManifestIds.DATASOURCE.equals(elementName)) {
-                    	String dsName = "temp";
+                    if (DataVirtLexicon.DatasourceXml.DATASOURCE.equals(elementName)) {
+                        String dsName = streamReader.getAttributeValue(null, DataVirtLexicon.DatasourceXml.NAME_ATTR);
                     	ds.setName(dsName);
-                    	boolean isJdbc = true;
-                    	ds.setJdbc(isJdbc);
-                    	continue;
-                    } else if (DataVirtLexicon.ManifestIds.PROPERTY.equals(elementName)) {
+                        String typeValue = streamReader.getAttributeValue(null, DataVirtLexicon.DatasourceXml.TYPE_ATTR);
+                    	ds.setType(Type.valueOf(typeValue));
+                    } else if (DataVirtLexicon.DatasourceXml.PROPERTY.equals(elementName)) {
+                        String propName = streamReader.getAttributeValue(null, DataVirtLexicon.DatasourceXml.NAME_ATTR);
                         final String propValue = streamReader.getElementText();
-                        //manifest.setServiceVdbName(serviceVdb);
+                        if(propName!=null && !propName.trim().isEmpty()) {
+                        	ds.setProperty(propName,propValue);
+                        }
                     } else {
                         LOGGER.debug("**** unexpected Dataservice element={0}", elementName);
                     }
-                } else if (streamReader.isEndElement() && DataVirtLexicon.ManifestIds.DATASERVICE.equals(streamReader.getLocalName())) {
+                } else if (streamReader.isEndElement() && DataVirtLexicon.DatasourceXml.DATASOURCE.equals(streamReader.getLocalName())) {
                     break;
                 }
             }
@@ -146,7 +183,7 @@ public class DataserviceDatasource implements Comparable<DataserviceDatasource> 
                     if (streamReader.next() == XMLStreamConstants.START_ELEMENT) {
                         final String elementName = streamReader.getLocalName();
 
-                        if (DataVirtLexicon.ManifestIds.DATASOURCE_SET.equals(elementName)) {
+                        if (DataVirtLexicon.DatasourceXml.DATASOURCE_SET.equals(elementName)) {
                         	datasource = parseDatasource(streamReader);
                             assert (datasource != null) : "datasource is null";
                         } else {

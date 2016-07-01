@@ -24,12 +24,19 @@
 // N A M E S P A C E S
 //------------------------------------------------------------------------------
 
+<<<<<<< HEAD
+=======
+<nt  = "http://www.jcp.org/jcr/nt/1.0">
+<mode = "http://www.modeshape.org/1.0">
+<vdb = "http://www.metamatrix.com/metamodels/VirtualDatabase">
+>>>>>>> drill/DataserviceWork
 <dv = "http://www.metamatrix.com/metamodels/DataVirtualization">
 
 /*
  * DataVirtualization DataService
  */
 [dv:dataService] > nt:unstructured, mode:hashed
+<<<<<<< HEAD
  - dv:service-vdb (string) 
  - dv:vdbs (string) 
  - dv:datasources (string) 
@@ -37,14 +44,25 @@
  + vdb:virtualDatabase copy
  + dv:dataSource copy
  + dv:driver copy
+=======
+  - dv:serviceVdb (reference) 
+  - dv:vdbs (reference) multiple
+  - dv:dataSources (reference) multiple
+  - dv:drivers (reference) multiple
+>>>>>>> drill/DataserviceWork
 
 /*
  * DataVirtualization DataSource
  */
+<<<<<<< HEAD
 [dv:dataSource] > nt:unstructured
   - dv:jdbc (boolean) = 'true' mandatory autocreated
   - dv:preview (boolean)
   - dv:profileName (string)
+=======
+[dv:dataSource] > nt:unstructured, mix:referenceable
+  - dv:type (string) < 'JDBC','RESOURCE'
+>>>>>>> drill/DataserviceWork
   - dv:jndiName (string)
   - dv:driverName (string)
   - dv:className (string)
@@ -52,6 +70,10 @@
 /*
  * DataVirtualization Driver
  */
+<<<<<<< HEAD
 [dv:driver] > nt:file
+=======
+[dv:driver] > nt:file, mix:referenceable
+>>>>>>> drill/DataserviceWork
 
  

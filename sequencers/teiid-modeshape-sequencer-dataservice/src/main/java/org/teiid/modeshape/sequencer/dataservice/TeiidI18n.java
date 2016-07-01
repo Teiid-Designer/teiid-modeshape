@@ -39,6 +39,7 @@ public final class TeiidI18n {
     public static I18n errorWritingCndFile;
 
     public static I18n errorReadingDataserviceFile;
+    public static I18n errorReadingDatasourceFile;
 
     public static I18n errorReadingVdbFile;
     public static I18n errorClosingVdbFile;

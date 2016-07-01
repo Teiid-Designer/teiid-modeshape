@@ -23,6 +23,7 @@ package org.teiid.modeshape.sequencer.dataservice;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
@@ -36,14 +37,10 @@ import org.modeshape.common.util.CheckArg;
 import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.modeshape.jcr.api.sequencer.Sequencer;
-import org.modeshape.jcr.api.sequencer.Sequencer.Context;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon.Datasource;
-import org.teiid.modeshape.sequencer.vdb.TeiidI18n;
-import org.teiid.modeshape.sequencer.vdb.VdbModel;
 
 /**
- * A sequencer of Teiid XMI model files.
+ * A sequencer of DV Datasource files.
  */
 @ThreadSafe
 public class DatasourceSequencer extends Sequencer {
@@ -66,18 +63,17 @@ public class DatasourceSequencer extends Sequencer {
         try (InputStream datasourceStream = binaryValue.getStream()) {
         	DataserviceDatasource datasource = readDatasource(binaryValue, datasourceStream, outputNode, context);
             if (datasource == null) {
-                throw new Exception("DatasourceSequencer.execute failed. The xml cannot be read.");
+                throw new Exception("DatasourceSequencer.execute failed. The file cannot be read.");
             }
         } catch (final Exception e) {
-//            throw new RuntimeException(TeiidI18n.errorReadingDatasourceFile.text(inputProperty.getPath(), e.getMessage()), e);
-            throw new RuntimeException("Error reading file");
+            throw new RuntimeException(TeiidI18n.errorReadingDatasourceFile.text(inputProperty.getPath(), e.getMessage()), e);
         }
         return true;
     }
     
     /**
      * @param resourceName the name of the resource being checked (cannot be <code>null</code>)
-     * @return <code>true</code> if the resource has a model file extension
+     * @return <code>true</code> if the resource has a datasource file extension
      */
     public boolean hasDatasourceFileExtension( final String resourceName ) {
         for (final String extension : DATASOURCE_FILE_EXTENSIONS) {
@@ -86,7 +82,7 @@ public class DatasourceSequencer extends Sequencer {
             }
         }
 
-        // not a model file
+        // not a datasource file
         return false;
     }
 
@@ -97,26 +93,24 @@ public class DatasourceSequencer extends Sequencer {
     @Override
     public void initialize( final NamespaceRegistry registry,
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
-        LOGGER.debug("enter initialize");
-//      registry.registerNamespace(VdbLexicon.Namespace.PREFIX, VdbLexicon.Namespace.URI);
-//      registry.registerNamespace(XmiLexicon.Namespace.PREFIX, XmiLexicon.Namespace.URI);
-//      registry.registerNamespace(CoreLexicon.Namespace.PREFIX, CoreLexicon.Namespace.URI);
-      registerNodeTypes("xmi.cnd", nodeTypeManager, true);
-      LOGGER.debug("xmi.cnd loaded");
+    	LOGGER.debug("enter initialize");
+    	
+    	registerNodeTypes("xmi.cnd", nodeTypeManager, true);
+    	LOGGER.debug("xmi.cnd loaded");
 
-      registerNodeTypes("med.cnd", nodeTypeManager, true);
-      LOGGER.debug("med.cnd loaded");
+    	registerNodeTypes("med.cnd", nodeTypeManager, true);
+    	LOGGER.debug("med.cnd loaded");
 
-      registerNodeTypes("mmcore.cnd", nodeTypeManager, true);
-      LOGGER.debug("mmcore.cnd loaded");
+    	registerNodeTypes("mmcore.cnd", nodeTypeManager, true);
+    	LOGGER.debug("mmcore.cnd loaded");
 
-      registerNodeTypes("vdb.cnd", nodeTypeManager, true);
-      LOGGER.debug("vdb.cnd loaded");
+    	registerNodeTypes("vdb.cnd", nodeTypeManager, true);
+    	LOGGER.debug("vdb.cnd loaded");
 
-      registerNodeTypes("dv.cnd", nodeTypeManager, true);
-      LOGGER.debug("dv.cnd loaded");
+    	registerNodeTypes("dv.cnd", nodeTypeManager, true);
+    	LOGGER.debug("dv.cnd loaded");
 
-      LOGGER.debug("exit initialize");
+    	LOGGER.debug("exit initialize");
     }
 
     protected DataserviceDatasource readDatasource(Binary binaryValue, InputStream inputStream, Node outputNode, Context context) throws Exception {
@@ -129,6 +123,27 @@ public class DatasourceSequencer extends Sequencer {
         // Create the output node for the Datasource ...
         outputNode.setPrimaryType(DataVirtLexicon.Datasource.DATASOURCE);
         outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+        
+        outputNode.setProperty(DataVirtLexicon.Datasource.TYPE, datasource.getType().name());
+        
+        Enumeration<?> e = datasource.getProperties().propertyNames();
+
+        while (e.hasMoreElements()) {
+        	String propKey = (String) e.nextElement();
+        	// JNDI Name property
+        	if(DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP.equals(propKey)) {
+        		outputNode.setProperty(DataVirtLexicon.Datasource.JNDI_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP));
+        	// Driver Name property
+        	} else if (DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP.equals(propKey)) {
+        		outputNode.setProperty(DataVirtLexicon.Datasource.DRIVER_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP));
+        	// Classname property
+        	} else if (DataVirtLexicon.DatasourceXml.CLASSNAME_PROP.equals(propKey)) {
+        		outputNode.setProperty(DataVirtLexicon.Datasource.CLASS_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.CLASSNAME_PROP));
+        	// arbitrary source property
+        	} else {
+        		outputNode.setProperty(propKey, datasource.getPropertyValue(propKey));
+        	}
+        }
 
         LOGGER.debug(">>>>done reading datasource xml\n\n");
         return datasource;

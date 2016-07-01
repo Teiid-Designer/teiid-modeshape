@@ -30,7 +30,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.CheckArg;
 import org.modeshape.jcr.api.sequencer.Sequencer.Context;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.DataserviceLexicon;
+import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 
 /**
  * The POJO for the Dataservice manifest file.
@@ -39,7 +39,9 @@ public class DataserviceManifest implements Comparable<DataserviceManifest> {
 
     static final Logger LOGGER = Logger.getLogger(DataserviceManifest.class);
 
-    public static DataserviceManifest read( final InputStream stream,
+	private String serviceVdbName;
+
+	public static DataserviceManifest read( final InputStream stream,
                                     final Context context ) throws Exception {
 
         return new Reader().read(stream, context);
@@ -52,35 +54,6 @@ public class DataserviceManifest implements Comparable<DataserviceManifest> {
 	public void setServiceVdbName(String serviceVdbName) {
 		this.serviceVdbName = serviceVdbName;
 	}
-
-	public String getVdbNames() {
-		return vdbNames;
-	}
-
-	public void setVdbNames(String vdbNames) {
-		this.vdbNames = vdbNames;
-	}
-
-	public String getDatasourceNames() {
-		return datasourceNames;
-	}
-
-	public void setDatasourceNames(String datasourceNames) {
-		this.datasourceNames = datasourceNames;
-	}
-
-	public String getDriverNames() {
-		return driverNames;
-	}
-
-	public void setDriverNames(String driverNames) {
-		this.driverNames = driverNames;
-	}
-
-	private String serviceVdbName;
-    private String vdbNames;
-    private String datasourceNames;
-    private String driverNames;
 
     /**
      * Constructor
@@ -104,7 +77,7 @@ public class DataserviceManifest implements Comparable<DataserviceManifest> {
 
     protected static class Reader {
         private DataserviceManifest parseDataservice( final XMLStreamReader streamReader ) throws Exception {
-            assert DataserviceLexicon.ManifestIds.DATASERVICE.equals(streamReader.getLocalName());
+            assert DataVirtLexicon.ManifestIds.DATASERVICE.equals(streamReader.getLocalName());
 
             // collect VDB attributes
             final DataserviceManifest manifest = new DataserviceManifest();
@@ -117,22 +90,13 @@ public class DataserviceManifest implements Comparable<DataserviceManifest> {
                 if (streamReader.isStartElement()) {
                     final String elementName = streamReader.getLocalName();
 
-                    if (DataserviceLexicon.ManifestIds.SERVICE_VDB.equals(elementName)) {
+                    if (DataVirtLexicon.ManifestIds.SERVICE_VDB.equals(elementName)) {
                         final String serviceVdb = streamReader.getElementText();
                         manifest.setServiceVdbName(serviceVdb);
-                    } else if (DataserviceLexicon.ManifestIds.VDBS.equals(elementName)) {
-                        final String vdbs = streamReader.getElementText();
-                        manifest.setVdbNames(vdbs);
-                    } else if (DataserviceLexicon.ManifestIds.DATASOURCES.equals(elementName)) {
-                        final String datasources = streamReader.getElementText();
-                        manifest.setDatasourceNames(datasources);
-                    } else if (DataserviceLexicon.ManifestIds.DRIVERS.equals(elementName)) {
-                        final String drivers = streamReader.getElementText();
-                        manifest.setDriverNames(drivers);
                     } else {
                         LOGGER.debug("**** unexpected Dataservice element={0}", elementName);
                     }
-                } else if (streamReader.isEndElement() && DataserviceLexicon.ManifestIds.DATASERVICE.equals(streamReader.getLocalName())) {
+                } else if (streamReader.isEndElement() && DataVirtLexicon.ManifestIds.DATASERVICE.equals(streamReader.getLocalName())) {
                     break;
                 }
             }
@@ -153,7 +117,7 @@ public class DataserviceManifest implements Comparable<DataserviceManifest> {
                     if (streamReader.next() == XMLStreamConstants.START_ELEMENT) {
                         final String elementName = streamReader.getLocalName();
 
-                        if (DataserviceLexicon.ManifestIds.DATASERVICE.equals(elementName)) {
+                        if (DataVirtLexicon.ManifestIds.DATASERVICE.equals(elementName)) {
                             manifest = parseDataservice(streamReader);
                             assert (manifest != null) : "manifest is null";
                         } else {

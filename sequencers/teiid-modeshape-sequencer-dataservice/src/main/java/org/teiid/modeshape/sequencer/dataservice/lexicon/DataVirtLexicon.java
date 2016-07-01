@@ -41,37 +41,40 @@ public interface DataVirtLexicon {
      */
     public interface Dataservice {
         String DATASERVICE = PREFIX + ":dataService";
-        String SERVICE_VDB = PREFIX + ":service-vdb";
-        String VDBS = PREFIX + ":vdbs";
-        String DATASOURCES = PREFIX + ":datasources";
-        String DRIVERS = PREFIX + ":drivers";
+        String SERVICE_VDB = PREFIX + ":serviceVdb";
     }
-
+    
+    /**
+     * Manifest ids for the Dataservice.
+     */
+	public interface ManifestIds {
+        String DATASERVICE = "dataservice";
+        String SERVICE_VDB = "service-vdb";
+	}
+    
     /**
      * JCR identifiers relating to the Datasource.
      */
     public interface Datasource {
         String DATASOURCE = PREFIX + ":dataSource";
-        String JDBC = PREFIX + ":jdbc";
-        String PREVIEW = PREFIX + ":preview";
-        String PROFILE_NAME = PREFIX + ":profileName";
+        String TYPE = PREFIX + ":type";
         String JNDI_NAME = PREFIX + ":jndiName";
         String DRIVER_NAME = PREFIX + ":driverName";
         String CLASS_NAME = PREFIX + ":className";
     }
-    
+
     /**
-     * Constants associated with the DV namespace that identify manifest identifiers.
+     * xml ids for datasource.tds files.
      */
-    public interface ManifestIds {
-        String DATASERVICE = "dataservice";
-        String SERVICE_VDB = "service-vdb";
-        String VDBS = "vdbs";
-        String DATASOURCES = "datasources";
-        String DRIVERS = "drivers";
+    public interface DatasourceXml {
         String DATASOURCE_SET = "dataSourceSet";
         String DATASOURCE = "dataSource";
         String PROPERTY = "property";
+        String TYPE_ATTR = "type";
+        String NAME_ATTR = "name";
+        String JNDI_NAME_PROP = "jndiName";
+        String DRIVER_NAME_PROP = "driverName";
+        String CLASSNAME_PROP = "className";
     }
-
+   
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice>
+
+	<service-vdb path="myService-vdb.xml"/>
+    
+    <import-vdb path="Portfolio-vdb.xml">
+        <datasource path="datasource.xml">
+            <driver path="mysql-connector-java-5.1.39-bin.jar" />
+        </datasource>
+    </import-vdb>
+    
+    <import-vdb path="books-vdb.xml">
+        <datasource path="books-ds.xml">
+            <driver path="mydb-driver-1.jar" />
+            <driver path="mydb-driver-2.jar" />
+        </datasource>
+    </import-vdb>
+
+</dataservice>

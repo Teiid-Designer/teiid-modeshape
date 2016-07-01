@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataservice>
 	<service-vdb>myService-vdb.xml</service-vdb>
+<<<<<<< HEAD
 	<vdbs>Portfolio-vdb.xml, twitter-vdb.xml</vdbs>
 	<datasources>datasource.xml</datasources>
 	<drivers>mysql-connector-java-5.1.39-bin.jar</drivers>
+=======
+>>>>>>> drill/DataserviceWork
 </dataservice>

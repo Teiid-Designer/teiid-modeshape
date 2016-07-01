@@ -25,11 +25,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.CheckArg;
@@ -38,7 +40,8 @@ import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.modeshape.jcr.api.sequencer.Sequencer;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.VdbLexicon;
+import org.teiid.modeshape.sequencer.vdb.VdbDynamicSequencer;
+import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 
 /**
  * A sequencer of Teiid Dataservice files.
@@ -128,9 +131,6 @@ public class DataserviceSequencer extends Sequencer {
         outputNode.setPrimaryType(DataVirtLexicon.Dataservice.DATASERVICE);
         outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
         outputNode.setProperty(DataVirtLexicon.Dataservice.SERVICE_VDB, manifest.getServiceVdbName());
-        outputNode.setProperty(DataVirtLexicon.Dataservice.VDBS, manifest.getVdbNames());
-        outputNode.setProperty(DataVirtLexicon.Dataservice.DATASOURCES, manifest.getDatasourceNames());
-        outputNode.setProperty(DataVirtLexicon.Dataservice.DRIVERS, manifest.getDriverNames());
 
         LOGGER.debug(">>>>done reading manifest xml\n\n");
         return manifest;

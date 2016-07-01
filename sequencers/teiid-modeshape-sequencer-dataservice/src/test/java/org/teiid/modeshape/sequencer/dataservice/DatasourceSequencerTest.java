@@ -34,9 +34,9 @@ import org.teiid.modeshape.sequencer.AbstractSequencerTest;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 
 /**
- *
+ * Tests for the DatasourceSequencer
  */
-public class DataserviceSequencerTest extends AbstractSequencerTest {
+public class DatasourceSequencerTest extends AbstractSequencerTest {
 
     @Override
     protected InputStream getRepositoryConfigStream() {
@@ -55,36 +55,37 @@ public class DataserviceSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    public void shouldSequenceDataservice() throws Exception {
-        createNodeWithContentFromFile("MyDataservice.zip", "dataservice/sample-ds.zip");
-        Node outputNode = getOutputNode(this.rootNode, "dataservices/MyDataservice.zip");
+    public void shouldSequenceRaDatasource() throws Exception {
+        createNodeWithContentFromFile("datasource.tds", "datasource/raDatasource.tds");
+        Node outputNode = getOutputNode(this.rootNode, "datasources/datasource.tds");
         assertNotNull(outputNode);
-        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Dataservice.DATASERVICE));
+        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Datasource.DATASOURCE));
 
         // check properties
-        assertThat(outputNode.getProperty(DataVirtLexicon.Dataservice.SERVICE_VDB).getString(), is("myService-vdb.xml"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.TYPE).getString(), is("RESOURCE"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.CLASS_NAME).getString(), is("dsClassname"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.DRIVER_NAME).getString(), is("dsDriver"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.JNDI_NAME).getString(), is("java:/jndiName"));
+        assertThat(outputNode.getProperty("prop2").getString(), is("prop2Value"));
+        assertThat(outputNode.getProperty("prop1").getString(), is("prop1Value"));
+    }
 
-//
-//        { // check child node translators
-//            Node translatorsGroupNode = outputNode.getNode(VdbLexicon.Vdb.TRANSLATORS);
-//            assertNotNull(translatorsGroupNode);
-//            assertThat(translatorsGroupNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.TRANSLATORS));
-//            assertThat(translatorsGroupNode.getNodes().getSize(), is(1L));
-//
-//            // check translator
-//            Node translatorNode = translatorsGroupNode.getNode("MyBooks_mysql5");
-//            assertNotNull(translatorNode);
-//            assertThat(translatorNode.getPrimaryNodeType().getName(), is(VdbLexicon.Translator.TRANSLATOR));
-//            assertThat(translatorNode.getProperty(VdbLexicon.Translator.TYPE).getString(), is("mysql5"));
-//            assertThat(translatorNode.getProperty(VdbLexicon.Translator.DESCRIPTION).getString(),
-//                       is("This is a translator description"));
-//
-//            { // check translator Teiid properties
-//                assertThat(translatorNode.getProperty("nameInSource").getString(), is("bogusName"));
-//                assertThat(translatorNode.getProperty("supportsUpdate").getBoolean(), is(true));
-//            }
-//        }
+    @Test
+    public void shouldSequenceJdbcDatasource() throws Exception {
+        createNodeWithContentFromFile("datasource.tds", "datasource/jdbcDatasource.tds");
+        Node outputNode = getOutputNode(this.rootNode, "datasources/datasource.tds");
+        assertNotNull(outputNode);
+        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Datasource.DATASOURCE));
 
+        // check properties
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.TYPE).getString(), is("JDBC"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.CLASS_NAME).getString(), is("dsClassname"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.DRIVER_NAME).getString(), is("dsDriver"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.JNDI_NAME).getString(), is("java:/jdbcSource"));
+        assertThat(outputNode.getProperty("prop1").getString(), is("one"));
+        assertThat(outputNode.getProperty("prop2").getString(), is("two"));
+        assertThat(outputNode.getProperty("prop3").getString(), is("three"));
+        assertThat(outputNode.getProperty("prop4").getString(), is("four"));
     }
 
 }

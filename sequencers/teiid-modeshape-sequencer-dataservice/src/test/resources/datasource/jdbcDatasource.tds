@@ -1,0 +1,11 @@
+<dataSourceSet>
+     <dataSource name="jdbcSource" type="JDBC">
+         <property name="jndiName">java:/jdbcSource</property>
+         <property name="driverName">dsDriver</property>
+         <property name="className">dsClassname</property>
+         <property name="prop1">one</property>
+         <property name="prop2">two</property>
+         <property name="prop3">three</property>
+         <property name="prop4">four</property>
+     </dataSource>
+</dataSourceSet>

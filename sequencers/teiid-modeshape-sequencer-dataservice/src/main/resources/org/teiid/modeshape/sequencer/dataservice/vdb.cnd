@@ -34,7 +34,11 @@
 // N O D E T Y P E S
 //------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 [vdb:virtualDatabase] > nt:unstructured, mode:hashed
+=======
+[vdb:virtualDatabase] > nt:unstructured, mode:hashed, mix:referenceable
+>>>>>>> drill/DataserviceWork
  - vdb:name (string)
  - vdb:description (string) 
  - vdb:version (long) = '1' autocreated

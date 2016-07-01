@@ -38,9 +38,6 @@ public class DataserviceManifestTest {
     public void shouldReadDataserviceManifest() throws Exception {
         DataserviceManifest manifest = DataserviceManifest.read(streamFor("/dataservice/dataserviceManifest.xml"), null/*, context*/);
         assertThat(manifest.getServiceVdbName(), is("myService-vdb.xml"));
-        assertThat(manifest.getVdbNames(), is("Portfolio-vdb.xml, twitter-vdb.xml"));
-        assertThat(manifest.getDatasourceNames(), is("datasource.xml"));
-        assertThat(manifest.getDriverNames(), is("mysql-connector-java-5.1.39-bin.jar"));
     }
 
     private InputStream streamFor( String resourcePath ) throws Exception {
