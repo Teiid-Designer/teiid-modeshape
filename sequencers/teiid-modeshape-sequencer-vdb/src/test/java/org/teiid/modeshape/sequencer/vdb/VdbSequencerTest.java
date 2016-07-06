@@ -615,6 +615,13 @@ public class VdbSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
+    public void shouldSequenceDynamicBooksVdb() throws Exception {
+        createNodeWithContentFromFile("vdb/books-vdb.xml", "vdb/books-vdb.xml");
+        Node outputNode = getOutputNode(this.rootNode, "vdbs/books-vdb.xml", 100);
+        assertNotNull(outputNode);
+    }
+
+    @Test
     public void shouldSequenceDynamicTwitterVdb() throws Exception {
         createNodeWithContentFromFile("vdb/declarativeModels-vdb.xml", "vdb/declarativeModels-vdb.xml");
         Node outputNode = getOutputNode(this.rootNode, "vdbs/declarativeModels-vdb.xml", 100);

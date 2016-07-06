@@ -23,18 +23,30 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * Represents a Data Service service VDB in the archive.
+ * Represents a data service manifest data source entry.
  */
-public class DataserviceServiceVdb {
+class DataSourceDescriptor {
 
-    private String path;
-    private final DataserviceManifest parent;
+    private final Set< String > driverPaths; // the archive resource paths of the drivers
+    private String path; // the archive resource path of the data source
+    private DataserviceImportVdb parent;
 
-    public DataserviceServiceVdb( final DataserviceManifest manifest ) {
-        this.parent = manifest;
+    DataSourceDescriptor( final DataserviceImportVdb vdb ) {
+        this.parent = vdb;
+        this.driverPaths = new HashSet<>( 3 );
+    }
+
+    /**
+     * @param archivePath the driver archive resource path being added (cannot be empty)
+     */
+    public void addDriverPath( final String archivePath ) {
+        this.driverPaths.add( archivePath );
     }
 
     /**
@@ -48,14 +60,32 @@ public class DataserviceServiceVdb {
             return false;
         }
 
-        final DataserviceServiceVdb that = ( DataserviceServiceVdb )obj;
-        return Objects.equals( this.path, that.path );
+        final DataSourceDescriptor that = ( DataSourceDescriptor )obj;
+
+        if ( !Objects.equals( this.path, that.path ) ) {
+            return false;
+        }
+
+        return Objects.deepEquals( this.driverPaths, that.driverPaths );
     }
 
-    public DataserviceManifest getParent() {
+    /**
+     * @return the driver archive resource paths (never <code>null</code> but can be empty if none were added)
+     */
+    public Collection< String > getDriverPaths() {
+        return this.driverPaths;
+    }
+
+    /**
+     * @return the parent (never <code>null</code>)
+     */
+    public DataserviceImportVdb getParent() {
         return this.parent;
     }
 
+    /**
+     * @return the archive resource path of this data source (can be <code>null</code> if not set)
+     */
     public String getPath() {
         return this.path;
     }
@@ -67,9 +97,12 @@ public class DataserviceServiceVdb {
      */
     @Override
     public int hashCode() {
-        return Objects.hash( this.path.hashCode() );
+        return Objects.hash( this.path, this.driverPaths );
     }
 
+    /**
+     * @param archivePath the archive resource path of this data source (should not be empty)
+     */
     public void setPath( final String archivePath ) {
         this.path = archivePath;
     }

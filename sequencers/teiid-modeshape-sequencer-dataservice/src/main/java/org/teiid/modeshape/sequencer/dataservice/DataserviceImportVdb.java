@@ -23,10 +23,69 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
+import java.util.Objects;
+
 /**
- * @author dan
- *
+ * Represents a Dataservice service VDB.
  */
 public class DataserviceImportVdb {
+
+    private DataSourceDescriptor datasource;
+    private final DataserviceManifest parent;
+    private String path;
+
+    public DataserviceImportVdb( final DataserviceManifest manifest ) {
+        this.parent = manifest;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals( final Object obj ) {
+        if ( ( obj == null ) || !getClass().equals( obj.getClass() ) ) {
+            return false;
+        }
+
+        final DataserviceImportVdb that = ( DataserviceImportVdb )obj;
+
+        if ( !Objects.equals( this.path, that.path ) ) {
+            return false;
+        }
+
+        return Objects.equals( this.datasource, that.datasource );
+    }
+
+    public DataSourceDescriptor getDatasource() {
+        return this.datasource;
+    }
+
+    public DataserviceManifest getParent() {
+        return this.parent;
+    }
+
+    public String getPath() {
+        return this.path;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash( this.path, this.datasource );
+    }
+
+    public void setDatasource( final DataSourceDescriptor ds ) {
+        this.datasource = ds;
+    }
+
+    public void setPath( final String archivePath ) {
+        this.path = archivePath;
+    }
 
 }

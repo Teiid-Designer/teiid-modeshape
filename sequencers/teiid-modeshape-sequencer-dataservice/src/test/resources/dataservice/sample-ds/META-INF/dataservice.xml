@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice>
+
+    <service-vdb path="product-view-vdb.xml"/>
+    
+    <import-vdb path="Portfolio-vdb.xml">
+        <datasource path="portfolioDatasource.tds">
+            <driver path="portfolio-driver.jar" />
+        </datasource>
+    </import-vdb>
+    
+    <import-vdb path="books-vdb.xml">
+        <datasource path="booksDatasource.tds">
+            <driver path="books-driver-1.jar" />
+            <driver path="books-driver-2.jar" />
+        </datasource>
+    </import-vdb>
+
+</dataservice>

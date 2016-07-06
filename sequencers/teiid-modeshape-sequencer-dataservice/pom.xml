@@ -21,10 +21,15 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Teiid ModeShape Dataservice Sequencer</name>
     <packaging>jar</packaging>
+   
+    <!-- ================================================================== -->
+    <!-- Dependencies -->
+    <!-- ================================================================== -->
     <dependencies>
-    	<dependency>
-    		<groupId>org.jboss.teiid.modeshape</groupId>
-    		<artifactId>teiid-modeshape-sequencer-vdb</artifactId>
-    	</dependency>
+        <dependency>
+            <groupId>org.jboss.teiid.modeshape</groupId>
+            <artifactId>teiid-modeshape-sequencer-vdb</artifactId>
+        </dependency>
     </dependencies>
+
 </project>

@@ -61,7 +61,7 @@ public class DatasourceSequencer extends Sequencer {
         CheckArg.isNotNull(binaryValue, "binary");
 
         try (InputStream datasourceStream = binaryValue.getStream()) {
-        	DataserviceDatasource datasource = readDatasource(binaryValue, datasourceStream, outputNode, context);
+        	DataserviceDatasource datasource = readDatasource(datasourceStream, outputNode, context);
             if (datasource == null) {
                 throw new Exception("DatasourceSequencer.execute failed. The file cannot be read.");
             }
@@ -94,18 +94,6 @@ public class DatasourceSequencer extends Sequencer {
     public void initialize( final NamespaceRegistry registry,
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
     	LOGGER.debug("enter initialize");
-    	
-    	registerNodeTypes("xmi.cnd", nodeTypeManager, true);
-    	LOGGER.debug("xmi.cnd loaded");
-
-    	registerNodeTypes("med.cnd", nodeTypeManager, true);
-    	LOGGER.debug("med.cnd loaded");
-
-    	registerNodeTypes("mmcore.cnd", nodeTypeManager, true);
-    	LOGGER.debug("mmcore.cnd loaded");
-
-    	registerNodeTypes("vdb.cnd", nodeTypeManager, true);
-    	LOGGER.debug("vdb.cnd loaded");
 
     	registerNodeTypes("dv.cnd", nodeTypeManager, true);
     	LOGGER.debug("dv.cnd loaded");
@@ -113,7 +101,7 @@ public class DatasourceSequencer extends Sequencer {
     	LOGGER.debug("exit initialize");
     }
 
-    protected DataserviceDatasource readDatasource(Binary binaryValue, InputStream inputStream, Node outputNode, Context context) throws Exception {
+    protected DataserviceDatasource readDatasource(InputStream inputStream, Node outputNode, Context context) throws Exception {
     	DataserviceDatasource datasource;
         LOGGER.debug("----before reading datasource");
 
@@ -121,7 +109,7 @@ public class DatasourceSequencer extends Sequencer {
         assert (datasource != null) : "datasource is null";
 
         // Create the output node for the Datasource ...
-        outputNode.setPrimaryType(DataVirtLexicon.Datasource.DATASOURCE);
+        outputNode.setPrimaryType(DataVirtLexicon.Datasource.NODE_TYPE);
         outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
         
         outputNode.setProperty(DataVirtLexicon.Datasource.TYPE, datasource.getType().name());
@@ -133,9 +121,6 @@ public class DatasourceSequencer extends Sequencer {
         	// JNDI Name property
         	if(DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP.equals(propKey)) {
         		outputNode.setProperty(DataVirtLexicon.Datasource.JNDI_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP));
-        	// Driver Name property
-        	} else if (DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP.equals(propKey)) {
-        		outputNode.setProperty(DataVirtLexicon.Datasource.DRIVER_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP));
         	// Classname property
         	} else if (DataVirtLexicon.DatasourceXml.CLASSNAME_PROP.equals(propKey)) {
         		outputNode.setProperty(DataVirtLexicon.Datasource.CLASS_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.CLASSNAME_PROP));
@@ -147,6 +132,17 @@ public class DatasourceSequencer extends Sequencer {
 
         LOGGER.debug(">>>>done reading datasource xml\n\n");
         return datasource;
+    }
+    
+    public boolean sequenceDatasource( final InputStream datasourceStream,
+                                       final Node datasourceOutputNode ) throws Exception {
+        final DataserviceDatasource ds = readDatasource( datasourceStream, datasourceOutputNode, null );
+
+        if ( ds == null ) {
+            throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( datasourceOutputNode.getPath() ) );
+        }
+        
+        return true;
     }
 
 }

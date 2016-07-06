@@ -22,8 +22,6 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.xml.stream.XMLInputFactory;
@@ -46,7 +44,6 @@ import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
  *           <property name="profileName">dsProfileName</property>
  *           <property name="prop1">prop1Value</property>
  *           <property name="jndiName">java:/jndiName</property>
- *           <property name="driverName">dsDriver</property>
  *           <property name="className">dsClassname</property>
  *       </dataSource>
  *   </dataSourceSet>

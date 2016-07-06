@@ -1,7 +1,7 @@
 <dataSourceSet>
-     <dataSource name="raSource" type="RESOURCE">
+     <dataSource name="portfolioDataSource" type="RESOURCE">
          <property name="jndiName">java:/jndiName</property>
-         <property name="className">dsClassname</property>
+         <property name="className">portfolioDriverClassname</property>
          <property name="prop2">prop2Value</property>
          <property name="prop1">prop1Value</property>
      </dataSource>

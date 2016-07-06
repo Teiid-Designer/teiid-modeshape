@@ -8,13 +8,10 @@
             "Teiid Sequencer in different location for container dataservices" : {
                 "classname" : "org.teiid.modeshape.sequencer.dataservice.DataserviceSequencer",
                 "pathExpressions" : [ "default://(*.zip)/jcr:content[@jcr:data] => /dataservices" ]
-<<<<<<< HEAD
-=======
             },
-            "Teiid Sequencer in different location for container dataservices" : {
+            "Teiid Sequencer in different location for container datasources" : {
                 "classname" : "org.teiid.modeshape.sequencer.dataservice.DatasourceSequencer",
                 "pathExpressions" : [ "default://(*.tds)/jcr:content[@jcr:data] => /datasources" ]
->>>>>>> drill/DataserviceWork
             }
         }
     }

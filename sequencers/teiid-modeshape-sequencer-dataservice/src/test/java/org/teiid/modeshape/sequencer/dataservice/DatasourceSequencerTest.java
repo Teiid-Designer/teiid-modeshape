@@ -36,7 +36,7 @@ import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 /**
  * Tests for the DatasourceSequencer
  */
-public class DatasourceSequencerTest extends AbstractSequencerTest {
+public final class DatasourceSequencerTest extends AbstractSequencerTest {
 
     @Override
     protected InputStream getRepositoryConfigStream() {
@@ -45,12 +45,6 @@ public class DatasourceSequencerTest extends AbstractSequencerTest {
 
     @Test
     public void shouldHaveValidCnds() throws Exception {
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/xmi.cnd");
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/jdbc.cnd");
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/mmcore.cnd");
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/relational.cnd");
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/transformation.cnd");
-        registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/vdb.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/dataservice/dv.cnd");
     }
 
@@ -59,12 +53,11 @@ public class DatasourceSequencerTest extends AbstractSequencerTest {
         createNodeWithContentFromFile("datasource.tds", "datasource/raDatasource.tds");
         Node outputNode = getOutputNode(this.rootNode, "datasources/datasource.tds");
         assertNotNull(outputNode);
-        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Datasource.DATASOURCE));
+        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Datasource.NODE_TYPE));
 
         // check properties
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.TYPE).getString(), is("RESOURCE"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.CLASS_NAME).getString(), is("dsClassname"));
-        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.DRIVER_NAME).getString(), is("dsDriver"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.JNDI_NAME).getString(), is("java:/jndiName"));
         assertThat(outputNode.getProperty("prop2").getString(), is("prop2Value"));
         assertThat(outputNode.getProperty("prop1").getString(), is("prop1Value"));
@@ -75,12 +68,11 @@ public class DatasourceSequencerTest extends AbstractSequencerTest {
         createNodeWithContentFromFile("datasource.tds", "datasource/jdbcDatasource.tds");
         Node outputNode = getOutputNode(this.rootNode, "datasources/datasource.tds");
         assertNotNull(outputNode);
-        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Datasource.DATASOURCE));
+        assertThat(outputNode.getPrimaryNodeType().getName(), is(DataVirtLexicon.Datasource.NODE_TYPE));
 
         // check properties
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.TYPE).getString(), is("JDBC"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.CLASS_NAME).getString(), is("dsClassname"));
-        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.DRIVER_NAME).getString(), is("dsDriver"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.JNDI_NAME).getString(), is("java:/jdbcSource"));
         assertThat(outputNode.getProperty("prop1").getString(), is("one"));
         assertThat(outputNode.getProperty("prop2").getString(), is("two"));

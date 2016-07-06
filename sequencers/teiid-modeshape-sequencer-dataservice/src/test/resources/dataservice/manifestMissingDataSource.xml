@@ -10,10 +10,6 @@
     </import-vdb>
     
     <import-vdb path="books-vdb.xml">
-        <datasource path="books-ds.xml">
-            <driver path="mydb-driver-1.jar" />
-            <driver path="mydb-driver-2.jar" />
-        </datasource>
     </import-vdb>
 
 </dataservice>

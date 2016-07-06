@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataservice>
-
-    <service-vdb path="myService-vdb.xml"/>
     
     <import-vdb path="Portfolio-vdb.xml">
         <datasource path="datasource.xml">

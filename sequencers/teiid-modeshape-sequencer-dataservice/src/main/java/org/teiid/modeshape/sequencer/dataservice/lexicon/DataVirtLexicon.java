@@ -40,31 +40,122 @@ public interface DataVirtLexicon {
      * JCR identifiers relating to the Dataservice.
      */
     public interface Dataservice {
-        String DATASERVICE = PREFIX + ":dataService";
+
+        /**
+         * The name of the node type.
+         */
+        String NODE_TYPE = PREFIX + ":dataService";
+
+        /**
+         * The name of the property whose value contains the reference to the service VDB.
+         */
         String SERVICE_VDB = PREFIX + ":serviceVdb";
+
+        /**
+         * The name of the multi-valued property whose value contains the references to its contained VDBs.
+         */
+        String VDBS = PREFIX + ":vdbs";
+
     }
-    
-    /**
-     * Manifest ids for the Dataservice.
-     */
-	public interface ManifestIds {
-        String DATASERVICE = "dataservice";
-        String SERVICE_VDB = "service-vdb";
-	}
     
     /**
      * JCR identifiers relating to the Datasource.
      */
     public interface Datasource {
-        String DATASOURCE = PREFIX + ":dataSource";
+
+        /**
+         * The name of the node type.
+         */
+        String NODE_TYPE = PREFIX + ":dataSource";
+
+        /**
+         * The name of the property whose value is the type of the data source.
+         */
         String TYPE = PREFIX + ":type";
+
+        /**
+         * The name of the property whose value is the JNDI name of the data source.
+         */
         String JNDI_NAME = PREFIX + ":jndiName";
-        String DRIVER_NAME = PREFIX + ":driverName";
+
+        /**
+         * The name of the property whose value is the Java class name of the driver.
+         */
         String CLASS_NAME = PREFIX + ":className";
+
+        /**
+         * The name of the multi-valued property whose value contains the references to its driver files.
+         */
+        String DRIVERS = PREFIX + ":drivers";
+
+    }
+    
+    public interface DataserviceVdb {
+
+        /**
+         * The name of the node type.
+         */
+        String NODE_TYPE = PREFIX + ":dataServiceVdb";
+
+        /**
+         * The name of the property whose value contains the reference to an import VDB.
+         */
+        String VDB = PREFIX + ":vdb";
+
+        /**
+         * The name of the property whose value contains the reference to its data source.
+         */
+        String DATA_SOURCE = PREFIX + ":dataSource";
+
+    }
+    
+    public interface DatasourceDriver {
+
+        /**
+         * The name of the node type.
+         */
+        String NODE_TYPE = PREFIX + ":driver";
+
+    }
+    
+    /**
+     * Manifest IDs for the Dataservice archive.
+     */
+    public interface ManifestIds {
+
+        /**
+         * The XML tag for the data service element.
+         */
+        String DATASERVICE = "dataservice";
+
+        /**
+         * The XML tag for the data source element.
+         */
+        String DATASOURCE = "datasource";
+
+        /**
+         * The XML tag for the driver element.
+         */
+        String DRIVER = "driver";
+
+        /**
+         * The XML tag for the import VDB element.
+         */
+        String IMPORT_VDB = "import-vdb";
+
+        /**
+         * The name of the XML attribute containing the archive resource's path.
+         */
+        String PATH = "path";
+
+        /**
+         * The XML tag for the service VDB element.
+         */
+        String SERVICE_VDB = "service-vdb";
     }
 
     /**
-     * xml ids for datasource.tds files.
+     * XML IDs for datasource.tds files.
      */
     public interface DatasourceXml {
         String DATASOURCE_SET = "dataSourceSet";

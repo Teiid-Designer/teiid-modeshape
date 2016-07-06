@@ -1,7 +1,7 @@
 <dataSourceSet>
-     <dataSource name="jdbcSource" type="JDBC">
+     <dataSource name="booksDataSource" type="JDBC">
          <property name="jndiName">java:/jdbcSource</property>
-         <property name="className">dsClassname</property>
+         <property name="className">booksDriverClassname</property>
          <property name="prop1">one</property>
          <property name="prop2">two</property>
          <property name="prop3">three</property>
