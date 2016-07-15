@@ -1,6 +1,5 @@
 <datasources>
-     <jdbc-datasource name="jdbcSource">
-         <jndi-name>java:/jdbcSource</jndi-name>
+     <jdbc-datasource name="noDriverNameSource">
          <driver-name>dsDriver</driver-name>
          <property name="prop1">one</property>
          <property name="prop2">two</property>

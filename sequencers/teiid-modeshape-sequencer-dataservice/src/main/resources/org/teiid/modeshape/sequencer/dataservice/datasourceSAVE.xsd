@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+>
+
+    <!-- -->
+    <!-- A set of dataSource definitions. -->
+    <!-- -->
+    <xs:element name="dataSourceSet">
+        <xs:annotation>
+            <xs:documentation>A set of one or more Data Virtualization Data Sources
+            </xs:documentation>
+        </xs:annotation>
+
+        <xs:complexType>
+            <xs:choice
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+
+                <!-- JDBC data sources -->
+                <xs:element ref="jdbcDataSource"></xs:element>
+
+                <!-- Resource Adapter data sources -->
+                <xs:element ref="resourceDataSource"></xs:element>
+            </xs:choice>
+        </xs:complexType>
+
+        <!-- Make sure the DataSource name is unique across all sources -->
+        <xs:unique name="dsNameRule">
+            <xs:selector xpath="./jdbcDataSource | ./resourceDataSource" />
+            <xs:field xpath="@name" />
+        </xs:unique>
+    </xs:element>
+
+    <!-- -->
+    <!-- A JDBC Data Source instance -->
+    <!-- -->
+    <xs:element
+        name="jdbcDataSource"
+        type="jdbcDataSourceType"
+    >
+        <xs:annotation>
+            <xs:documentation>A JDBC data source.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- -->
+    <!-- A Resource Adapter Data Source instance -->
+    <!-- -->
+    <xs:element
+        name="resourceDataSource"
+        type="resourceDataSourceType"
+    >
+        <xs:annotation>
+            <xs:documentation>A Resource Adapter data source.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- -->
+    <!-- A resource adapter data source. -->
+    <!-- -->
+    <xs:complexType name="resourceDataSourceType">
+        <xs:complexContent>
+            <xs:extension base="dataSourceType">
+                <xs:sequence>
+                    <xs:element
+                        name="className"
+                        type="xs:string"
+                    >
+                        <xs:annotation>
+                            <xs:documentation>The required driver class name.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A JDBC data source. -->
+    <!-- -->
+    <xs:complexType name="jdbcDataSourceType">
+        <xs:complexContent>
+            <xs:extension base="dataSourceType" />
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A base type for a data source. -->
+    <!-- -->
+    <xs:complexType
+        name="dataSourceType"
+        abstract="true"
+    >
+        <xs:choice
+            minOccurs="2"
+            maxOccurs="3"
+        >
+            <xs:element
+                name="jndiName"
+                type="xs:string"
+            >
+                <xs:annotation>
+                    <xs:documentation>The required JNDI name.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element
+                name="driverName"
+                type="xs:string"
+            >
+                <xs:annotation>
+                    <xs:documentation>The required driver file name.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element
+                name="properties"
+                minOccurs="0"
+            >
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element
+                            name="property"
+                            type="propertyType"
+                            minOccurs="0"
+                            maxOccurs="unbounded"
+                        >
+                            <xs:annotation>
+                                <xs:documentation>One or more properties for the validation.
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+
+        <xs:attribute
+            name="name"
+            type="xs:string"
+            use="required"
+        >
+            <xs:annotation>
+                <xs:documentation>The data source name.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A non-empty property with the name attribute of the property. -->
+    <!-- -->
+    <xs:complexType name="propertyType">
+        <xs:annotation>
+            <xs:documentation>A property with name attribute.</xs:documentation>
+        </xs:annotation>
+
+        <xs:simpleContent>
+            <xs:extension base="nonEmptyStringType">
+                <xs:attribute
+                    name="name"
+                    type="xs:string"
+                    use="required"
+                >
+                    <xs:annotation>
+                        <xs:documentation>The property name.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A non-empty string. -->
+    <!-- -->
+    <xs:simpleType name="nonEmptyStringType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

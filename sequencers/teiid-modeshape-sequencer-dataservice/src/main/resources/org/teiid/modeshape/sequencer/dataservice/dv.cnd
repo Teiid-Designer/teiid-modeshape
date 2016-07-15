@@ -32,10 +32,10 @@
  * DataVirtualization DataService
  */
 [dv:dataService] > nt:unstructured, mix:referenceable
-  - dv:serviceVdb (reference) // reference to vdb:virtualDatabase
+  - dv:serviceVdb (reference) multiple // reference to vdb:virtualDatabase // Paul: include service VDBs in VDB collection
   - dv:vdbs (reference) multiple // references to dv:dataServiceVdb
   
-[dv:dataServiceVdb] > nt:unstructured, mix:referenceable
+[dv:dataServiceVdb] > nt:unstructured, mix:referenceable // Paul: not needed
   - dv:vdb (reference) // reference to a vdb:virtualDatabase
   - dv:dataSource (reference) // reference to a dv:dataSource
 
@@ -46,6 +46,7 @@
   - dv:type (string) < 'JDBC','RESOURCE'
   - dv:jndiName (string)
   - dv:className (string)
+  - dv:driverName (string)
   - dv:drivers (reference) multiple // references to dv:driver
   
 /*

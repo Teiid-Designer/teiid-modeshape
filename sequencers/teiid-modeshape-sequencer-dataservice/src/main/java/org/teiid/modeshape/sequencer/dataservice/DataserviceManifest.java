@@ -119,7 +119,7 @@ public class DataserviceManifest implements Comparable< DataserviceManifest > {
 
     void setServiceVdb( final DataserviceServiceVdb serviceVdb ) throws Exception {
         if ( this.serviceVdb != null ) {
-            throw new Exception( TeiidI18n.dataserviceVdbAlreadySest.text() );
+            throw new Exception( TeiidI18n.dataserviceVdbAlreadySet.text() );
         }
 
         this.serviceVdb = serviceVdb;
@@ -223,17 +223,12 @@ public class DataserviceManifest implements Comparable< DataserviceManifest > {
                         continue;
                     }
 
-                    throw new Exception( TeiidI18n.unhandledDatasoureEndElement.text( eventType ) );
+                    throw new Exception( TeiidI18n.unhandledDatasoureEndElement.text( elementName ) );
                 } else if ( streamReader.isCharacters() ) {
                     continue;
                 } else {
                     throw new Exception( TeiidI18n.unhandledDatasoureEventType.text( eventType ) );
                 }
-            }
-
-            // make sure there is at least one driver path
-            if ( ds.getDriverPaths().size() == 0 ) {
-                throw new Exception( TeiidI18n.notDriverPathsFound.text( ds.getPath() ) );
             }
 
             return ds;
@@ -245,8 +240,6 @@ public class DataserviceManifest implements Comparable< DataserviceManifest > {
 
             final DataserviceImportVdb importVdb = new DataserviceImportVdb( manifest );
             importVdb.setPath( findPathAttribute( streamReader ) );
-            
-            boolean foundDataSource = false;
 
             while ( streamReader.hasNext() ) {
                 final int eventType = streamReader.next();
@@ -255,7 +248,6 @@ public class DataserviceManifest implements Comparable< DataserviceManifest > {
                     final String elementName = streamReader.getLocalName();
 
                     if ( DataVirtLexicon.ManifestIds.DATASOURCE.equals( elementName ) ) {
-                        foundDataSource = true;
                         final DataSourceDescriptor ds = parsedDatasource( importVdb, streamReader );
                         importVdb.setDatasource( ds );
                     } else {
@@ -278,10 +270,6 @@ public class DataserviceManifest implements Comparable< DataserviceManifest > {
                 } else {
                     throw new Exception( TeiidI18n.unhandledImportVdbEventType.text( eventType ) );
                 }
-            }
-
-            if ( !foundDataSource ) {
-                throw new Exception( TeiidI18n.dataSourceNotFound.text( importVdb.getPath() ) );
             }
             
             return importVdb;

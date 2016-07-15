@@ -31,15 +31,17 @@ public final class TeiidI18n {
     public static I18n errorReadingDataserviceFile;
     public static I18n errorReadingDatasourceFile;
     
-    public static I18n dataserviceVdbAlreadySest;
+    public static I18n dataserviceVdbAlreadySet;
     public static I18n dataserviceVdbSequencingError;
     public static I18n dataSourceDriverSequencingError;
-    public static I18n dataSourceNotFound;
     public static I18n dataSourceNotSequenced;
+    public static I18n dataSourceParserError;
+    public static I18n dataSourceSchemaError;
     public static I18n dataSourceSequencingError;
+    public static I18n dataSourceXmlDeclarationNotParsed;
+    public static I18n dataSourceXmlEntitySkipped;
     public static I18n driverDataSourceNotFound;
     public static I18n importVdbNotSequenced;
-    public static I18n notDriverPathsFound;
     public static I18n pathAttributeNotFound;
     public static I18n serviceVdbNotFound;
     public static I18n serviceVdbNotSequenced;
@@ -47,6 +49,7 @@ public final class TeiidI18n {
     public static I18n unhandledDatasoureElement;
     public static I18n unhandledDatasoureEndElement;
     public static I18n unhandledDatasoureEventType;
+    public static I18n unhandledDatasoureStartElement;
     public static I18n unhandledImportVdbElement;
     public static I18n unhandledImportVdbEndElement;
     public static I18n unhandledImportVdbEventType;

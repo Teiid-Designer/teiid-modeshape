@@ -24,13 +24,11 @@ package org.teiid.modeshape.sequencer.dataservice;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.CheckArg;
@@ -46,8 +44,7 @@ import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 public class DatasourceSequencer extends Sequencer {
 
     private static final String[] DATASOURCE_FILE_EXTENSIONS = { ".tds" };
-    private static final Logger LOGGER = Logger.getLogger(DatasourceSequencer.class);
-
+    private static final Logger LOGGER = Logger.getLogger( DatasourceSequencer.class );
 
     /**
      * @see org.modeshape.jcr.api.sequencer.Sequencer#execute(javax.jcr.Property, javax.jcr.Node,
@@ -58,26 +55,26 @@ public class DatasourceSequencer extends Sequencer {
                             final Node outputNode,
                             final Context context ) throws Exception {
         final Binary binaryValue = inputProperty.getBinary();
-        CheckArg.isNotNull(binaryValue, "binary");
+        CheckArg.isNotNull( binaryValue, "binary" );
 
-        try (InputStream datasourceStream = binaryValue.getStream()) {
-        	DataserviceDatasource datasource = readDatasource(datasourceStream, outputNode, context);
-            if (datasource == null) {
-                throw new Exception("DatasourceSequencer.execute failed. The file cannot be read.");
+        try ( InputStream datasourceStream = binaryValue.getStream() ) {
+            DataserviceDatasource[] datasources = readDatasource( datasourceStream, outputNode, context );
+            if ( datasources == null ) {
+                throw new Exception( "DatasourceSequencer.execute failed. The file cannot be read." );
             }
-        } catch (final Exception e) {
-            throw new RuntimeException(TeiidI18n.errorReadingDatasourceFile.text(inputProperty.getPath(), e.getMessage()), e);
+        } catch ( final Exception e ) {
+            throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( inputProperty.getPath(), e.getMessage() ), e );
         }
         return true;
     }
-    
+
     /**
      * @param resourceName the name of the resource being checked (cannot be <code>null</code>)
      * @return <code>true</code> if the resource has a datasource file extension
      */
     public boolean hasDatasourceFileExtension( final String resourceName ) {
-        for (final String extension : DATASOURCE_FILE_EXTENSIONS) {
-            if (resourceName.endsWith(extension)) {
+        for ( final String extension : DATASOURCE_FILE_EXTENSIONS ) {
+            if ( resourceName.endsWith( extension ) ) {
                 return true;
             }
         }
@@ -93,47 +90,60 @@ public class DatasourceSequencer extends Sequencer {
     @Override
     public void initialize( final NamespaceRegistry registry,
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
-    	LOGGER.debug("enter initialize");
+        LOGGER.debug( "enter initialize" );
 
-    	registerNodeTypes("dv.cnd", nodeTypeManager, true);
-    	LOGGER.debug("dv.cnd loaded");
+        registerNodeTypes( "dv.cnd", nodeTypeManager, true );
+        LOGGER.debug( "dv.cnd loaded" );
 
-    	LOGGER.debug("exit initialize");
+        LOGGER.debug( "exit initialize" );
     }
 
-    protected DataserviceDatasource readDatasource(InputStream inputStream, Node outputNode, Context context) throws Exception {
-    	DataserviceDatasource datasource;
-        LOGGER.debug("----before reading datasource");
+    protected DataserviceDatasource[] readDatasource( final InputStream inputStream,
+                                                      final Node outputNode,
+                                                      final Context context ) throws Exception {
+        LOGGER.debug( "----before reading datasource" );
 
-        datasource = DataserviceDatasource.read(inputStream, context);
-        assert (datasource != null) : "datasource is null";
-
-        // Create the output node for the Datasource ...
-        outputNode.setPrimaryType(DataVirtLexicon.Datasource.NODE_TYPE);
-        outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+        final DataSourceReader reader = new DataSourceReader();
+        final DataserviceDatasource[] datasources = reader.read( inputStream );
+        assert ( datasources != null ) : "datasources is null";
         
-        outputNode.setProperty(DataVirtLexicon.Datasource.TYPE, datasource.getType().name());
-        
-        Enumeration<?> e = datasource.getProperties().propertyNames();
-
-        while (e.hasMoreElements()) {
-        	String propKey = (String) e.nextElement();
-        	// JNDI Name property
-        	if(DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP.equals(propKey)) {
-        		outputNode.setProperty(DataVirtLexicon.Datasource.JNDI_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP));
-        	// Classname property
-        	} else if (DataVirtLexicon.DatasourceXml.CLASSNAME_PROP.equals(propKey)) {
-        		outputNode.setProperty(DataVirtLexicon.Datasource.CLASS_NAME, datasource.getPropertyValue(DataVirtLexicon.DatasourceXml.CLASSNAME_PROP));
-        	// arbitrary source property
-        	} else {
-        		outputNode.setProperty(propKey, datasource.getPropertyValue(propKey));
-        	}
+        for ( final DataserviceDatasource ds : datasources ) {
+            
         }
 
-        LOGGER.debug(">>>>done reading datasource xml\n\n");
+        // Create the output node for each data source
+        outputNode.getSession().move( outputNode.getPath(), ( outputNode.getParent().getPath() + '/' + datasource.getName() ) );
+        outputNode.setPrimaryType( DataVirtLexicon.Datasource.NODE_TYPE );
+        outputNode.addMixin( JcrConstants.MIX_REFERENCEABLE );
+
+        outputNode.setProperty( DataVirtLexicon.Datasource.TYPE, datasource.getType().name() );
+
+        Enumeration< ? > e = datasource.getProperties().propertyNames();
+
+        while ( e.hasMoreElements() ) {
+            String propKey = ( String )e.nextElement();
+            // JNDI Name property
+            if ( DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP.equals( propKey ) ) {
+                outputNode.setProperty( DataVirtLexicon.Datasource.JNDI_NAME,
+                                        datasource.getPropertyValue( DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP ) );
+                // Driver Name property
+            } else if ( DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP.equals( propKey ) ) {
+                outputNode.setProperty( DataVirtLexicon.Datasource.DRIVER_NAME,
+                                        datasource.getPropertyValue( DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP ) );
+                // Classname property
+            } else if ( DataVirtLexicon.DatasourceXml.CLASSNAME_PROP.equals( propKey ) ) {
+                outputNode.setProperty( DataVirtLexicon.Datasource.CLASS_NAME,
+                                        datasource.getPropertyValue( DataVirtLexicon.DatasourceXml.CLASSNAME_PROP ) );
+                // arbitrary source property
+            } else {
+                outputNode.setProperty( propKey, datasource.getPropertyValue( propKey ) );
+            }
+        }
+
+        LOGGER.debug( ">>>>done reading datasource xml\n\n" );
         return datasource;
     }
-    
+
     public boolean sequenceDatasource( final InputStream datasourceStream,
                                        final Node datasourceOutputNode ) throws Exception {
         final DataserviceDatasource ds = readDatasource( datasourceStream, datasourceOutputNode, null );
@@ -141,7 +151,7 @@ public class DatasourceSequencer extends Sequencer {
         if ( ds == null ) {
             throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( datasourceOutputNode.getPath() ) );
         }
-        
+
         return true;
     }
 

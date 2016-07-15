@@ -58,6 +58,7 @@ public final class DatasourceSequencerTest extends AbstractSequencerTest {
         // check properties
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.TYPE).getString(), is("RESOURCE"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.CLASS_NAME).getString(), is("dsClassname"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.DRIVER_NAME).getString(), is("dsDriver"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.JNDI_NAME).getString(), is("java:/jndiName"));
         assertThat(outputNode.getProperty("prop2").getString(), is("prop2Value"));
         assertThat(outputNode.getProperty("prop1").getString(), is("prop1Value"));
@@ -73,6 +74,7 @@ public final class DatasourceSequencerTest extends AbstractSequencerTest {
         // check properties
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.TYPE).getString(), is("JDBC"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.CLASS_NAME).getString(), is("dsClassname"));
+        assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.DRIVER_NAME).getString(), is("dsDriver"));
         assertThat(outputNode.getProperty(DataVirtLexicon.Datasource.JNDI_NAME).getString(), is("java:/jdbcSource"));
         assertThat(outputNode.getProperty("prop1").getString(), is("one"));
         assertThat(outputNode.getProperty("prop2").getString(), is("two"));

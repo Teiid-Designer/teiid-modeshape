@@ -32,16 +32,6 @@ import org.junit.Test;
 public final class DataserviceManifestTest {
     
     @Test( expected = Exception.class )
-    public void shouldFailIfImportVdbMissingDataSource() throws Exception {
-        DataserviceManifest.read( streamFor( "/dataservice/manifestMissingDataSource.xml" ) );
-    }
-    
-    @Test( expected = Exception.class )
-    public void shouldFailIfImportVdbMissingDriver() throws Exception {
-        DataserviceManifest.read( streamFor( "/dataservice/manifestMissingDriver.xml" ) );
-    }
-    
-    @Test( expected = Exception.class )
     public void shouldFailIfMissingServiceVdb() throws Exception {
         DataserviceManifest.read( streamFor( "/dataservice/manifestMissingServiceVdb.xml" ) );
     }

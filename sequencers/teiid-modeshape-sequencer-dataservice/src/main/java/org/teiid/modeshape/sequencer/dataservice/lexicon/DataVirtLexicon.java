@@ -82,6 +82,11 @@ public interface DataVirtLexicon {
          * The name of the property whose value is the Java class name of the driver.
          */
         String CLASS_NAME = PREFIX + ":className";
+        
+        /**
+         * The name of the property whose value is the name of the file where the driver class is found.
+         */
+        String DRIVER_NAME = PREFIX + ":driverName";
 
         /**
          * The name of the multi-valued property whose value contains the references to its driver files.
@@ -158,14 +163,15 @@ public interface DataVirtLexicon {
      * XML IDs for datasource.tds files.
      */
     public interface DatasourceXml {
-        String DATASOURCE_SET = "dataSourceSet";
-        String DATASOURCE = "dataSource";
+        String CLASSNAME = "driver-class";
+        String DATASOURCE_SET = "datasources";
+        String DRIVER_NAME = "driver-name";
+        String JDBC_DATA_SOURCE = "jdbc-datasource";
+        String JNDI_NAME = "jndi-name";
+        String NAME_ATTR = "name";
+        String RESOURCE_DATA_SOURCE = "resource-datasource";
         String PROPERTY = "property";
         String TYPE_ATTR = "type";
-        String NAME_ATTR = "name";
-        String JNDI_NAME_PROP = "jndiName";
-        String DRIVER_NAME_PROP = "driverName";
-        String CLASSNAME_PROP = "className";
     }
    
 }
