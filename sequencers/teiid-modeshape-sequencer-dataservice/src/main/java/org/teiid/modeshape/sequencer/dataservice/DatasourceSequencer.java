@@ -23,7 +23,7 @@ package org.teiid.modeshape.sequencer.dataservice;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
+import java.util.Properties;
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
@@ -32,7 +32,6 @@ import javax.jcr.RepositoryException;
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.CheckArg;
-import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.modeshape.jcr.api.sequencer.Sequencer;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
@@ -57,14 +56,16 @@ public class DatasourceSequencer extends Sequencer {
         final Binary binaryValue = inputProperty.getBinary();
         CheckArg.isNotNull( binaryValue, "binary" );
 
-        try ( InputStream datasourceStream = binaryValue.getStream() ) {
-            DataserviceDatasource[] datasources = readDatasource( datasourceStream, outputNode, context );
+        try ( final InputStream datasourceStream = binaryValue.getStream() ) {
+            final DataserviceDatasource datasources = readDatasource( datasourceStream, outputNode, context );
+            
             if ( datasources == null ) {
-                throw new Exception( "DatasourceSequencer.execute failed. The file cannot be read." );
+                throw new Exception( "DatasourceSequencer.execute failed. The file cannot be read." ); // TODO i18n
             }
         } catch ( final Exception e ) {
             throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( inputProperty.getPath(), e.getMessage() ), e );
         }
+        
         return true;
     }
 
@@ -98,45 +99,41 @@ public class DatasourceSequencer extends Sequencer {
         LOGGER.debug( "exit initialize" );
     }
 
-    protected DataserviceDatasource[] readDatasource( final InputStream inputStream,
+    protected DataserviceDatasource readDatasource( final InputStream inputStream,
                                                       final Node outputNode,
-                                                      final Context context ) throws Exception {
+                                                    final Context context ) throws Exception {
         LOGGER.debug( "----before reading datasource" );
 
         final DataSourceReader reader = new DataSourceReader();
-        final DataserviceDatasource[] datasources = reader.read( inputStream );
-        assert ( datasources != null ) : "datasources is null";
-        
-        for ( final DataserviceDatasource ds : datasources ) {
-            
-        }
+        final DataserviceDatasource datasource = reader.read( inputStream );
+        assert ( datasource != null ) : "datasources is null";
 
         // Create the output node for each data source
         outputNode.getSession().move( outputNode.getPath(), ( outputNode.getParent().getPath() + '/' + datasource.getName() ) );
         outputNode.setPrimaryType( DataVirtLexicon.Datasource.NODE_TYPE );
-        outputNode.addMixin( JcrConstants.MIX_REFERENCEABLE );
-
         outputNode.setProperty( DataVirtLexicon.Datasource.TYPE, datasource.getType().name() );
 
-        Enumeration< ? > e = datasource.getProperties().propertyNames();
+        // JNDI name
+        if ( datasource.getJndiName() != null ) {
+            outputNode.setProperty( DataVirtLexicon.Datasource.JNDI_NAME, datasource.getJndiName() );
+        }
 
-        while ( e.hasMoreElements() ) {
-            String propKey = ( String )e.nextElement();
-            // JNDI Name property
-            if ( DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP.equals( propKey ) ) {
-                outputNode.setProperty( DataVirtLexicon.Datasource.JNDI_NAME,
-                                        datasource.getPropertyValue( DataVirtLexicon.DatasourceXml.JNDI_NAME_PROP ) );
-                // Driver Name property
-            } else if ( DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP.equals( propKey ) ) {
-                outputNode.setProperty( DataVirtLexicon.Datasource.DRIVER_NAME,
-                                        datasource.getPropertyValue( DataVirtLexicon.DatasourceXml.DRIVER_NAME_PROP ) );
-                // Classname property
-            } else if ( DataVirtLexicon.DatasourceXml.CLASSNAME_PROP.equals( propKey ) ) {
-                outputNode.setProperty( DataVirtLexicon.Datasource.CLASS_NAME,
-                                        datasource.getPropertyValue( DataVirtLexicon.DatasourceXml.CLASSNAME_PROP ) );
-                // arbitrary source property
-            } else {
-                outputNode.setProperty( propKey, datasource.getPropertyValue( propKey ) );
+        // driver name
+        if ( datasource.getDriverName() != null ) {
+            outputNode.setProperty( DataVirtLexicon.Datasource.DRIVER_NAME, datasource.getDriverName() );
+        }
+
+        // class name
+        if ( datasource.getClassName() != null ) {
+            outputNode.setProperty( DataVirtLexicon.Datasource.CLASS_NAME, datasource.getClassName() );
+        }
+
+        // customer properties
+        final Properties props = datasource.getProperties();
+
+        if ( !props.isEmpty() ) {
+            for ( final String prop : props.stringPropertyNames() ) {
+                outputNode.setProperty( prop, props.getProperty( prop ) );
             }
         }
 

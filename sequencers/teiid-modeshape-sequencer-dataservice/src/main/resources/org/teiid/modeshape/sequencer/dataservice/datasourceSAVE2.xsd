@@ -6,6 +6,36 @@
 >
 
     <!-- -->
+    <!-- A set of dataSource definitions. -->
+    <!-- -->
+    <xs:element name="datasources">
+        <xs:annotation>
+            <xs:documentation>A set of one or more Data Virtualization Data Sources
+            </xs:documentation>
+        </xs:annotation>
+
+        <xs:complexType>
+            <xs:choice
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+
+                <!-- JDBC data sources -->
+                <xs:element ref="jdbc-datasource"></xs:element>
+
+                <!-- Resource Adapter data sources -->
+                <xs:element ref="resource-datasource"></xs:element>
+            </xs:choice>
+        </xs:complexType>
+
+        <!-- Make sure the DataSource name is unique across all sources -->
+        <xs:unique name="dsNameRule">
+            <xs:selector xpath="./jdbc-datasource | ./resource-datasource" />
+            <xs:field xpath="@name" />
+        </xs:unique>
+    </xs:element>
+
+    <!-- -->
     <!-- A JDBC Data Source instance -->
     <!-- -->
     <xs:element

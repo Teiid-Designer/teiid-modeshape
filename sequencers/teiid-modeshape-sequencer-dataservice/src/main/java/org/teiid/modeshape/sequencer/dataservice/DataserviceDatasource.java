@@ -21,17 +21,9 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
-import java.io.InputStream;
 import java.util.Properties;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamReader;
-
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.CheckArg;
-import org.modeshape.jcr.api.sequencer.Sequencer.Context;
-import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 
 /**
  * The POJO for the Datasource file.
@@ -78,12 +70,6 @@ public class DataserviceDatasource implements Comparable<DataserviceDatasource> 
      */
     public DataserviceDatasource( ) {
     	this.props.clear();
-    }
-
-    public static DataserviceDatasource read( final InputStream stream,
-    		final Context context ) throws Exception {
-
-    	return new Reader().read(stream, context);
     }
 
     /**
@@ -159,6 +145,9 @@ public class DataserviceDatasource implements Comparable<DataserviceDatasource> 
     	return this.props.getProperty(propName);
     }
     
+    /**
+     * @return the custom properties (never <code>null</code> but can be empty)
+     */
     public Properties getProperties() {
     	return this.props;
     }

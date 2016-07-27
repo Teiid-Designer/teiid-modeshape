@@ -34,6 +34,8 @@
 [dv:dataService] > nt:unstructured, mix:referenceable
   - dv:serviceVdb (reference) multiple // reference to vdb:virtualDatabase // Paul: include service VDBs in VDB collection
   - dv:vdbs (reference) multiple // references to dv:dataServiceVdb
+  - dv:dataSources (reference) multiple // reference to a dv:dataSource
+  - dv:drivers (reference) multiple // references to dv:driver
   
 [dv:dataServiceVdb] > nt:unstructured, mix:referenceable // Paul: not needed
   - dv:vdb (reference) // reference to a vdb:virtualDatabase

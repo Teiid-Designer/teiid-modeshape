@@ -47,11 +47,6 @@ public final class DataSourceReaderTest {
     }
 
     @Test( expected = Exception.class )
-    public void shouldFailReadingDataSourcesWithSameName() throws Exception {
-        this.reader.read( getStream( "datasource/duplicateNameDatasources.tds" ) );
-    }
-
-    @Test( expected = Exception.class )
     public void shouldFailReadingDataSourceWithoutClassName() throws Exception {
         this.reader.read( getStream( "datasource/missingClassNameDatasource.tds" ) );
     }
@@ -68,11 +63,8 @@ public final class DataSourceReaderTest {
 
     @Test
     public void shouldParseDataSourceWithoutProperties() throws Exception {
-        final DataserviceDatasource[] datasources = this.reader.read( getStream( "datasource/noPropsDatasource.tds" ) );
-        assertThat( datasources, is( notNullValue() ) );
-        assertThat( datasources.length, is( 1 ) );
-
-        final DataserviceDatasource ds = datasources[ 0 ];
+        final DataserviceDatasource ds = this.reader.read( getStream( "datasource/noPropsDatasource.tds" ) );
+        assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "noPropsSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
         assertThat( ds.getJndiName(), is( "java:/jdbcSource" ) );
@@ -83,11 +75,8 @@ public final class DataSourceReaderTest {
 
     @Test
     public void shouldParseJdbcDataSource() throws Exception {
-        final DataserviceDatasource[] datasources = this.reader.read( getStream( "datasource/jdbcDatasource.tds" ) );
-        assertThat( datasources, is( notNullValue() ) );
-        assertThat( datasources.length, is( 1 ) );
-
-        final DataserviceDatasource ds = datasources[ 0 ];
+        final DataserviceDatasource ds = this.reader.read( getStream( "datasource/jdbcDatasource.tds" ) );
+        assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "jdbcSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
         assertThat( ds.getJndiName(), is( "java:/jdbcSource" ) );
@@ -103,19 +92,9 @@ public final class DataSourceReaderTest {
     }
 
     @Test
-    public void shouldParseMultipleDataSources() throws Exception {
-        final DataserviceDatasource[] datasources = this.reader.read( getStream( "datasource/multipleDatasources.tds" ) );
-        assertThat( datasources, is( notNullValue() ) );
-        assertThat( datasources.length, is( 3 ) );
-    }
-
-    @Test
     public void shouldParseResourceAdapterDataSource() throws Exception {
-        final DataserviceDatasource[] datasources = this.reader.read( getStream( "datasource/raDatasource.tds" ) );
-        assertThat( datasources, is( notNullValue() ) );
-        assertThat( datasources.length, is( 1 ) );
-
-        final DataserviceDatasource ds = datasources[ 0 ];
+        final DataserviceDatasource ds = this.reader.read( getStream( "datasource/raDatasource.tds" ) );
+        assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "raSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
         assertThat( ds.getJndiName(), is( "java:/jndiName" ) );

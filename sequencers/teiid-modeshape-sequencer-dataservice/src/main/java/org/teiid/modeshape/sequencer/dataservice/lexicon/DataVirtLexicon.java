@@ -47,6 +47,17 @@ public interface DataVirtLexicon {
         String NODE_TYPE = PREFIX + ":dataService";
 
         /**
+         * The name of the multi-valued property whose value contains the references to data sources not defined within a VDB.
+         */
+        String DATA_SOURCES = PREFIX + ":dataSources";
+
+        /**
+         * The name of the multi-valued property whose value contains the references to driver files not defined within a data
+         * source.
+         */
+        String DRIVERS = PREFIX + ":drivers";
+
+        /**
          * The name of the property whose value contains the reference to the service VDB.
          */
         String SERVICE_VDB = PREFIX + ":serviceVdb";
@@ -57,7 +68,7 @@ public interface DataVirtLexicon {
         String VDBS = PREFIX + ":vdbs";
 
     }
-    
+
     /**
      * JCR identifiers relating to the Datasource.
      */
@@ -82,7 +93,7 @@ public interface DataVirtLexicon {
          * The name of the property whose value is the Java class name of the driver.
          */
         String CLASS_NAME = PREFIX + ":className";
-        
+
         /**
          * The name of the property whose value is the name of the file where the driver class is found.
          */
@@ -94,7 +105,7 @@ public interface DataVirtLexicon {
         String DRIVERS = PREFIX + ":drivers";
 
     }
-    
+
     public interface DataserviceVdb {
 
         /**
@@ -113,7 +124,7 @@ public interface DataVirtLexicon {
         String DATA_SOURCE = PREFIX + ":dataSource";
 
     }
-    
+
     public interface DatasourceDriver {
 
         /**
@@ -122,7 +133,7 @@ public interface DataVirtLexicon {
         String NODE_TYPE = PREFIX + ":driver";
 
     }
-    
+
     /**
      * Manifest IDs for the Dataservice archive.
      */
@@ -164,7 +175,6 @@ public interface DataVirtLexicon {
      */
     public interface DatasourceXml {
         String CLASSNAME = "driver-class";
-        String DATASOURCE_SET = "datasources";
         String DRIVER_NAME = "driver-name";
         String JDBC_DATA_SOURCE = "jdbc-datasource";
         String JNDI_NAME = "jndi-name";
@@ -173,5 +183,5 @@ public interface DataVirtLexicon {
         String PROPERTY = "property";
         String TYPE_ATTR = "type";
     }
-   
+
 }

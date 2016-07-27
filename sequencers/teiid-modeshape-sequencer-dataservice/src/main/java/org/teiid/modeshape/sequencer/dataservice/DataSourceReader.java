@@ -56,7 +56,6 @@ public final class DataSourceReader extends DefaultHandler {
 
     private final StringBuilder className;
     private DataserviceDatasource dataSource;
-    private final List< DataserviceDatasource > dataSources;
     private final StringBuilder driverName;
     private final Stack< String > elements;
     private final List< String > errors;
@@ -71,7 +70,6 @@ public final class DataSourceReader extends DefaultHandler {
 
     public DataSourceReader() throws Exception {
         this.className = new StringBuilder();
-        this.dataSources = new ArrayList< DataserviceDatasource >();
         this.driverName = new StringBuilder();
         this.elements = new Stack< String >();
         this.errors = new ArrayList< String >();
@@ -119,7 +117,6 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     private void clearState() {
-        this.dataSources.clear();
         this.elements.clear();
         this.errors.clear();
         this.fatals.clear();
@@ -138,14 +135,10 @@ public final class DataSourceReader extends DefaultHandler {
     public void endElement( final String uri,
                             final String localName,
                             final String qName ) throws SAXException {
-        if ( DataVirtLexicon.DatasourceXml.DATASOURCE_SET.equals( localName ) ) {
-            // nothing to do
-        } else if ( DataVirtLexicon.DatasourceXml.JDBC_DATA_SOURCE.equals( localName ) ) {
-            this.dataSources.add( this.dataSource );
-            LOGGER.debug( "adding data source: " + this.dataSource.getName() );
+        if ( DataVirtLexicon.DatasourceXml.JDBC_DATA_SOURCE.equals( localName ) ) {
+            // done
         } else if ( DataVirtLexicon.DatasourceXml.RESOURCE_DATA_SOURCE.equals( localName ) ) {
-            this.dataSources.add( this.dataSource );
-            LOGGER.debug( "adding data source: " + this.dataSource.getName() );
+            // done
         } else if ( DataVirtLexicon.DatasourceXml.JNDI_NAME.equals( localName ) ) {
             if ( this.jndiName.length() != 0 ) {
                 this.dataSource.setJndiName( this.jndiName.toString() );
@@ -205,10 +198,10 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     /**
-     * @return the data sources found in the input stream (never <code>null</code>)
+     * @return the data source defined in the input stream (<code>null</code> until {@link #read(InputStream)} is called)
      */
-    public DataserviceDatasource[] getDatasources() {
-        return this.dataSources.toArray( new DataserviceDatasource[ this.dataSources.size() ] );
+    public DataserviceDatasource getDatasource() {
+        return this.dataSource;
     }
 
     /**
@@ -269,10 +262,10 @@ public final class DataSourceReader extends DefaultHandler {
 
     /**
      * @param datasourcesStream the input stream being processed (cannot be <code>null</code>)
-     * @return the data sources found in the stream (never <code>null</code>)
+     * @return the data source defined in the stream (never <code>null</code>)
      * @throws Exception if an error occurs
      */
-    public DataserviceDatasource[] read( final InputStream datasourcesStream ) throws Exception {
+    public DataserviceDatasource read( final InputStream datasourcesStream ) throws Exception {
         LOGGER.debug( "start data sources read" );
         clearState(); // make sure state is clear if read is called multiple times
 
@@ -294,7 +287,7 @@ public final class DataSourceReader extends DefaultHandler {
         // parse
         this.parser.parse( new ByteArrayInputStream( content ), this );
         LOGGER.debug( "finished data sources read" );
-        return getDatasources();
+        return this.dataSource;
     }
 
     /**
@@ -321,9 +314,7 @@ public final class DataSourceReader extends DefaultHandler {
 
         this.elements.push( localName );
 
-        if ( DataVirtLexicon.DatasourceXml.DATASOURCE_SET.equals( localName ) ) {
-            this.dataSources.clear();
-        } else if ( DataVirtLexicon.DatasourceXml.JDBC_DATA_SOURCE.equals( localName ) ) {
+        if ( DataVirtLexicon.DatasourceXml.JDBC_DATA_SOURCE.equals( localName ) ) {
             clearDataSourceState();
             this.dataSource.setType( Type.JDBC );
             final String dsName = attributes.getValue( DataVirtLexicon.DatasourceXml.NAME_ATTR );
