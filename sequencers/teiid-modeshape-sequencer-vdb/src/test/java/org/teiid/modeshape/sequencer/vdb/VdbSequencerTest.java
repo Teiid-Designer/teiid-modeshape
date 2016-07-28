@@ -23,27 +23,24 @@ package org.teiid.modeshape.sequencer.vdb;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Value;
-
 import org.junit.Test;
+import org.modeshape.jcr.api.JcrConstants;
+import org.modeshape.jcr.api.observation.Event;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
 import org.teiid.modeshape.sequencer.vdb.lexicon.CoreLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.RelationalLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.TransformLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 
-/**
- *
- */
-public class VdbSequencerTest extends AbstractSequencerTest {
+public final class VdbSequencerTest extends AbstractSequencerTest {
 
     @Override
     protected InputStream getRepositoryConfigStream() {
@@ -58,6 +55,87 @@ public class VdbSequencerTest extends AbstractSequencerTest {
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/relational.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/transformation.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/vdb.cnd");
+    }
+
+    @Test
+    public void shouldFailToSequenceVdbWhenDdlFileIsMissing() throws Exception {
+        createNodeWithContentFromFile( "missing-ddl-file.vdb", "vdb/missing-ddl-file.vdb" );
+        final Node outputNode = getOutputNode( this.rootNode, "vdbs/missing-ddl-file.vdb", 5 );
+        assertNull( outputNode );
+        assertThat( this.sequencingEvents.size(), is( 1 ) );
+        
+        final Event event = this.sequencingEvents.values().iterator().next();
+        assertThat( event.getType(), is( Event.Sequencing.NODE_SEQUENCING_FAILURE ) );
+    }
+
+    @Test
+    public void shouldSequenceVdbWhenDdlFileIsNotReferenced() throws Exception {
+        createNodeWithContentFromFile( "ddl-file-not-referenced.vdb", "vdb/ddl-file-not-referenced.vdb" );
+        final Node outputNode = getOutputNode( this.rootNode, "vdbs/ddl-file-not-referenced.vdb" );
+        assertNotNull( outputNode );
+    }
+    
+    @Test
+    public void shouldSequenceDdlFileVdb() throws Exception {
+        createNodeWithContentFromFile( "ddl-file.vdb", "vdb/ddl-file.vdb" );
+        final Node outputNode = getOutputNode( this.rootNode, "vdbs/ddl-file.vdb" );
+        assertNotNull( outputNode );
+        assertThat( outputNode.getPrimaryNodeType().getName(), is( VdbLexicon.Vdb.VIRTUAL_DATABASE ) );
+
+        { // make sure model definition was set using content of DDL file
+            final Node modelNode = outputNode.getNode( "portfolio" );
+            assertThat( modelNode.getPrimaryNodeType().getName(), is( VdbLexicon.Vdb.DECLARATIVE_MODEL ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.METADATA_TYPE ).getString(), is( "DDL-FILE" ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.DDL_FILE_ENTRY_PATH ).getString(), is( "/test.ddl" ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.MODEL_DEFINITION ).getString(),
+                        is( "CREATE VIEW stock ( symbol varchar, price decimal ) AS select null, null; CREATE function func (val string) returns integer options (JAVA_CLASS 'org.teiid.arquillian.SampleFunctions', JAVA_METHOD 'doSomething');" ) );
+        }
+
+        { // make sure /lib jar was uploaded
+            assertThat( outputNode.hasNode( VdbLexicon.Vdb.RESOURCES ), is( true ) );
+            assertThat( outputNode.getNode( VdbLexicon.Vdb.RESOURCES ).getNodes().getSize(), is( 1L ) );
+
+            final Node resourceNode = outputNode.getNode( VdbLexicon.Vdb.RESOURCES ).getNodes().nextNode();
+            assertThat( resourceNode.getPrimaryNodeType().getName(), is( JcrConstants.NT_FILE ) );
+            assertThat( resourceNode.getName(), is( "udf.jar" ) );
+            assertThat( resourceNode.getNodes().getSize(), is( 1L ) );
+        }
+    }
+    
+    @Test
+    public void shouldSequenceMultipleDdlFileVdb() throws Exception {
+        createNodeWithContentFromFile( "multiple-model-ddl-files.vdb", "vdb/multiple-model-ddl-files.vdb" );
+        final Node outputNode = getOutputNode( this.rootNode, "vdbs/multiple-model-ddl-files.vdb" );
+        assertNotNull( outputNode );
+        assertThat( outputNode.getPrimaryNodeType().getName(), is( VdbLexicon.Vdb.VIRTUAL_DATABASE ) );
+
+        { // make sure first model model definition was set using content of DDL file
+            final Node modelNode = outputNode.getNode( "modelOne" );
+            assertThat( modelNode.getPrimaryNodeType().getName(), is( VdbLexicon.Vdb.DECLARATIVE_MODEL ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.METADATA_TYPE ).getString(), is( "DDL-FILE" ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.DDL_FILE_ENTRY_PATH ).getString(), is( "/modelOne.ddl" ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.MODEL_DEFINITION ).getString(),
+                        is( "CREATE VIEW stock ( symbol varchar, price decimal ) AS select null, null; CREATE function func (val string) returns integer options (JAVA_CLASS 'org.teiid.arquillian.SampleFunctions', JAVA_METHOD 'doSomething');" ) );
+        }
+
+        { // make sure second model model definition was set using content of DDL file
+            final Node modelNode = outputNode.getNode( "modelTwo" );
+            assertThat( modelNode.getPrimaryNodeType().getName(), is( VdbLexicon.Vdb.DECLARATIVE_MODEL ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.METADATA_TYPE ).getString(), is( "DDL-FILE" ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.DDL_FILE_ENTRY_PATH ).getString(), is( "/ddl/modelTwo.ddl" ) );
+            assertThat( modelNode.getProperty( VdbLexicon.Model.MODEL_DEFINITION ).getString(),
+                        is( "CREATE VIEW stock ( symbol varchar, price decimal ) AS select null, null; CREATE function func (val string) returns integer options (JAVA_CLASS 'org.teiid.arquillian.SampleFunctions', JAVA_METHOD 'doSomething');" ) );
+        }
+
+        { // make sure /lib jar was uploaded
+            assertThat( outputNode.hasNode( VdbLexicon.Vdb.RESOURCES ), is( true ) );
+            assertThat( outputNode.getNode( VdbLexicon.Vdb.RESOURCES ).getNodes().getSize(), is( 1L ) );
+
+            final Node resourceNode = outputNode.getNode( VdbLexicon.Vdb.RESOURCES ).getNodes().nextNode();
+            assertThat( resourceNode.getPrimaryNodeType().getName(), is( JcrConstants.NT_FILE ) );
+            assertThat( resourceNode.getName(), is( "udf.jar" ) );
+            assertThat( resourceNode.getNodes().getSize(), is( 1L ) );
+        }
     }
 
     @Test

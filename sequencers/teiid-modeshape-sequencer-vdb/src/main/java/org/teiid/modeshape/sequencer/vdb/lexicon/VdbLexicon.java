@@ -165,6 +165,7 @@ public interface VdbLexicon {
     public interface Model {
         String BUILT_IN = PREFIX + ":builtIn";
         String CHECKSUM = PREFIX + ":checksum";
+        String DDL_FILE_ENTRY_PATH = PREFIX + ":ddlFileEntryPath";
         String DESCRIPTION = PREFIX + ":description";
         String INDEX_NAME = PREFIX + ":indexName";
         String MARKERS = PREFIX + ":markers";
@@ -211,6 +212,7 @@ public interface VdbLexicon {
         String NAME = PREFIX + ":name";
         String ORIGINAL_FILE = PREFIX + ":originalFile";
         String PREVIEW = PREFIX + ":preview";
+        String RESOURCES = PREFIX + ":resources";
         String SOURCES = PREFIX + ":sources";
         String TRANSLATORS = PREFIX + ":translators";
         String VERSION = PREFIX + ":version";

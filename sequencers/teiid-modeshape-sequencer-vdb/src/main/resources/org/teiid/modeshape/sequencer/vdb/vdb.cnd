@@ -45,6 +45,7 @@
  + vdb:dataRoles (vdb:dataRoles) copy
  + vdb:entries (vdb:entries) copy
  + vdb:importVdbs (vdb:importVdbs) copy
+ + vdb:resources (vdb:resources) copy // udf jars or other files contained in the VDB /lib directory
 
 [vdb:abstractModel] mixin
  - vdb:description (string)
@@ -63,6 +64,7 @@
  - mmcore:modelType (string) = 'PHYSICAL' autocreated < 'PHYSICAL','VIRTUAL'
  - vdb:metadataType (string) = 'DDL' autocreated
  - vdb:modelDefinition (string)
+ - vdb:ddlFileEntryPath (string) // if DDL-FILE metadata type, the path in the VDB of the DDL file
 
 [vdb:sources] > nt:unstructured
  + vdb:source (vdb:source) = vdb:source copy sns
@@ -106,6 +108,9 @@
 [vdb:entry] > nt:unstructured
  - vdb:path (string) mandatory
  - vdb:description (string)
+
+[vdb:resources] > nt:unstructured
+ + * (nt:file) copy
 
 [vdb:permissions] > nt:unstructured
  + vdb:permission (vdb:permission) copy

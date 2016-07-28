@@ -21,10 +21,18 @@
  */
 package org.teiid.modeshape.sequencer.vdb;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +41,7 @@ import java.util.zip.ZipInputStream;
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import org.modeshape.common.annotation.ThreadSafe;
@@ -57,6 +66,8 @@ import org.teiid.modeshape.sequencer.vdb.model.ReferenceResolver;
 @ThreadSafe
 public class VdbSequencer extends Sequencer {
 
+    private static final String DDL_FILE_EXT = ".ddl";
+    private static final String LIB_FOLDER = "lib/";
     protected static final Logger LOGGER = Logger.getLogger(VdbSequencer.class);
     private static final String MANIFEST_FILE = "META-INF/vdb.xml";
     private static final Pattern VERSION_REGEX = Pattern.compile("(.*)[.]\\s*[+-]?([0-9]+)\\s*$");
@@ -96,28 +107,33 @@ public class VdbSequencer extends Sequencer {
 
         final Binary binaryValue = inputProperty.getBinary();
         CheckArg.isNotNull(binaryValue, "binary");
+        
+        VdbManifest manifest = null;
+        boolean processDdlFiles = false;
+        boolean processLibFiles = false;
+        final Collection< String > ddlFileModelsFound = new ArrayList<>();
 
         try (final ZipInputStream vdbStream = new ZipInputStream(binaryValue.getStream())) {
-            VdbManifest manifest = null;
             ZipEntry entry = null;
-        ReferenceResolver resolver = new ReferenceResolver();
+            ReferenceResolver resolver = new ReferenceResolver();
+            
             while ((entry = vdbStream.getNextEntry()) != null) {
                 String entryName = entry.getName();
 
                 if (entryName.endsWith(MANIFEST_FILE)) {
                     manifest = readManifest(binaryValue, vdbStream, outputNode, context);
                 } else if (!entry.isDirectory() && this.modelSequencer.hasModelFileExtension(entryName)) {
-                    LOGGER.debug("----before reading model '{0}'", entryName);
+                    LOGGER.debug("before reading model '{0}'", entryName);
 
                     // vdb.xml file should be read first in stream so manifest model should be available
                     if (manifest == null) {
-                        throw new Exception("VDB manifest file has not been read");
+                        throw new Exception( TeiidI18n.missingVdbManifest.text( outputNode.getPath() ) );
                     }
 
                     final VdbModel vdbModel = manifest.getModel(entryName);
 
                     if (vdbModel == null) {
-                        throw new Exception("Model '" + entryName + "' was not found");
+                        throw new Exception( TeiidI18n.missingVdbModel.text( entryName, outputNode.getPath() ) );
                     }
 
                     // call sequencer here after creating node for last part of entry name
@@ -136,15 +152,73 @@ public class VdbSequencer extends Sequencer {
                     } else {
                         LOGGER.debug(">>>>done sequencing model '{0}'\n\n", entryName);
                     }
+                } else if ( isDdlFile( entryName ) ) {
+                    if ( manifest == null ) {
+                        processDdlFiles = true;
+                    } else if ( !processDdlFiles ) {
+                        final String modelName = sequenceDdlFile( vdbStream, entryName, manifest, outputNode );
+
+                        if ( !StringUtil.isBlank( modelName ) ) {
+                            ddlFileModelsFound.add( modelName );
+                        }
+                    }
+                } else if ( !entry.isDirectory() && entryName.startsWith( LIB_FOLDER ) ) {
+                    if ( manifest == null ) {
+                        processLibFiles = true;
+                    } else if ( !processLibFiles ) {
+                        sequenceLibResource( vdbStream, entryName, outputNode );
+                    }
                 } else {
-                    LOGGER.debug("----ignoring resource '{0}'", entryName);
+                    LOGGER.debug( "ignoring resource '{0}'", entryName );
                 }
             }
-
-            return true;
         } catch (final Exception e) {
             throw new RuntimeException(TeiidI18n.errorReadingVdbFile.text(inputProperty.getPath(), e.getMessage()), e);
         }
+        
+        // make sure there was a manifest
+        if ( manifest == null ) {
+            throw new Exception( TeiidI18n.missingVdbManifest.text( outputNode.getPath() ) );
+        }
+        
+        // open zip again to process lib resources and DDL files if necessary
+        if ( processLibFiles || processDdlFiles ) {
+            LOGGER.debug( "second pass: /lib resources = {0}, DDL files = {1}", processLibFiles, processDdlFiles );
+
+            try ( final ZipInputStream zis = new ZipInputStream( binaryValue.getStream() ) ) {
+                ZipEntry entry = null;
+
+                while ( ( entry = zis.getNextEntry() ) != null ) {
+                    final String entryName = entry.getName();
+
+                    if ( !entry.isDirectory() ) {
+                        if ( processLibFiles && entryName.startsWith( LIB_FOLDER ) ) {
+                            sequenceLibResource( zis, entryName, outputNode );
+                        } else if ( processDdlFiles && isDdlFile( entryName ) ) {
+                            final String modelName = sequenceDdlFile( zis, entryName, manifest, outputNode );
+                            
+                            if ( !StringUtil.isBlank( modelName ) ) {
+                                ddlFileModelsFound.add( modelName );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // make sure all DDL-FILE models have found there DDL
+        for ( final VdbModel model : manifest.getModels() ) {
+            if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( model.getMetadataType() )
+                 && !ddlFileModelsFound.contains( model.getName() ) ) {
+                throw new Exception( TeiidI18n.ddlFileMissing.text( model.getDdlFileEntryPath(), model.getName() ) );
+            }
+        }
+
+        return true;
+    }
+    
+    private boolean isDdlFile( final String fileName ) {
+        return fileName.endsWith( DDL_FILE_EXT );
     }
 
     protected VdbManifest readManifest(Binary binaryValue, InputStream inputStream, Node outputNode, Context context) throws Exception {
@@ -296,6 +370,58 @@ public class VdbSequencer extends Sequencer {
         }
     }
 
+    @SuppressWarnings( "resource" )
+    private String sequenceDdlFile( final ZipInputStream vdbStream,
+                                    final String entryName,
+                                    final VdbManifest manifest,
+                                    final Node outputNode ) throws Exception {
+        LOGGER.debug( "processing DDL file '{0}'", entryName );
+        boolean modelFound = false;
+
+        // look for models with DDL-FILE metadata type
+        for ( final VdbModel model : manifest.getModels() ) {
+            final String metadataType = model.getMetadataType();
+
+            if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( metadataType ) ) {
+                String ddlFileEntryPath = model.getDdlFileEntryPath();
+                LOGGER.debug( "metadataType='{0}', entryName='{1}', ddlFileEntryPath='{2}'",
+                              metadataType,
+                              ddlFileEntryPath,
+                              entryName );
+
+                if ( !StringUtil.isBlank( ddlFileEntryPath ) && ddlFileEntryPath.startsWith( "/" ) ) {
+                    ddlFileEntryPath = ddlFileEntryPath.substring( 1 );
+                }
+
+                // if the model DDL entry path property equals the specified entry path set the model definition with the contents
+                // of the DDL file
+                if ( ddlFileEntryPath.equals( entryName ) ) {
+                    final String modelName = model.getName();
+                    final NodeIterator itr = outputNode.getNodes( modelName );
+
+                    if ( itr.getSize() != 0 ) {
+                        modelFound = true;
+                        final Node modelNode = itr.nextNode();
+                        final Scanner scanner = new Scanner( vdbStream, "UTF-8" ).useDelimiter( "\\A" );
+                        final String ddl = scanner.next().replaceAll( "\\s{2,}", " " ); // collapse whitespace
+                        modelNode.setProperty( VdbLexicon.Model.MODEL_DEFINITION, ddl );
+                        LOGGER.debug( "Using DDL file content to set model '{0}' metadata to: '{1}'", modelName, ddl );
+                        return modelName;
+                    }
+
+                    // should not happen
+                    throw new Exception( TeiidI18n.missingModelNodeThatReferencesDdlFile.text( modelName, ddlFileEntryPath ) );
+                }
+            }
+        }
+
+        if ( !modelFound ) {
+            LOGGER.debug( "DDL file '{0}' was not used in a DDL-FILE model", entryName );
+        }
+
+        return null;
+    }
+    
     /**
      * @param manifest the VDB manifest whose declarative models are being sequenced (cannot be <code>null</code>)
      * @param outputNode the VDB node (cannot be <code>null</code>)
@@ -322,6 +448,10 @@ public class VdbSequencer extends Sequencer {
                 setProperty(modelNode, CoreLexicon.JcrId.MODEL_TYPE, model.getType());
                 setProperty(modelNode, VdbLexicon.Model.METADATA_TYPE, model.getMetadataType());
                 setProperty(modelNode, VdbLexicon.Model.MODEL_DEFINITION, model.getModelDefinition());
+                
+                if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( model.getMetadataType() ) ) {
+                    setProperty( modelNode, VdbLexicon.Model.DDL_FILE_ENTRY_PATH, model.getDdlFileEntryPath() );
+                }
 
                 // set model sources
                 List<Source> sources = model.getSources();
@@ -396,7 +526,50 @@ public class VdbSequencer extends Sequencer {
             }
         }
     }
+    
+    private void sequenceLibResource( final ZipInputStream zis,
+                                      final String entryPath,
+                                      final Node outputNode ) throws Exception {
+        LOGGER.debug( "processing /lib resource '{0}'", entryPath );
 
+        // assumes entry path starts with lib/
+        final String resourceName = entryPath.substring( entryPath.lastIndexOf( '/' ) );
+
+        // extract file
+        final byte[] buf = new byte[ 1024 ];
+        final File file = File.createTempFile( resourceName, null );
+
+        try ( final FileOutputStream fos = new FileOutputStream( file ) ) {
+            int numRead = 0;
+
+            while ( ( numRead = zis.read( buf ) ) > 0 ) {
+                fos.write( buf, 0, numRead );
+            }
+        }
+
+        // add under the resources node
+        Node resourcesNode = null;
+
+        if ( outputNode.hasNode( VdbLexicon.Vdb.RESOURCES ) ) {
+            resourcesNode = outputNode.getNode( VdbLexicon.Vdb.RESOURCES );
+        } else {
+            resourcesNode = outputNode.addNode( VdbLexicon.Vdb.RESOURCES, VdbLexicon.Vdb.RESOURCES );
+        }
+
+        final Node resourceNode = resourcesNode.addNode( resourceName, JcrConstants.NT_FILE );
+        final Node contentNode = resourceNode.addNode( JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE );
+
+        // set data property
+        final InputStream is = new BufferedInputStream( new FileInputStream( file ) );
+        final Binary binary = outputNode.getSession().getValueFactory().createBinary( is );
+        contentNode.setProperty( JcrConstants.JCR_DATA, binary );
+
+        // set last modified property
+        final Calendar lastModified = Calendar.getInstance();
+        lastModified.setTimeInMillis( file.lastModified() );
+        contentNode.setProperty( "jcr:lastModified", lastModified );
+    }
+    
     /**
      * @param manifest the VDB manifest whose properties are being sequenced (cannot be <code>null</code>)
      * @param outputNode the VDB node where the properties will be added (cannot be <code>null</code>)

@@ -108,7 +108,7 @@ public abstract class AbstractSequencerTest {
      * A [sequenced node path, event] map which will hold all the received sequencing events, both in failure and non-failure
      * cases, using the path of the sequenced node as key.
      */
-    private final ConcurrentHashMap< String, Event > sequencingEvents = new ConcurrentHashMap< String, Event >();
+    protected final ConcurrentHashMap< String, Event > sequencingEvents = new ConcurrentHashMap< String, Event >();
 
     /**
      * A [node path, latch] map which is used to block tests waiting for a sequencing failure, until either the failure has
