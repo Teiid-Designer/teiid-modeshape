@@ -1,25 +1,23 @@
 /*
- * ModeShape (http://www.modeshape.org)
+ * JBoss, Home of Professional Open Source.
  * See the COPYRIGHT.txt file distributed with this work for information
  * regarding copyright ownership.  Some portions may be licensed
  * to Red Hat, Inc. under one or more contributor license agreements.
- * See the AUTHORS.txt file in the distribution for a full listing of 
- * individual contributors.
  *
- * ModeShape is free software. Unless otherwise indicated, all code in ModeShape
- * is licensed to you under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 2.1 of
- * the License, or (at your option) any later version.
- * 
- * ModeShape is distributed in the hope that it will be useful,
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA.
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
@@ -34,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
-import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.stream.StreamSource;
@@ -42,20 +39,29 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import org.modeshape.common.logging.Logger;
-import org.teiid.modeshape.sequencer.dataservice.DataserviceDatasource.Type;
+import org.teiid.modeshape.sequencer.dataservice.DataSource.Type;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+/**
+ * A reader for Data Source files.
+ */
 public final class DataSourceReader extends DefaultHandler {
 
-    private static final String DATASOURCE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataservice/datasource.xsd";
+    /**
+     * The valid Data Source file extensions.
+     */
+    public static final String[] DATA_SOURCE_FILE_EXTENSIONS = { ".tds" }; //$NON-NLS-1$
+
+    private static final String DATA_SOURCE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataService/dataSource.xsd"; //$NON-NLS-1$
     private static final Logger LOGGER = Logger.getLogger( DataSourceReader.class );
 
     private final StringBuilder className;
-    private DataserviceDatasource dataSource;
+    private DataSource dataSource;
+    private final StringBuilder description;
     private final StringBuilder driverName;
     private final Stack< String > elements;
     private final List< String > errors;
@@ -68,23 +74,27 @@ public final class DataSourceReader extends DefaultHandler {
     private File schemaFile = null;
     private final List< String > warnings;
 
+    /**
+     * @throws Exception if there is an error constructing the parser
+     */
     public DataSourceReader() throws Exception {
         this.className = new StringBuilder();
+        this.description = new StringBuilder();
         this.driverName = new StringBuilder();
-        this.elements = new Stack< String >();
-        this.errors = new ArrayList< String >();
-        this.fatals = new ArrayList< String >();
-        this.infos = new ArrayList< String >();
+        this.elements = new Stack< >();
+        this.errors = new ArrayList< >();
+        this.fatals = new ArrayList< >();
+        this.infos = new ArrayList< >();
         this.jndiName = new StringBuilder();
         this.propertyValue = new StringBuilder();
-        this.warnings = new ArrayList< String >();
+        this.warnings = new ArrayList< >();
 
         initParser();
     }
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#characters(char[], int, int)
      */
     @Override
@@ -93,13 +103,15 @@ public final class DataSourceReader extends DefaultHandler {
                             final int length ) throws SAXException {
         final String value = new String( ch, start, length );
 
-        if ( DataVirtLexicon.DatasourceXml.PROPERTY.equals( getCurrentElement() ) ) {
+        if ( DataVirtLexicon.DataSourceXmlId.PROPERTY.equals( getCurrentElement() ) ) {
             this.propertyValue.append( value );
-        } else if ( DataVirtLexicon.DatasourceXml.CLASSNAME.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.CLASSNAME.equals( getCurrentElement() ) ) {
             this.className.append( value );
-        } else if ( DataVirtLexicon.DatasourceXml.DRIVER_NAME.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.DESCRIPTION.equals( getCurrentElement() ) ) {
+            this.description.append( value );
+        } else if ( DataVirtLexicon.DataSourceXmlId.DRIVER_NAME.equals( getCurrentElement() ) ) {
             this.driverName.append( value );
-        } else if ( DataVirtLexicon.DatasourceXml.JNDI_NAME.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.JNDI_NAME.equals( getCurrentElement() ) ) {
             this.jndiName.append( value );
         }
 
@@ -107,13 +119,14 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     private void clearDataSourceState() {
-        this.dataSource = new DataserviceDatasource();
+        this.dataSource = new DataSource();
         this.className.setLength( 0 );
+        this.description.setLength( 0 );
         this.driverName.setLength( 0 );
         this.jndiName.setLength( 0 );
         this.propertyName = null;
         this.propertyValue.setLength( 0 );
-        LOGGER.debug( "cleared data source instance state" );
+        LOGGER.debug( "cleared Data Source instance state" ); //$NON-NLS-1$
     }
 
     private void clearState() {
@@ -123,38 +136,40 @@ public final class DataSourceReader extends DefaultHandler {
         this.infos.clear();
         this.warnings.clear();
         clearDataSourceState();
-        LOGGER.debug( "cleared all data source reader state" );
+        LOGGER.debug( "cleared all Data Source reader state" ); //$NON-NLS-1$
     }
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String, java.lang.String)
      */
     @Override
     public void endElement( final String uri,
                             final String localName,
                             final String qName ) throws SAXException {
-        if ( DataVirtLexicon.DatasourceXml.JDBC_DATA_SOURCE.equals( localName ) ) {
+        if ( DataVirtLexicon.DataSourceXmlId.JDBC_DATA_SOURCE.equals( localName ) ) {
             // done
-        } else if ( DataVirtLexicon.DatasourceXml.RESOURCE_DATA_SOURCE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.RESOURCE_DATA_SOURCE.equals( localName ) ) {
             // done
-        } else if ( DataVirtLexicon.DatasourceXml.JNDI_NAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.DESCRIPTION.equals( localName ) ) {
+            this.dataSource.setDescription( this.description.toString() );
+        } else if ( DataVirtLexicon.DataSourceXmlId.JNDI_NAME.equals( localName ) ) {
             if ( this.jndiName.length() != 0 ) {
                 this.dataSource.setJndiName( this.jndiName.toString() );
                 this.jndiName.setLength( 0 );
             }
-        } else if ( DataVirtLexicon.DatasourceXml.DRIVER_NAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.DRIVER_NAME.equals( localName ) ) {
             if ( this.driverName.length() != 0 ) {
                 this.dataSource.setDriverName( this.driverName.toString() );
                 this.driverName.setLength( 0 );
             }
-        } else if ( DataVirtLexicon.DatasourceXml.CLASSNAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.CLASSNAME.equals( localName ) ) {
             if ( this.className.length() != 0 ) {
                 this.dataSource.setClassName( this.className.toString() );
                 this.className.setLength( 0 );
             }
-        } else if ( DataVirtLexicon.DatasourceXml.PROPERTY.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.PROPERTY.equals( localName ) ) {
             this.dataSource.setProperty( this.propertyName, this.propertyValue.toString() );
             this.propertyName = null;
             this.propertyValue.setLength( 0 );
@@ -168,7 +183,7 @@ public final class DataSourceReader extends DefaultHandler {
 
     /**
      * {@inheritDoc}}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#error(org.xml.sax.SAXParseException)
      */
     @Override
@@ -178,7 +193,7 @@ public final class DataSourceReader extends DefaultHandler {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#fatalError(org.xml.sax.SAXParseException)
      */
     @Override
@@ -200,7 +215,7 @@ public final class DataSourceReader extends DefaultHandler {
     /**
      * @return the data source defined in the input stream (<code>null</code> until {@link #read(InputStream)} is called)
      */
-    public DataserviceDatasource getDatasource() {
+    public DataSource getDatasource() {
         return this.dataSource;
     }
 
@@ -233,15 +248,15 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     private void initParser() throws Exception {
-        final InputStream schemaStream = getClass().getClassLoader().getResourceAsStream( DATASOURCE_SCHEMA_FILE );
+        final InputStream schemaStream = getClass().getClassLoader().getResourceAsStream( DATA_SOURCE_SCHEMA_FILE );
 
         try {
-            this.schemaFile = File.createTempFile( "datasourceSchemaFile", ".xsd" ); //$NON-NLS-1$ //$NON-NLS-2$
+            this.schemaFile = File.createTempFile( "dataSourceSchemaFile", ".xsd" ); //$NON-NLS-1$ //$NON-NLS-2$
             Files.copy( schemaStream, this.schemaFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
             this.schemaFile.deleteOnExit();
-            LOGGER.debug( "data source schema file loaded" );
+            LOGGER.debug( "Data Source schema file loaded" ); //$NON-NLS-1$
         } catch ( final IOException e ) {
-            throw new Exception( TeiidI18n.dataSourceSchemaError.text( DATASOURCE_SCHEMA_FILE ), e );
+            throw new Exception( TeiidI18n.dataSourceSchemaError.text( DATA_SOURCE_SCHEMA_FILE ), e );
         }
 
         // create parser
@@ -253,8 +268,8 @@ public final class DataSourceReader extends DefaultHandler {
             this.parser = factory.newSAXParser();
             this.parser.setProperty( "http://java.sun.com/xml/jaxp/properties/schemaLanguage", //$NON-NLS-1$
                                      "http://www.w3.org/2001/XMLSchema" ); //$NON-NLS-1$
-            this.parser.setProperty( "http://java.sun.com/xml/jaxp/properties/schemaSource", schemaFile ); //$NON-NLS-1$
-            LOGGER.debug( "data source reader parser created" );
+            this.parser.setProperty( "http://java.sun.com/xml/jaxp/properties/schemaSource", this.schemaFile ); //$NON-NLS-1$
+            LOGGER.debug( "Data Source reader parser created" ); //$NON-NLS-1$
         } catch ( final Exception e ) {
             throw new Exception( TeiidI18n.dataSourceSchemaError.text(), e );
         }
@@ -265,8 +280,8 @@ public final class DataSourceReader extends DefaultHandler {
      * @return the data source defined in the stream (never <code>null</code>)
      * @throws Exception if an error occurs
      */
-    public DataserviceDatasource read( final InputStream datasourcesStream ) throws Exception {
-        LOGGER.debug( "start data sources read" );
+    public DataSource read( final InputStream datasourcesStream ) throws Exception {
+        LOGGER.debug( "start Data Source read" ); //$NON-NLS-1$
         clearState(); // make sure state is clear if read is called multiple times
 
         // read in stream because it will be used twice
@@ -274,7 +289,7 @@ public final class DataSourceReader extends DefaultHandler {
         final byte[] buf = new byte[ 1024 ];
 
         int n = 0;
-        while ( ( n = Objects.requireNonNull( datasourcesStream ).read( buf ) ) >= 0 ) {
+        while ( ( n = Objects.requireNonNull( datasourcesStream, "datasourcesStream" ).read( buf ) ) >= 0 ) {
             baos.write( buf, 0, n );
         }
 
@@ -286,13 +301,13 @@ public final class DataSourceReader extends DefaultHandler {
 
         // parse
         this.parser.parse( new ByteArrayInputStream( content ), this );
-        LOGGER.debug( "finished data sources read" );
+        LOGGER.debug( "finished Data Source read" ); //$NON-NLS-1$
         return this.dataSource;
     }
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#skippedEntity(java.lang.String)
      */
     @Override
@@ -302,7 +317,7 @@ public final class DataSourceReader extends DefaultHandler {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String, java.lang.String,
      *      org.xml.sax.Attributes)
      */
@@ -311,25 +326,26 @@ public final class DataSourceReader extends DefaultHandler {
                               final String localName,
                               final String qName,
                               final Attributes attributes ) throws SAXException {
-
         this.elements.push( localName );
 
-        if ( DataVirtLexicon.DatasourceXml.JDBC_DATA_SOURCE.equals( localName ) ) {
+        if ( DataVirtLexicon.DataSourceXmlId.JDBC_DATA_SOURCE.equals( localName ) ) {
             clearDataSourceState();
             this.dataSource.setType( Type.JDBC );
-            final String dsName = attributes.getValue( DataVirtLexicon.DatasourceXml.NAME_ATTR );
+            final String dsName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
             this.dataSource.setName( dsName );
-        } else if ( DataVirtLexicon.DatasourceXml.RESOURCE_DATA_SOURCE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.RESOURCE_DATA_SOURCE.equals( localName ) ) {
             clearDataSourceState();
             this.dataSource.setType( Type.RESOURCE );
-            final String dsName = attributes.getValue( DataVirtLexicon.DatasourceXml.NAME_ATTR );
+            final String dsName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
             this.dataSource.setName( dsName );
-        } else if ( DataVirtLexicon.DatasourceXml.JNDI_NAME.equals( localName )
-                    || DataVirtLexicon.DatasourceXml.DRIVER_NAME.equals( localName )
-                    || DataVirtLexicon.DatasourceXml.CLASSNAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataSourceXmlId.DESCRIPTION.equals( localName ) ) {
             // nothing to do
-        } else if ( DataVirtLexicon.DatasourceXml.PROPERTY.equals( localName ) ) {
-            this.propertyName = attributes.getValue( DataVirtLexicon.DatasourceXml.NAME_ATTR );
+        } else if ( DataVirtLexicon.DataSourceXmlId.JNDI_NAME.equals( localName )
+                    || DataVirtLexicon.DataSourceXmlId.DRIVER_NAME.equals( localName )
+                    || DataVirtLexicon.DataSourceXmlId.CLASSNAME.equals( localName ) ) {
+            // nothing to do
+        } else if ( DataVirtLexicon.DataSourceXmlId.PROPERTY.equals( localName ) ) {
+            this.propertyName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
         } else {
             throw new SAXException( TeiidI18n.unhandledDatasoureStartElement.text( localName ) );
         }
@@ -339,7 +355,7 @@ public final class DataSourceReader extends DefaultHandler {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#unparsedEntityDecl(java.lang.String, java.lang.String, java.lang.String,
      *      java.lang.String)
      */
@@ -352,16 +368,16 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     private void validateXml( final InputStream stream ) throws Exception {
-        final SchemaFactory factory = SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI );
+        final SchemaFactory factory = SchemaFactory.newInstance( "http://www.w3.org/2001/XMLSchema" ); //$NON-NLS-1$
         final Schema schema = factory.newSchema( this.schemaFile );
         final Validator validator = schema.newValidator();
         validator.validate( new StreamSource( stream ) );
-        LOGGER.debug( "data source XML file validated" );
+        LOGGER.debug( "Data Source XML file validated" ); //$NON-NLS-1$
     }
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see org.xml.sax.helpers.DefaultHandler#warning(org.xml.sax.SAXParseException)
      */
     @Override

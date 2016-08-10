@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="DataSourceEntriesOnly">
+
+    <datasources>
+        <datasource-file
+            path="products.tds"
+            deploy="ifMissing"
+            jndiName="productsDS" />
+    </datasources>
+
+</dataservice>

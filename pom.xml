@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.jboss</groupId>
         <artifactId>jboss-parent</artifactId>
-        <version>16</version>
+        <version>20</version>
     </parent>
 
     <!-- ================================================================== -->
@@ -35,8 +35,8 @@
         <junit.version>4.12</junit.version>
         <log4j.version>1.2.17</log4j.version>
         <modeshape.version>5.0.0.Final</modeshape.version>
-        <slf4j.api.version>1.7.2</slf4j.api.version>
-        <slf4j.log4j.version>1.7.2</slf4j.log4j.version>
+        <slf4j.api.version>1.7.7</slf4j.api.version>
+        <slf4j.log4j.version>1.7.7</slf4j.log4j.version>
     </properties>
 
     <!-- ================================================================== -->

@@ -3,14 +3,14 @@
  * See the COPYRIGHT.txt file distributed with this work for information
  * regarding copyright ownership.  Some portions may be licensed
  * to Red Hat, Inc. under one or more contributor license agreements.
- * See the AUTHORS.txt file in the distribution for a full listing of 
+ * See the AUTHORS.txt file in the distribution for a full listing of
  * individual contributors.
  *
  * ModeShape is free software. Unless otherwise indicated, all code in ModeShape
  * is licensed to you under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
- * 
+ *
  * ModeShape is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -31,7 +31,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
-import org.teiid.modeshape.sequencer.dataservice.DataserviceDatasource.Type;
+import org.teiid.modeshape.sequencer.dataservice.DataSource.Type;
 
 public final class DataSourceReaderTest {
 
@@ -63,7 +63,7 @@ public final class DataSourceReaderTest {
 
     @Test
     public void shouldParseDataSourceWithoutProperties() throws Exception {
-        final DataserviceDatasource ds = this.reader.read( getStream( "datasource/noPropsDatasource.tds" ) );
+        final DataSource ds = this.reader.read( getStream( "datasource/noPropsDatasource.tds" ) );
         assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "noPropsSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
@@ -75,7 +75,7 @@ public final class DataSourceReaderTest {
 
     @Test
     public void shouldParseJdbcDataSource() throws Exception {
-        final DataserviceDatasource ds = this.reader.read( getStream( "datasource/jdbcDatasource.tds" ) );
+        final DataSource ds = this.reader.read( getStream( "datasource/jdbcDatasource.tds" ) );
         assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "jdbcSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
@@ -93,7 +93,7 @@ public final class DataSourceReaderTest {
 
     @Test
     public void shouldParseResourceAdapterDataSource() throws Exception {
-        final DataserviceDatasource ds = this.reader.read( getStream( "datasource/raDatasource.tds" ) );
+        final DataSource ds = this.reader.read( getStream( "datasource/raDatasource.tds" ) );
         assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "raSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );

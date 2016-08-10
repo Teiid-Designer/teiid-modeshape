@@ -3,14 +3,14 @@
  * See the COPYRIGHT.txt file distributed with this work for information
  * regarding copyright ownership.  Some portions may be licensed
  * to Red Hat, Inc. under one or more contributor license agreements.
- * See the AUTHORS.txt file in the distribution for a full listing of 
+ * See the AUTHORS.txt file in the distribution for a full listing of
  * individual contributors.
  *
  * ModeShape is free software. Unless otherwise indicated, all code in ModeShape
  * is licensed to you under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
  * the License, or (at your option) any later version.
- * 
+ *
  * ModeShape is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -23,55 +23,24 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
-import java.util.Objects;
-
 /**
- * Represents a Data Service service VDB in the archive.
+ * Represents an object that may contain {@link VdbEntry VDB entries}.
  */
-public class DataserviceServiceVdb {
-
-    private String path;
-    private final DataserviceManifest parent;
-
-    public DataserviceServiceVdb( final DataserviceManifest manifest ) {
-        this.parent = manifest;
-    }
+public interface VdbEntryContainer {
 
     /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
+     * @param vdbEntry a VDB entry (cannot be <code>null</code>)
      */
-    @Override
-    public boolean equals( final Object obj ) {
-        if ( ( obj == null ) || !getClass().equals( obj.getClass() ) ) {
-            return false;
-        }
-
-        final DataserviceServiceVdb that = ( DataserviceServiceVdb )obj;
-        return Objects.equals( this.path, that.path );
-    }
-
-    public DataserviceManifest getParent() {
-        return this.parent;
-    }
-
-    public String getPath() {
-        return this.path;
-    }
+    void addVdb( final VdbEntry vdbEntry );
 
     /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#hashCode()
+     * @return the entry paths of the VDBs (never <code>null</code> but can be empty)
      */
-    @Override
-    public int hashCode() {
-        return Objects.hash( this.path.hashCode() );
-    }
+    String[] getVdbPaths();
 
-    public void setPath( final String archivePath ) {
-        this.path = archivePath;
-    }
+    /**
+     * @return the VDB entries (never <code>null</code> but can be empty)
+     */
+    VdbEntry[] getVdbs();
 
 }

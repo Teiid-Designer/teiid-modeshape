@@ -24,35 +24,92 @@
 // N A M E S P A C E S
 //------------------------------------------------------------------------------
 
-<dv = "http://www.metamatrix.com/metamodels/DataVirtualization/1.0">
+<dv  = "http://www.jboss.org/dv/1.0">
 <nt  = "http://www.jcp.org/jcr/nt/1.0">
-<vdb = "http://www.metamatrix.com/metamodels/VirtualDatabase">
+
+//------------------------------------------------------------------------------
+// NODE TYPES
+//------------------------------------------------------------------------------
 
 /*
- * DataVirtualization DataService
+ * A driver file.
  */
-[dv:dataService] > nt:unstructured, mix:referenceable
-  - dv:serviceVdb (reference) multiple // reference to vdb:virtualDatabase // Paul: include service VDBs in VDB collection
-  - dv:vdbs (reference) multiple // references to dv:dataServiceVdb
-  - dv:dataSources (reference) multiple // reference to a dv:dataSource
-  - dv:drivers (reference) multiple // references to dv:driver
-  
-[dv:dataServiceVdb] > nt:unstructured, mix:referenceable // Paul: not needed
-  - dv:vdb (reference) // reference to a vdb:virtualDatabase
-  - dv:dataSource (reference) // reference to a dv:dataSource
+[dv:driverFile] > nt:file, mix:referenceable
 
 /*
- * DataVirtualization DataSource
+ * A metadata file (DDL).
+ */
+[dv:metadataFile] > nt:file, mix:referenceable abstract
+[dv:ddlFile] > dv:metadataFile
+
+/*
+ * A resource file (UDF).
+ */
+[dv:resourceFile] > nt:file, mix:referenceable
+[dv:udfFile] > dv:resourceFile
+   
+/*
+ * A data source.
  */
 [dv:dataSource] > nt:unstructured, mix:referenceable
   - dv:type (string) < 'JDBC','RESOURCE'
   - dv:jndiName (string)
-  - dv:className (string)
-  - dv:driverName (string)
-  - dv:drivers (reference) multiple // references to dv:driver
+  - dv:className (string) // driver class name
+  - dv:driverName (string) // file name of where driver is located
+
+/*
+ * A data service archive entry.
+ */
+[dv:dataServiceEntry] > nt:unstructured abstract
+  - dv:path (string)
+  - dv:sourceResource (reference) // reference to resource being put in the archive
+
+/*
+ * A data service archive.
+ */
+[dv:dataServiceArchive] > nt:unstructured
+  - dv:description (string)
+  - dv:lastModified (date)
+  - dv:modifiedBy (string)
+  + * (dv:dataServiceEntry) copy
+
+/*
+ * An archive that contains a service VDB.
+ */
+[dv:dataService] > dv:dataServiceArchive
   
 /*
- * DataVirtualization Driver
+ * A data service archive import VDB entry.
  */
-[dv:driver] > nt:file, mix:referenceable
- 
+[dv:vdbEntry] > dv:dataServiceEntry // reference to a vdb:virtualDatabase
+  - dv:vdbName (string)
+  - dv:vdbVersion (string)
+
+/*
+ * A data service archive service VDB entry.
+ */
+[dv:serviceVdbEntry] > dv:vdbEntry // reference to a vdb:virtualDatabase
+  + * (dv:vdbEntry) copy // references to dv:vdbEntry dependent VDBs
+
+/*
+ * A data service archive data source entry.
+ */
+[dv:dataSourceEntry] > dv:dataServiceEntry // reference to a dv:dataSource
+  - dv:jndiName (string)
+
+/*
+ * A data service archive driver file entry.
+ */
+[dv:driverEntry] > dv:dataServiceEntry // reference to a dv:driverFile
+
+/*
+ * A data service archive metadata file entry. For example, a DDL file. 
+ */
+[dv:metadataEntry] > dv:dataServiceEntry abstract
+[dv:ddlEntry] > dv:metadataEntry // reference to a dv:metadataFile
+
+/*
+ * A data service archive resource file entry. For example, a UDF file.
+ */
+[dv:resourceEntry] > dv:dataServiceEntry // reference to a dv:resourceFile
+[dv:udfEntry] > dv:resourceEntry // reference to a dv:udfFile

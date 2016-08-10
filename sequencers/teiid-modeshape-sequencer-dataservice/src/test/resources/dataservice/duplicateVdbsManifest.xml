@@ -58,11 +58,11 @@
         <vdb-file
             path="first-vdb.xml"
             deploy="ifMissing"
-            vdbName="FirstVdb"
+            vdbName="DuplicateVdb"
             vdbVersion="1" />
         <vdb-file
             path="second-vdb.xml"
-            vdbName="SecondVdb"
+            vdbName="DuplicateVdb"
             vdbVersion="1" />
     </vdbs>
 

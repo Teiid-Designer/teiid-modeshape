@@ -35,11 +35,11 @@
         <datasource-file
             path="firstDS.tds"
             deploy="ifMissing"
-            jndiName="firstDS" />
+            jndiName="duplicateDS" />
         <datasource-file
             path="secondDS.tds"
             deploy="ifMissing"
-            jndiName="secondDS" />
+            jndiName="duplicateDS" />
     </datasources>
 
     <drivers>

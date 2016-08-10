@@ -8,7 +8,7 @@
     <property name="propA">Value A</property>
 
     <service-vdb-file
-        path="myService-vdb.xml"
+        path="duplicatePath-vdb.xml"
         deploy="ifMissing"
         vdbName="ServiceVdb"
         vdbVersion="1"
@@ -56,7 +56,7 @@
 
     <vdbs>
         <vdb-file
-            path="first-vdb.xml"
+            path="duplicatePath-vdb.xml"
             deploy="ifMissing"
             vdbName="FirstVdb"
             vdbVersion="1" />
