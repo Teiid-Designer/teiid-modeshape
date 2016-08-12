@@ -38,10 +38,21 @@ import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 public class VdbModel implements Comparable<VdbModel> {
     
     /**
+     * The model definition metadata type whose model definition is DDL. Value is {@value}.
+     */
+    public static final String DDL_METADATA_TYPE = "DDL";
+
+    /**
+     * The model definition metadata type whose model definition is a VDB entry path to a DDL file. Value is {@value}.
+     */
+    public static final String DDL_FILE_METADATA_TYPE = "DDL-FILE";
+    
+    /**
      * The default model definition metadata type. Value is {@value}.
      */
-    public static final String DEFAULT_METADATA_TYPE = "DDL";
+    public static final String DEFAULT_METADATA_TYPE = DDL_METADATA_TYPE;
 
+    private String ddlFileEntryPath;
     private String description;
     private String name;
     private String type;
@@ -69,6 +80,21 @@ public class VdbModel implements Comparable<VdbModel> {
         this.name = name;
         this.pathInVdb = pathInVdb;
         this.type = (StringUtil.isBlank(type) ? CoreLexicon.ModelType.PHYSICAL : type);
+    }
+
+    /**
+     * @return the DDL file entry path used when metadata type is {@link #DDL_FILE_METADATA_TYPE} (never <code>null</code> but
+     *         can be empty)
+     */
+    public String getDdlFileEntryPath() {
+        return ( ( this.ddlFileEntryPath == null ) ? "" : this.ddlFileEntryPath );
+    }
+
+    /**
+     * @param newValue the new DDL file entry path value (can be <code>null</code> or empty)
+     */
+    public void setDdlFileEntryPath( final String newValue ) {
+        this.ddlFileEntryPath = newValue;
     }
 
     /**
@@ -107,17 +133,9 @@ public class VdbModel implements Comparable<VdbModel> {
     }
 
     /**
-     * @return the model metadata type associated with the model definition (can be <code>null</code> or empty when there is no metadata)
+     * @return the model metadata type associated with the model definition (can be <code>null</code> or empty)
      */
     public String getMetadataType() {
-        if (StringUtil.isBlank(this.metadata)) {
-            return null;
-        }
-
-        if (StringUtil.isBlank(this.metadataType)) {
-            return DEFAULT_METADATA_TYPE;
-        }
-
         return this.metadataType;
     }
 

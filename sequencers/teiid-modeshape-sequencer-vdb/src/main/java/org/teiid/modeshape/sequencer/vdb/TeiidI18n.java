@@ -47,9 +47,12 @@ public final class TeiidI18n {
     public static I18n missingDataRoleName;
     public static I18n missingEntryPath;
     public static I18n missingImportVdbNameOrVersion;
+    public static I18n missingModelNodeThatReferencesDdlFile;
     public static I18n missingPermissionResourceName;
     public static I18n missingPropertyNameOrValue;
     public static I18n missingTranslatorNameOrType;
+    public static I18n missingVdbManifest;
+    public static I18n missingVdbModel;
     public static I18n missingVdbName;
 
     public static I18n illegalUnresolvedReference;
@@ -57,6 +60,8 @@ public final class TeiidI18n {
     public static I18n invalidVdbVersion;
 
     public static I18n errorReadingMedMetaclassMappings;
+    
+    public static I18n ddlFileMissing;
 
     private TeiidI18n() {
     }

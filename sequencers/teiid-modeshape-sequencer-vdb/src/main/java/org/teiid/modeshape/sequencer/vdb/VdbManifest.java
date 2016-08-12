@@ -408,13 +408,22 @@ public class VdbManifest implements Comparable<VdbManifest> {
                     } else if (VdbLexicon.ManifestIds.DESCRIPTION.equals(elementName)) {
                         final String description = streamReader.getElementText();
                         model.setDescription(description);
-                    } else if (VdbLexicon.ManifestIds.METADATA.equals(elementName)) {
-                        if (streamReader.getAttributeCount() == 1) {
-                            model.setMetadataType(streamReader.getAttributeValue(0));
-                        }
+                    } else if ( VdbLexicon.ManifestIds.METADATA.equals( elementName ) ) {
+                        final String metadataType = ( streamReader.getAttributeCount() == 1 ) ? streamReader.getAttributeValue( 0 )
+                                                                                              : VdbModel.DEFAULT_METADATA_TYPE;
+                        model.setMetadataType( metadataType );
 
-                        final String metadata = streamReader.getElementText().trim();
-                        model.setModelDefinition(metadata.replaceAll("\\s{2,}", " ")); // collapse whitespace
+                        // if metadata type is DDL the actual DDL is the element text
+                        // if metadata type is DDL-FILE the path of the DDL file in the archive is the text
+                        // - the sequencer uses the archive path of the DDL file to find the appropriate model
+                        // - then the sequencer reads the DDL file and its content (DDL) is used to set the model definition
+                        if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( metadataType ) ) {
+                            final String entryPath = streamReader.getElementText().trim();
+                            model.setDdlFileEntryPath( entryPath );
+                        } else {
+                            final String metadata = streamReader.getElementText().trim();
+                            model.setModelDefinition( metadata.replaceAll( "\\s{2,}", " " ) ); // collapse whitespace
+                        }
                     } else {
                         LOGGER.debug("**** unexpected model element={0}", elementName);
                     }
