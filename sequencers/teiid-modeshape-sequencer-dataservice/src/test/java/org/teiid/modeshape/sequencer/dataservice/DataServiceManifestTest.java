@@ -33,7 +33,7 @@ import org.xml.sax.SAXParseException;
 public final class DataServiceManifestTest {
 
     @Test( expected = SAXParseException.class )
-    public void shouldFailReadingManifestWithDuplicateDataSourceJndiNames() throws Exception {
+    public void shouldFailReadingManifestWithDuplicateConnectionJndiNames() throws Exception {
         DataServiceManifest.read( streamFor( "/dataservice/duplicateJndiNamesManifest.xml" ) );
     }
 
@@ -48,34 +48,7 @@ public final class DataServiceManifestTest {
     }
 
     @Test
-    public void shouldReadDataserviceManifest() throws Exception {
-        final DataServiceManifest manifest = DataServiceManifest.read( streamFor( "/dataservice/dataserviceManifest.xml" ) );
-        assertThat( manifest, is( notNullValue() ) );
-        assertThat( manifest.getName(), is( "MyDataService" ) );
-        assertThat( manifest.getDescription(), is( "This is my data service description" ) );
-        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2002, 5, 30, 9, 30, 10 ) ) );
-        assertThat( manifest.getModifiedBy(), is( "elvis" ) );
-
-        assertThat( manifest.getProperties().size(), is( 1 ) );
-        assertThat( manifest.getPropertyValue( "propA" ), is( "Value A" ) );
-
-        assertThat( manifest.getDataSources().length, is( 2 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 2 ) );
-        assertThat( manifest.getDrivers().length, is( 2 ) );
-        assertThat( manifest.getDriverPaths().length, is( 2 ) );
-        assertThat( manifest.getMetadata().length, is( 2 ) );
-        assertThat( manifest.getMetadataPaths().length, is( 2 ) );
-        assertThat( manifest.getResources().length, is( 2 ) );
-        assertThat( manifest.getResourcePaths().length, is( 2 ) );
-        assertThat( manifest.getUdfs().length, is( 2 ) );
-        assertThat( manifest.getUdfPaths().length, is( 2 ) );
-        assertThat( manifest.getVdbs().length, is( 2 ) );
-        assertThat( manifest.getVdbPaths().length, is( 2 ) );
-
-    }
-
-    @Test
-    public void shouldReadDataSourcesOnlyManifest() throws Exception {
+    public void shouldReadConnectionsOnlyManifest() throws Exception {
         final DataServiceManifest manifest = DataServiceManifest.read( streamFor( "/dataservice/dataSourcesOnlyManifest.xml" ) );
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "DataSourceEntriesOnly" ) );
@@ -98,11 +71,37 @@ public final class DataServiceManifestTest {
         assertThat( manifest.getVdbs().length, is( 0 ) );
         assertThat( manifest.getVdbPaths().length, is( 0 ) );
 
-        final DataSourceEntry ds = manifest.getDataSources()[ 0 ];
-        assertThat( ds.getPath(), is( "products.tds" ) );
+        final ConnectionEntry ds = manifest.getDataSources()[ 0 ];
+        assertThat( ds.getPath(), is( "products-connection.xml" ) );
         assertThat( manifest.getDataSourcePaths()[ 0 ], is( ds.getPath() ) );
-        assertThat( ds.getDeployPolicy(), is( DataServiceEntry.DeployPolicy.IF_MISSING ) );
-        assertThat( ds.getJndiName(), is( "productsDS" ) );
+        assertThat( ds.getPublishPolicy(), is( DataServiceEntry.PublishPolicy.IF_MISSING ) );
+        assertThat( ds.getJndiName(), is( "productsConnection" ) );
+    }
+
+    @Test
+    public void shouldReadDataServiceManifest() throws Exception {
+        final DataServiceManifest manifest = DataServiceManifest.read( streamFor( "/dataservice/dataserviceManifest.xml" ) );
+        assertThat( manifest, is( notNullValue() ) );
+        assertThat( manifest.getName(), is( "MyDataService" ) );
+        assertThat( manifest.getDescription(), is( "This is my data service description" ) );
+        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2002, 5, 30, 9, 30, 10 ) ) );
+        assertThat( manifest.getModifiedBy(), is( "elvis" ) );
+
+        assertThat( manifest.getProperties().size(), is( 1 ) );
+        assertThat( manifest.getPropertyValue( "propA" ), is( "Value A" ) );
+
+        assertThat( manifest.getDataSources().length, is( 2 ) );
+        assertThat( manifest.getDataSourcePaths().length, is( 2 ) );
+        assertThat( manifest.getDrivers().length, is( 2 ) );
+        assertThat( manifest.getDriverPaths().length, is( 2 ) );
+        assertThat( manifest.getMetadata().length, is( 2 ) );
+        assertThat( manifest.getMetadataPaths().length, is( 2 ) );
+        assertThat( manifest.getResources().length, is( 2 ) );
+        assertThat( manifest.getResourcePaths().length, is( 2 ) );
+        assertThat( manifest.getUdfs().length, is( 2 ) );
+        assertThat( manifest.getUdfPaths().length, is( 2 ) );
+        assertThat( manifest.getVdbs().length, is( 2 ) );
+        assertThat( manifest.getVdbPaths().length, is( 2 ) );
     }
 
     @Test

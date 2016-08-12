@@ -38,13 +38,12 @@ import org.modeshape.jcr.api.sequencer.Sequencer;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 
 /**
- * A sequencer of DV data source files.
+ * A sequencer of DV connection files.
  */
 @ThreadSafe
-public class DataSourceSequencer extends Sequencer {
+public class ConnectionSequencer extends Sequencer {
 
-    private static final String[] DATASOURCE_FILE_EXTENSIONS = { ".tds" };
-    private static final Logger LOGGER = Logger.getLogger( DataSourceSequencer.class );
+    private static final Logger LOGGER = Logger.getLogger( ConnectionSequencer.class );
 
     /**
      * @see org.modeshape.jcr.api.sequencer.Sequencer#execute(javax.jcr.Property, javax.jcr.Node,
@@ -54,13 +53,14 @@ public class DataSourceSequencer extends Sequencer {
     public boolean execute( final Property inputProperty,
                             final Node outputNode,
                             final Context context ) throws Exception {
+        LOGGER.debug( "Connection sequencer execute called with output node of " + outputNode.getPath() );
         final Binary binaryValue = inputProperty.getBinary();
         CheckArg.isNotNull( binaryValue, "binary" );
 
-        try ( final InputStream datasourceStream = binaryValue.getStream() ) {
-            final DataSource datasource = readDatasource( datasourceStream, outputNode, context );
+        try ( final InputStream connectionStream = binaryValue.getStream() ) {
+            final Connection connection = readConnection( connectionStream, outputNode, context );
 
-            if ( datasource == null ) {
+            if ( connection == null ) {
                 throw new Exception( TeiidI18n.noDatasourceFound.text( inputProperty.getPath() ) );
             }
         } catch ( final Exception e ) {
@@ -68,21 +68,6 @@ public class DataSourceSequencer extends Sequencer {
         }
 
         return true;
-    }
-
-    /**
-     * @param resourceName the name of the resource being checked (cannot be <code>null</code>)
-     * @return <code>true</code> if the resource has a datasource file extension
-     */
-    public boolean hasDatasourceFileExtension( final String resourceName ) {
-        for ( final String extension : DATASOURCE_FILE_EXTENSIONS ) {
-            if ( resourceName.endsWith( extension ) ) {
-                return true;
-            }
-        }
-
-        // not a datasource file
-        return false;
     }
 
     /**
@@ -100,38 +85,38 @@ public class DataSourceSequencer extends Sequencer {
         LOGGER.debug( "exit initialize" );
     }
 
-    private DataSource readDatasource( final InputStream inputStream,
+    private Connection readConnection( final InputStream inputStream,
                                        final Node outputNode,
                                        final Context context ) throws Exception {
         assert ( inputStream != null );
         assert ( outputNode != null );
-        LOGGER.debug( "----before reading datasource" );
+        LOGGER.debug( "----before reading connection" );
 
-        final DataSourceReader reader = new DataSourceReader();
-        final DataSource datasource = reader.read( inputStream );
+        final ConnectionReader reader = new ConnectionReader();
+        final Connection connection = reader.read( inputStream );
 
-        // Create the output node for each data source
-        outputNode.getSession().move( outputNode.getPath(), ( outputNode.getParent().getPath() + '/' + datasource.getName() ) );
-        outputNode.setPrimaryType( DataVirtLexicon.DataSource.NODE_TYPE );
-        outputNode.setProperty( DataVirtLexicon.DataSource.TYPE, datasource.getType().name() );
+        // Create the output node for each connection
+        outputNode.getSession().move( outputNode.getPath(), ( outputNode.getParent().getPath() + '/' + connection.getName() ) );
+        outputNode.setPrimaryType( DataVirtLexicon.Connection.NODE_TYPE );
+        outputNode.setProperty( DataVirtLexicon.Connection.TYPE, connection.getType().name() );
 
         // JNDI name
-        if ( datasource.getJndiName() != null ) {
-            outputNode.setProperty( DataVirtLexicon.DataSource.JNDI_NAME, datasource.getJndiName() );
+        if ( connection.getJndiName() != null ) {
+            outputNode.setProperty( DataVirtLexicon.Connection.JNDI_NAME, connection.getJndiName() );
         }
 
         // driver name
-        if ( datasource.getDriverName() != null ) {
-            outputNode.setProperty( DataVirtLexicon.DataSource.DRIVER_NAME, datasource.getDriverName() );
+        if ( connection.getDriverName() != null ) {
+            outputNode.setProperty( DataVirtLexicon.Connection.DRIVER_NAME, connection.getDriverName() );
         }
 
         // class name
-        if ( datasource.getClassName() != null ) {
-            outputNode.setProperty( DataVirtLexicon.DataSource.CLASS_NAME, datasource.getClassName() );
+        if ( connection.getClassName() != null ) {
+            outputNode.setProperty( DataVirtLexicon.Connection.CLASS_NAME, connection.getClassName() );
         }
 
         // custom properties
-        final Properties props = datasource.getProperties();
+        final Properties props = connection.getProperties();
 
         if ( !props.isEmpty() ) {
             for ( final String prop : props.stringPropertyNames() ) {
@@ -139,24 +124,24 @@ public class DataSourceSequencer extends Sequencer {
             }
         }
 
-        LOGGER.debug( ">>>>done reading datasource xml\n\n" );
-        return datasource;
+        LOGGER.debug( ">>>>done reading connection xml\n\n" );
+        return connection;
     }
 
     /**
-     * @param datasourceStream the stream being processed (cannot be <code>null</code>)
-     * @param datasourceOutputNode the repository output node (cannot be <code>null</code>)
-     * @return <code>true</code> if the data source was sequenced successfully
+     * @param connectionStream the stream being processed (cannot be <code>null</code>)
+     * @param connectionOutputNode the repository output node (cannot be <code>null</code>)
+     * @return <code>true</code> if the connection was sequenced successfully
      * @throws Exception
      */
-    public boolean sequenceDatasource( final InputStream datasourceStream,
-                                       final Node datasourceOutputNode ) throws Exception {
-        final DataSource ds = readDatasource( Objects.requireNonNull( datasourceStream, "datasourceStream" ),
-                                              Objects.requireNonNull( datasourceOutputNode, "datasourceOutputNode" ),
+    public boolean sequenceConnection( final InputStream connectionStream,
+                                       final Node connectionOutputNode ) throws Exception {
+        final Connection ds = readConnection( Objects.requireNonNull( connectionStream, "connectionStream" ),
+                                              Objects.requireNonNull( connectionOutputNode, "connectionOutputNode" ),
                                               null );
 
         if ( ds == null ) {
-            throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( datasourceOutputNode.getPath() ) );
+            throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( connectionOutputNode.getPath() ) );
         }
 
         return true;

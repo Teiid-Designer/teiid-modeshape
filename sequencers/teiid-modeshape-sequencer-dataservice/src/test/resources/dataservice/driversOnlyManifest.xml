@@ -9,7 +9,7 @@
     <drivers>
         <driver-file
             path="jdbc.jar"
-            deploy="ifMissing" />
+            publish="ifMissing" />
     </drivers>
 
 </dataservice>

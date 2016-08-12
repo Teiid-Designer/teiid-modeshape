@@ -31,15 +31,15 @@ import java.io.InputStream;
 import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
-import org.teiid.modeshape.sequencer.dataservice.DataSource.Type;
+import org.teiid.modeshape.sequencer.dataservice.Connection.Type;
 
-public final class DataSourceReaderTest {
+public final class ConnectionReaderTest {
 
-    private DataSourceReader reader;
+    private ConnectionReader reader;
 
     @Before
     public void constructReader() throws Exception {
-        this.reader = new DataSourceReader();
+        this.reader = new ConnectionReader();
     }
 
     private InputStream getStream( final String filePath ) {
@@ -47,23 +47,23 @@ public final class DataSourceReaderTest {
     }
 
     @Test( expected = Exception.class )
-    public void shouldFailReadingDataSourceWithoutClassName() throws Exception {
-        this.reader.read( getStream( "datasource/missingClassNameDatasource.tds" ) );
+    public void shouldFailReadingConnectionWithoutClassName() throws Exception {
+        this.reader.read( getStream( "connections/missingClassName-connection.xml" ) );
     }
 
     @Test( expected = Exception.class )
-    public void shouldFailReadingDataSourceWithoutDriverName() throws Exception {
-        this.reader.read( getStream( "datasource/missingDriverNameDatasource.tds" ) );
+    public void shouldFailReadingConnectionWithoutDriverName() throws Exception {
+        this.reader.read( getStream( "connections/missingDriverName-connection.xml" ) );
     }
 
     @Test( expected = Exception.class )
-    public void shouldFailReadingDataSourceWithoutJndiName() throws Exception {
-        this.reader.read( getStream( "datasource/missingJndiNameDatasource.tds" ) );
+    public void shouldFailReadingConnectionWithoutJndiName() throws Exception {
+        this.reader.read( getStream( "connections/missingJndiName-connection.xml" ) );
     }
 
     @Test
-    public void shouldParseDataSourceWithoutProperties() throws Exception {
-        final DataSource ds = this.reader.read( getStream( "datasource/noPropsDatasource.tds" ) );
+    public void shouldParseConnectionWithoutProperties() throws Exception {
+        final Connection ds = this.reader.read( getStream( "connections/noProps-connection.xml" ) );
         assertThat( ds, is( notNullValue() ) );
         assertThat( ds.getName(), is( "noPropsSource" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
@@ -74,10 +74,10 @@ public final class DataSourceReaderTest {
     }
 
     @Test
-    public void shouldParseJdbcDataSource() throws Exception {
-        final DataSource ds = this.reader.read( getStream( "datasource/jdbcDatasource.tds" ) );
+    public void shouldParseJdbcConneciton() throws Exception {
+        final Connection ds = this.reader.read( getStream( "connections/jdbc-connection.xml" ) );
         assertThat( ds, is( notNullValue() ) );
-        assertThat( ds.getName(), is( "jdbcSource" ) );
+        assertThat( ds.getName(), is( "jdbcConnection" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
         assertThat( ds.getJndiName(), is( "java:/jdbcSource" ) );
         assertThat( ds.getClassName(), is( nullValue() ) );
@@ -92,10 +92,10 @@ public final class DataSourceReaderTest {
     }
 
     @Test
-    public void shouldParseResourceAdapterDataSource() throws Exception {
-        final DataSource ds = this.reader.read( getStream( "datasource/raDatasource.tds" ) );
+    public void shouldParseResourceAdapterConnection() throws Exception {
+        final Connection ds = this.reader.read( getStream( "connections/resource-connection.xml" ) );
         assertThat( ds, is( notNullValue() ) );
-        assertThat( ds.getName(), is( "raSource" ) );
+        assertThat( ds.getName(), is( "resourceConnection" ) );
         assertThat( ds.getDriverName(), is( "dsDriver" ) );
         assertThat( ds.getJndiName(), is( "java:/jndiName" ) );
         assertThat( ds.getClassName(), is( "dsClassname" ) );

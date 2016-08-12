@@ -27,11 +27,11 @@ import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.StringUtil;
 
 /**
- * Represents a Data Source definition.
+ * Represents a connection definition.
  */
-public class DataSource {
+public class Connection {
 
-    static final Logger LOGGER = Logger.getLogger( DataSource.class );
+    static final Logger LOGGER = Logger.getLogger( Connection.class );
 
     private String className;
 
@@ -53,7 +53,7 @@ public class DataSource {
             return false;
         }
 
-        final DataSource that = ( DataSource )obj;
+        final Connection that = ( Connection )obj;
         return Objects.equals( this.name, that.name ) && Objects.equals( this.description, that.description )
                && Objects.equals( this.type, that.type ) && Objects.equals( this.jndiName, that.jndiName )
                && Objects.equals( this.driverName, that.driverName ) && Objects.equals( this.className, that.className )
@@ -89,7 +89,7 @@ public class DataSource {
     }
 
     /**
-     * @return the data source name (can be <code>null</code> or empty)
+     * @return the connection name (can be <code>null</code> or empty)
      */
     public String getName() {
         return this.name;
@@ -111,7 +111,7 @@ public class DataSource {
     }
 
     /**
-     * @return the data source type (can be <code>null</code>)
+     * @return the connection type (can be <code>null</code>)
      */
     public Type getType() {
         return this.type;
@@ -164,7 +164,7 @@ public class DataSource {
     }
 
     /**
-     * @param name the new name of the data source (can be <code>null</code> or empty)
+     * @param name the new name of the connection (can be <code>null</code> or empty)
      */
     public void setName( final String name ) {
         this.name = name;
@@ -196,17 +196,17 @@ public class DataSource {
     }
 
     /**
-     * Data source types
+     * Represents a connection type.
      */
     public enum Type {
 
         /**
-         * A JDBC data source type.
+         * A JDBC connection type.
          */
         JDBC,
 
         /**
-         * A resource adapter data source.
+         * A resource adapter connection.
          */
         RESOURCE
     }

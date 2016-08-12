@@ -8,17 +8,17 @@
     <vdbs>
         <vdb-file
             path="red-vdb.xml"
-            deploy="ifMissing"
+            publish="ifMissing"
             vdbName="Red"
             vdbVersion="1" />
         <vdb-file
             path="white-vdb.xml"
-            deploy="always"
+            publish="always"
             vdbName="White"
             vdbVersion="1" />
         <vdb-file
             path="blue-vdb.xml"
-            deploy="never"
+            publish="never"
             vdbName="Blue"
             vdbVersion="1" />
     </vdbs>

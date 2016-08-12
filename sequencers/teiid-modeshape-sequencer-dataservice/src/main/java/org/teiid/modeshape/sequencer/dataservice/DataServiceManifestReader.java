@@ -41,7 +41,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import org.modeshape.common.logging.Logger;
-import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.DeployPolicy;
+import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -64,8 +64,8 @@ public final class DataServiceManifestReader extends DefaultHandler {
     private static final String DATA_SERVICE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataService/dataService.xsd"; //$NON-NLS-1$
     private static final Logger LOGGER = Logger.getLogger( DataServiceManifestReader.class );
 
-    private DataSourceEntry dataSource;
-    private final Collection< DataSourceEntry > dataSources = new ArrayList<>();
+    private ConnectionEntry dataSource;
+    private final Collection< ConnectionEntry > dataSources = new ArrayList<>();
     private DataServiceEntry ddl;
     private final StringBuilder description = new StringBuilder();
     private DataServiceEntry driver;
@@ -111,13 +111,13 @@ public final class DataServiceManifestReader extends DefaultHandler {
                             final int length ) throws SAXException {
         final String value = new String( ch, start, length );
 
-        if ( DataVirtLexicon.DataServiceArchiveManifestId.DESCRIPTION.equals( getCurrentElement() ) ) {
+        if ( DataVirtLexicon.DataServiceManifestId.DESCRIPTION.equals( getCurrentElement() ) ) {
             this.description.append( value );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.LAST_MODIFIED.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.LAST_MODIFIED.equals( getCurrentElement() ) ) {
             this.lastModified.append( value );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.MODIFIED_BY.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.MODIFIED_BY.equals( getCurrentElement() ) ) {
             this.modifiedBy.append( value );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.PROPERTY.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.PROPERTY.equals( getCurrentElement() ) ) {
             this.propertyValue.append( value );
         } else {
             LOGGER.debug( "characters unhandled: current element={0}, value={1}", getCurrentElement(), value ); //$NON-NLS-1$
@@ -165,32 +165,32 @@ public final class DataServiceManifestReader extends DefaultHandler {
     public void endElement( final String uri,
                             final String localName,
                             final String qName ) throws SAXException {
-        if ( DataVirtLexicon.DataServiceArchiveManifestId.DATASERVICE.equals( localName ) ) {
+        if ( DataVirtLexicon.DataServiceManifestId.DATASERVICE.equals( localName ) ) {
             // done
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DESCRIPTION.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.DESCRIPTION.equals( localName ) ) {
             this.manifest.setDescription( this.description.toString() );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.LAST_MODIFIED.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.LAST_MODIFIED.equals( localName ) ) {
             final LocalDateTime lastModifiedDate = DataServiceManifest.parse( this.lastModified.toString() );
             this.manifest.setLastModified( lastModifiedDate );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.MODIFIED_BY.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.MODIFIED_BY.equals( localName ) ) {
             this.manifest.setModifiedBy( this.modifiedBy.toString() );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.PROPERTY.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.PROPERTY.equals( localName ) ) {
             this.manifest.setProperty( this.propertyName, this.propertyValue.toString() );
             this.propertyName = null;
             this.propertyValue.setLength( 0 );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.SERVICE_VDB.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.SERVICE_VDB.equals( localName ) ) {
             this.manifest.setServiceVdb( this.serviceVdb );
             this.vdbContainer = VdbParent.UNKNOWN;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.METADATA.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.DATA_SOURCES.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.DRIVERS.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.UDFS.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.RESOURCES.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.DEPENDENCIES.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.METADATA.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.CONNECTIONS.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.DRIVERS.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.UDFS.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.RESOURCES.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.DEPENDENCIES.equals( localName ) ) {
             // nothing to do
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.VDBS.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.VDBS.equals( localName ) ) {
             this.vdbContainer = VdbParent.UNKNOWN;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.VDB_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.VDB_FILE.equals( localName ) ) {
             // add to parent
             if ( this.vdbContainer == VdbParent.MANIFEST ) {
                 this.manifest.addVdb( this.vdb );
@@ -201,19 +201,19 @@ public final class DataServiceManifestReader extends DefaultHandler {
             }
 
             this.vdb = null;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DDL_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.DDL_FILE.equals( localName ) ) {
             this.manifest.addMetadata( this.ddl );
             this.ddl = null;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DRIVER_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.DRIVER_FILE.equals( localName ) ) {
             this.manifest.addDriver( this.driver );
             this.driver = null;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DATA_SOURCE_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.CONNECTION_FILE.equals( localName ) ) {
             this.manifest.addDataSource( this.dataSource );
             this.dataSource = null;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.UDF_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.UDF_FILE.equals( localName ) ) {
             this.manifest.addUdf( this.udf );
             this.udf = null;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.RESOURCE_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.RESOURCE_FILE.equals( localName ) ) {
             this.manifest.addResource( this.resource );
             this.resource = null;
         } else {
@@ -353,13 +353,13 @@ public final class DataServiceManifestReader extends DefaultHandler {
     private void setEntryAttributes( final DataServiceEntry entry,
                                      final Attributes attributes ) {
         // path
-        final String path = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.PATH );
+        final String path = attributes.getValue( DataVirtLexicon.DataServiceManifestId.PATH );
         entry.setPath( path );
 
         // deploy policy
-        if ( attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.DEPLOY ) != null ) {
-            final String xmlPolicy = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.DEPLOY );
-            entry.setDeployPolicy( DeployPolicy.fromXml( xmlPolicy ) );
+        if ( attributes.getValue( DataVirtLexicon.DataServiceManifestId.PUBLISH ) != null ) {
+            final String xmlPolicy = attributes.getValue( DataVirtLexicon.DataServiceManifestId.PUBLISH );
+            entry.setPublishPolicy( PublishPolicy.fromXml( xmlPolicy ) );
         }
     }
 
@@ -387,65 +387,65 @@ public final class DataServiceManifestReader extends DefaultHandler {
         final String pushed = this.elements.push( localName );
         LOGGER.debug( '+' + pushed + ", size=" + this.elements.size() ); //$NON-NLS-1$
 
-        if ( DataVirtLexicon.DataServiceArchiveManifestId.DATASERVICE.equals( localName ) ) {
-            final String name = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.NAME );
+        if ( DataVirtLexicon.DataServiceManifestId.DATASERVICE.equals( localName ) ) {
+            final String name = attributes.getValue( DataVirtLexicon.DataServiceManifestId.NAME );
             this.manifest.setName( name );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DESCRIPTION.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.LAST_MODIFIED.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.MODIFIED_BY.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.DESCRIPTION.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.LAST_MODIFIED.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.MODIFIED_BY.equals( localName ) ) {
             // nothing to do
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.PROPERTY.equals( localName ) ) {
-            this.propertyName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.SERVICE_VDB.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.PROPERTY.equals( localName ) ) {
+            this.propertyName = attributes.getValue( DataVirtLexicon.ConnectionXmlId.NAME_ATTR );
+        } else if ( DataVirtLexicon.DataServiceManifestId.SERVICE_VDB.equals( localName ) ) {
             this.serviceVdb = new ServiceVdbEntry();
             setEntryAttributes( this.serviceVdb, attributes );
 
             // VDB name
-            final String vdbName = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.VDB_NAME );
+            final String vdbName = attributes.getValue( DataVirtLexicon.DataServiceManifestId.VDB_NAME );
             this.serviceVdb.setVdbName( vdbName );
 
             // VDB version
-            final String version = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.VDB_VERSION );
+            final String version = attributes.getValue( DataVirtLexicon.DataServiceManifestId.VDB_VERSION );
             this.serviceVdb.setVdbVersion( version );
 
             this.vdbContainer = VdbParent.SERVICE_VDB;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.METADATA.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.DATA_SOURCES.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.DRIVERS.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.UDFS.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.RESOURCES.equals( localName )
-                    || DataVirtLexicon.DataServiceArchiveManifestId.DEPENDENCIES.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.METADATA.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.CONNECTIONS.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.DRIVERS.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.UDFS.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.RESOURCES.equals( localName )
+                    || DataVirtLexicon.DataServiceManifestId.DEPENDENCIES.equals( localName ) ) {
             // nothing to do
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.VDBS.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.VDBS.equals( localName ) ) {
             this.vdbContainer = VdbParent.MANIFEST;
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.VDB_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.VDB_FILE.equals( localName ) ) {
             this.vdb = new VdbEntry();
             setEntryAttributes( this.vdb, attributes );
 
             // VDB name
-            final String vdbName = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.VDB_NAME );
+            final String vdbName = attributes.getValue( DataVirtLexicon.DataServiceManifestId.VDB_NAME );
             this.vdb.setVdbName( vdbName );
 
             // VDB version
-            final String version = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.VDB_VERSION );
+            final String version = attributes.getValue( DataVirtLexicon.DataServiceManifestId.VDB_VERSION );
             this.vdb.setVdbVersion( version );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DDL_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.DDL_FILE.equals( localName ) ) {
             this.ddl = new DataServiceEntry();
             setEntryAttributes( this.ddl, attributes );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DRIVER_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.DRIVER_FILE.equals( localName ) ) {
             this.driver = new DataServiceEntry();
             setEntryAttributes( this.driver, attributes );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.DATA_SOURCE_FILE.equals( localName ) ) {
-            this.dataSource = new DataSourceEntry();
+        } else if ( DataVirtLexicon.DataServiceManifestId.CONNECTION_FILE.equals( localName ) ) {
+            this.dataSource = new ConnectionEntry();
             setEntryAttributes( this.dataSource, attributes );
 
             // JNDI name
-            final String jndiName = attributes.getValue( DataVirtLexicon.DataServiceArchiveManifestId.JNDI_NAME );
+            final String jndiName = attributes.getValue( DataVirtLexicon.DataServiceManifestId.JNDI_NAME );
             this.dataSource.setJndiName( jndiName );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.UDF_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.UDF_FILE.equals( localName ) ) {
             this.udf = new DataServiceEntry();
             setEntryAttributes( this.udf, attributes );
-        } else if ( DataVirtLexicon.DataServiceArchiveManifestId.RESOURCE_FILE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.DataServiceManifestId.RESOURCE_FILE.equals( localName ) ) {
             this.resource = new DataServiceEntry();
             setEntryAttributes( this.resource, attributes );
         } else {

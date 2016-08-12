@@ -9,14 +9,14 @@
 
     <service-vdb-file
         path="myService-vdb.xml"
-        deploy="ifMissing"
+        publish="ifMissing"
         vdbName="ServiceVdb"
         vdbVersion="1"
     >
         <dependencies>
             <vdb-file
                 path="blah-vdb.xml"
-                deploy="ifMissing"
+                publish="ifMissing"
                 vdbName="Blah"
                 vdbVersion="1" />
         </dependencies>
@@ -25,22 +25,22 @@
     <metadata>
         <ddl-file
             path="firstDdl.ddl"
-            deploy="always" />
+            publish="always" />
         <ddl-file
             path="secondDdl.ddl"
-            deploy="always" />
+            publish="always" />
     </metadata>
 
-    <datasources>
-        <datasource-file
-            path="firstDS.tds"
-            deploy="ifMissing"
-            jndiName="firstDS" />
-        <datasource-file
-            path="secondDS.tds"
-            deploy="ifMissing"
-            jndiName="secondDS" />
-    </datasources>
+    <connections>
+        <connection-file
+            path="first-connection.xml"
+            publish="ifMissing"
+            jndiName="firstConnection" />
+        <connection-file
+            path="second-connection.xml"
+            publish="ifMissing"
+            jndiName="secondConnection" />
+    </connections>
 
     <drivers>
         <driver-file path="firstDriver.jar" />
@@ -50,14 +50,14 @@
     <udfs>
         <udf-file
             path="firstUdf.jar"
-            deploy="never" />
+            publish="never" />
         <udf-file path="secondUdf.jar" />
     </udfs>
 
     <vdbs>
         <vdb-file
             path="first-vdb.xml"
-            deploy="ifMissing"
+            publish="ifMissing"
             vdbName="DuplicateVdb"
             vdbVersion="1" />
         <vdb-file
@@ -70,7 +70,7 @@
         <resource-file path="firstResource.xml" />
         <resource-file
             path="secondResource.xml"
-            deploy="always" />
+            publish="always" />
     </resources>
 
 </dataservice>

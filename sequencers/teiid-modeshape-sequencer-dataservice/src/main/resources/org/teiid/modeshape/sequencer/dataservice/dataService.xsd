@@ -38,8 +38,8 @@
                             type="metadataGroupType"
                             minOccurs="0" />
                         <xs:element
-                            name="datasources"
-                            type="dataSourceGroupType"
+                            name="connections"
+                            type="connectionGroupType"
                             minOccurs="0" />
                         <xs:element
                             name="drivers"
@@ -64,8 +64,8 @@
                             name="metadata"
                             type="metadataGroupType" />
                         <xs:element
-                            name="datasources"
-                            type="dataSourceGroupType"
+                            name="connections"
+                            type="connectionGroupType"
                             minOccurs="0" />
                         <xs:element
                             name="drivers"
@@ -87,8 +87,8 @@
 
                     <xs:sequence>
                         <xs:element
-                            name="datasources"
-                            type="dataSourceGroupType" />
+                            name="connections"
+                            type="connectionGroupType" />
                         <xs:element
                             name="drivers"
                             type="driverGroupType"
@@ -175,9 +175,9 @@
             <xs:field xpath="@path" />
         </xs:unique>
 
-        <!-- Make sure the JNDI name attribute is unique across all data source entries -->
+        <!-- Make sure the JNDI name attribute is unique across all connection entries -->
         <xs:unique name="jndiNameConstraint">
-            <xs:selector xpath=".//datasource-file" />
+            <xs:selector xpath=".//connection-file" />
             <xs:field xpath="@jndiName" />
         </xs:unique>
 
@@ -204,16 +204,16 @@
         </xs:sequence>
     </xs:complexType>
 
-    <xs:complexType name="dataSourceGroupType">
+    <xs:complexType name="connectionGroupType">
         <xs:sequence>
             <xs:element
-                name="datasource-file"
-                type="dataSourceType"
+                name="connection-file"
+                type="connectionType"
                 minOccurs="1"
                 maxOccurs="unbounded"
             >
                 <xs:annotation>
-                    <xs:documentation>A grouping of data source file entries.</xs:documentation>
+                    <xs:documentation>A grouping of connection file entries.</xs:documentation>
                 </xs:annotation>
             </xs:element>
         </xs:sequence>
@@ -331,9 +331,9 @@
     </xs:complexType>
 
     <!-- -->
-    <!-- A data source file entry. -->
+    <!-- A connection file entry. -->
     <!-- -->
-    <xs:complexType name="dataSourceType">
+    <xs:complexType name="connectionType">
         <xs:complexContent>
             <xs:extension base="entryType">
                 <xs:attribute
@@ -342,7 +342,7 @@
                     use="required"
                 >
                     <xs:annotation>
-                        <xs:documentation>The data source's JNDI name.
+                        <xs:documentation>The connection's JNDI name.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:attribute>
@@ -367,17 +367,17 @@
         </xs:attribute>
 
         <xs:attribute
-            name="deploy"
-            type="deployType"
+            name="publish"
+            type="publishType"
             default="ifMissing"
         >
         </xs:attribute>
     </xs:complexType>
 
     <!-- -->
-    <!-- The deploy type determines how the data service entry should be deployed. -->
+    <!-- The publish type determines how the data service entry should be published. -->
     <!-- -->
-    <xs:simpleType name="deployType">
+    <xs:simpleType name="publishType">
         <xs:restriction base="xs:string">
             <xs:enumeration value="ifMissing" />
             <xs:enumeration value="always" />

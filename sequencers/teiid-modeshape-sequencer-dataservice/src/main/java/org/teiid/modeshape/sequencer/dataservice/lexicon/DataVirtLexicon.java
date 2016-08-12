@@ -29,27 +29,15 @@ import static org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon.
 public interface DataVirtLexicon {
 
     /**
-     * JCR identifiers relating to a data service.
+     * JCR identifiers relating to a data service archive. Child nodes should be of type
+     * {@link DataVirtLexicon.DataServiceEntry#NODE_TYPE}.
      */
     interface DataService {
 
         /**
-         * The name of the node type. Value is {@value}.
-         */
-        String NODE_TYPE = PREFIX + ":dataService";
-
-    }
-
-    /**
-     * JCR identifiers relating to a data service archive. Child nodes should be of type
-     * {@link DataVirtLexicon.DataServiceEntry#NODE_TYPE}.
-     */
-    interface DataServiceArchive {
-
-        /**
          * The name of the data service archive node type. Value is {@value}.
          */
-        String NODE_TYPE = PREFIX + ":dataServiceArchive";
+        String NODE_TYPE = PREFIX + ":dataService";
 
         /**
          * The name of the property whose value contains a description of the data service archive. Value is {@value}.
@@ -76,17 +64,17 @@ public interface DataVirtLexicon {
     /**
      * Manifest IDs for the data service archive manifest.
      */
-    interface DataServiceArchiveManifestId {
+    interface DataServiceManifestId {
 
         /**
-         * The XML element tag for a data source file. Value is {@value}.
+         * The XML element tag for the collection of connection files. Value is {@value}.
          */
-        String DATA_SOURCE_FILE = "datasource-file";
+        String CONNECTIONS = "connections";
 
         /**
-         * The XML element tag for the collection of data source files. Value is {@value}.
+         * The XML element tag for a connection file. Value is {@value}.
          */
-        String DATA_SOURCES = "datasources";
+        String CONNECTION_FILE = "connection-file";
 
         /**
          * The XML element tag for the root data service. Value is {@value}.
@@ -104,12 +92,6 @@ public interface DataVirtLexicon {
         String DEPENDENCIES = "dependencies";
 
         /**
-         * The name of the XML attribute containing the deployment instruction for the resource (deploy if missing, deploy always,
-         * or never deploy). Value is {@value}.
-         */
-        String DEPLOY = "deploy";
-
-        /**
          * The XML element tag for the data service description. Value is {@value}.
          */
         String DESCRIPTION = "description";
@@ -125,7 +107,7 @@ public interface DataVirtLexicon {
         String DRIVERS = "drivers";
 
         /**
-         * The name of the XML attribute containing the name of the data source JNDI name. Value is {@value}.
+         * The name of the XML attribute containing the name of the connection JNDI name. Value is {@value}.
          */
         String JNDI_NAME = "jndiName";
 
@@ -158,6 +140,11 @@ public interface DataVirtLexicon {
          * The XML element tag for a generic data service property. Value is {@value}.
          */
         String PROPERTY = "property";
+
+        /**
+         * The name of the XML attribute containing the publishing policy for the resource. Value is {@value}.
+         */
+        String PUBLISH = "publish";
 
         /**
          * The XML element tag for a miscellaneous resource file. Value is {@value}.
@@ -204,11 +191,6 @@ public interface DataVirtLexicon {
          */
         String VDBS = "vdbs";
 
-        /**
-         * The XML element tag for the version of an artifact. Value is {@value}.
-         */
-        String VERSION = "datasource";
-
     }
 
     /**
@@ -235,9 +217,9 @@ public interface DataVirtLexicon {
     }
 
     /**
-     * JCR identifiers relating to the data source.
+     * JCR identifiers relating to the connection.
      */
-    interface DataSource {
+    interface Connection {
 
         /**
          * The name of the property whose value is the Java class name of the driver. Value is {@value}.
@@ -250,31 +232,31 @@ public interface DataVirtLexicon {
         String DRIVER_NAME = PREFIX + ":driverName";
 
         /**
-         * The name of the property whose value is the JNDI name of the data source. Value is {@value}.
+         * The name of the property whose value is the JNDI name of the connection. Value is {@value}.
          */
         String JNDI_NAME = PREFIX + ":jndiName";
 
         /**
-         * The name of the data source node type. Value is {@value}.
+         * The name of the connection node type. Value is {@value}.
          */
-        String NODE_TYPE = PREFIX + ":dataSource";
+        String NODE_TYPE = PREFIX + ":connection";
 
         /**
-         * The name of the property whose value is the type of the data source. Value is {@value}.
+         * The name of the property whose value is the type of the connection. Value is {@value}.
          */
         String TYPE = PREFIX + ":type";
 
     }
 
     /**
-     * JCR identifiers relating to a data service's entry for a data source.
+     * JCR identifiers relating to a data service's entry for a connection.
      */
-    interface DataSourceEntry {
+    interface ConnectionEntry {
 
         /**
-         * The name of the data source entry node type. Value is {@value}.
+         * The name of the connection entry node type. Value is {@value}.
          */
-        String NODE_TYPE = PREFIX + ":dataSourceEntry";
+        String NODE_TYPE = PREFIX + ":connectionEntry";
 
         /**
          * The name of the property whose value is the archive path of the entry. Value is {@value}.
@@ -282,21 +264,21 @@ public interface DataVirtLexicon {
         String PATH = DataServiceEntry.PATH;
 
         /**
-         * The name of the property whose value is the reference of the data source resource. Value is {@value}.
+         * The name of the property whose value is the reference of the connection resource. Value is {@value}.
          */
-        String DATA_SOURCE_REF = DataServiceEntry.SOURCE_RESOURCE;
+        String CONNECTION_REF = DataServiceEntry.SOURCE_RESOURCE;
 
         /**
-         * The name of the property whose value is the JNDI name of the data source. Value is {@value}.
+         * The name of the property whose value is the JNDI name of the connection. Value is {@value}.
          */
         String JDNI_NAME = PREFIX + ":jndiName";
 
     }
 
     /**
-     * XML IDs for data source <code>*.tds</code> files.
+     * XML IDs for connection <code>-connection.xml</code> files.
      */
-    interface DataSourceXmlId {
+    interface ConnectionXmlId {
 
         /**
          * The XML element tag for the driver class name. Value is {@value}.
@@ -304,7 +286,7 @@ public interface DataVirtLexicon {
         String CLASSNAME = "driver-class";
 
         /**
-         * The XML element tag for the data source description. Value is {@value}.
+         * The XML element tag for the connection description. Value is {@value}.
          */
         String DESCRIPTION = "description";
 
@@ -314,9 +296,9 @@ public interface DataVirtLexicon {
         String DRIVER_NAME = "driver-name";
 
         /**
-         * The XML root element tag for a JDBC data source. Value is {@value}.
+         * The XML root element tag for a JDBC connection. Value is {@value}.
          */
-        String JDBC_DATA_SOURCE = "jdbc-datasource";
+        String JDBC_CONNECTION = "jdbc-connection";
 
         /**
          * The XML element tag for the JNDI name. Value is {@value}.
@@ -324,7 +306,7 @@ public interface DataVirtLexicon {
         String JNDI_NAME = "jndi-name";
 
         /**
-         * The XML attribute for the name of the data source. Value is {@value}.
+         * The XML attribute for the name of the connection. Value is {@value}.
          */
         String NAME_ATTR = "name";
 
@@ -334,9 +316,9 @@ public interface DataVirtLexicon {
         String PROPERTY = "property";
 
         /**
-         * The XML root element tag for a resource adapter data source. Value is {@value}.
+         * The XML root element tag for a resource adapter connection. Value is {@value}.
          */
-        String RESOURCE_DATA_SOURCE = "resource-datasource";
+        String RESOURCE_CONNECTION = "resource-connection";
 
     }
 

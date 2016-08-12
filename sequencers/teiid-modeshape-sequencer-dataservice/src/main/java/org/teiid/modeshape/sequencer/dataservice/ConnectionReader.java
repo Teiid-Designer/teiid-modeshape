@@ -39,7 +39,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import org.modeshape.common.logging.Logger;
-import org.teiid.modeshape.sequencer.dataservice.DataSource.Type;
+import org.teiid.modeshape.sequencer.dataservice.Connection.Type;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -47,20 +47,20 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * A reader for Data Source files.
+ * A reader for connection files.
  */
-public final class DataSourceReader extends DefaultHandler {
+public final class ConnectionReader extends DefaultHandler {
 
     /**
-     * The valid Data Source file extensions.
+     * The valid connection file extensions. Value is {@value}.
      */
-    public static final String[] DATA_SOURCE_FILE_EXTENSIONS = { ".tds" }; //$NON-NLS-1$
+    public static final String[] FILE_EXTENSIONS = { "-connection.xml" }; //$NON-NLS-1$
 
-    private static final String DATA_SOURCE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataService/dataSource.xsd"; //$NON-NLS-1$
-    private static final Logger LOGGER = Logger.getLogger( DataSourceReader.class );
+    private static final String DATA_SOURCE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataService/connection.xsd"; //$NON-NLS-1$
+    private static final Logger LOGGER = Logger.getLogger( ConnectionReader.class );
 
     private final StringBuilder className;
-    private DataSource dataSource;
+    private Connection dataSource;
     private final StringBuilder description;
     private final StringBuilder driverName;
     private final Stack< String > elements;
@@ -77,17 +77,17 @@ public final class DataSourceReader extends DefaultHandler {
     /**
      * @throws Exception if there is an error constructing the parser
      */
-    public DataSourceReader() throws Exception {
+    public ConnectionReader() throws Exception {
         this.className = new StringBuilder();
         this.description = new StringBuilder();
         this.driverName = new StringBuilder();
-        this.elements = new Stack< >();
-        this.errors = new ArrayList< >();
-        this.fatals = new ArrayList< >();
-        this.infos = new ArrayList< >();
+        this.elements = new Stack<>();
+        this.errors = new ArrayList<>();
+        this.fatals = new ArrayList<>();
+        this.infos = new ArrayList<>();
         this.jndiName = new StringBuilder();
         this.propertyValue = new StringBuilder();
-        this.warnings = new ArrayList< >();
+        this.warnings = new ArrayList<>();
 
         initParser();
     }
@@ -103,15 +103,15 @@ public final class DataSourceReader extends DefaultHandler {
                             final int length ) throws SAXException {
         final String value = new String( ch, start, length );
 
-        if ( DataVirtLexicon.DataSourceXmlId.PROPERTY.equals( getCurrentElement() ) ) {
+        if ( DataVirtLexicon.ConnectionXmlId.PROPERTY.equals( getCurrentElement() ) ) {
             this.propertyValue.append( value );
-        } else if ( DataVirtLexicon.DataSourceXmlId.CLASSNAME.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.CLASSNAME.equals( getCurrentElement() ) ) {
             this.className.append( value );
-        } else if ( DataVirtLexicon.DataSourceXmlId.DESCRIPTION.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.DESCRIPTION.equals( getCurrentElement() ) ) {
             this.description.append( value );
-        } else if ( DataVirtLexicon.DataSourceXmlId.DRIVER_NAME.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.DRIVER_NAME.equals( getCurrentElement() ) ) {
             this.driverName.append( value );
-        } else if ( DataVirtLexicon.DataSourceXmlId.JNDI_NAME.equals( getCurrentElement() ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.JNDI_NAME.equals( getCurrentElement() ) ) {
             this.jndiName.append( value );
         }
 
@@ -119,14 +119,14 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     private void clearDataSourceState() {
-        this.dataSource = new DataSource();
+        this.dataSource = new Connection();
         this.className.setLength( 0 );
         this.description.setLength( 0 );
         this.driverName.setLength( 0 );
         this.jndiName.setLength( 0 );
         this.propertyName = null;
         this.propertyValue.setLength( 0 );
-        LOGGER.debug( "cleared Data Source instance state" ); //$NON-NLS-1$
+        LOGGER.debug( "cleared connection instance state" ); //$NON-NLS-1$
     }
 
     private void clearState() {
@@ -136,7 +136,7 @@ public final class DataSourceReader extends DefaultHandler {
         this.infos.clear();
         this.warnings.clear();
         clearDataSourceState();
-        LOGGER.debug( "cleared all Data Source reader state" ); //$NON-NLS-1$
+        LOGGER.debug( "cleared all connection reader state" ); //$NON-NLS-1$
     }
 
     /**
@@ -148,28 +148,28 @@ public final class DataSourceReader extends DefaultHandler {
     public void endElement( final String uri,
                             final String localName,
                             final String qName ) throws SAXException {
-        if ( DataVirtLexicon.DataSourceXmlId.JDBC_DATA_SOURCE.equals( localName ) ) {
+        if ( DataVirtLexicon.ConnectionXmlId.JDBC_CONNECTION.equals( localName ) ) {
             // done
-        } else if ( DataVirtLexicon.DataSourceXmlId.RESOURCE_DATA_SOURCE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.RESOURCE_CONNECTION.equals( localName ) ) {
             // done
-        } else if ( DataVirtLexicon.DataSourceXmlId.DESCRIPTION.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.DESCRIPTION.equals( localName ) ) {
             this.dataSource.setDescription( this.description.toString() );
-        } else if ( DataVirtLexicon.DataSourceXmlId.JNDI_NAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.JNDI_NAME.equals( localName ) ) {
             if ( this.jndiName.length() != 0 ) {
                 this.dataSource.setJndiName( this.jndiName.toString() );
                 this.jndiName.setLength( 0 );
             }
-        } else if ( DataVirtLexicon.DataSourceXmlId.DRIVER_NAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.DRIVER_NAME.equals( localName ) ) {
             if ( this.driverName.length() != 0 ) {
                 this.dataSource.setDriverName( this.driverName.toString() );
                 this.driverName.setLength( 0 );
             }
-        } else if ( DataVirtLexicon.DataSourceXmlId.CLASSNAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.CLASSNAME.equals( localName ) ) {
             if ( this.className.length() != 0 ) {
                 this.dataSource.setClassName( this.className.toString() );
                 this.className.setLength( 0 );
             }
-        } else if ( DataVirtLexicon.DataSourceXmlId.PROPERTY.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.PROPERTY.equals( localName ) ) {
             this.dataSource.setProperty( this.propertyName, this.propertyValue.toString() );
             this.propertyName = null;
             this.propertyValue.setLength( 0 );
@@ -213,9 +213,9 @@ public final class DataSourceReader extends DefaultHandler {
     }
 
     /**
-     * @return the data source defined in the input stream (<code>null</code> until {@link #read(InputStream)} is called)
+     * @return the connection defined in the input stream (<code>null</code> until {@link #read(InputStream)} is called)
      */
-    public DataSource getDatasource() {
+    public Connection getDatasource() {
         return this.dataSource;
     }
 
@@ -254,7 +254,7 @@ public final class DataSourceReader extends DefaultHandler {
             this.schemaFile = File.createTempFile( "dataSourceSchemaFile", ".xsd" ); //$NON-NLS-1$ //$NON-NLS-2$
             Files.copy( schemaStream, this.schemaFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
             this.schemaFile.deleteOnExit();
-            LOGGER.debug( "Data Source schema file loaded" ); //$NON-NLS-1$
+            LOGGER.debug( "connection schema file loaded" ); //$NON-NLS-1$
         } catch ( final IOException e ) {
             throw new Exception( TeiidI18n.dataSourceSchemaError.text( DATA_SOURCE_SCHEMA_FILE ), e );
         }
@@ -269,19 +269,19 @@ public final class DataSourceReader extends DefaultHandler {
             this.parser.setProperty( "http://java.sun.com/xml/jaxp/properties/schemaLanguage", //$NON-NLS-1$
                                      "http://www.w3.org/2001/XMLSchema" ); //$NON-NLS-1$
             this.parser.setProperty( "http://java.sun.com/xml/jaxp/properties/schemaSource", this.schemaFile ); //$NON-NLS-1$
-            LOGGER.debug( "Data Source reader parser created" ); //$NON-NLS-1$
+            LOGGER.debug( "connection reader parser created" ); //$NON-NLS-1$
         } catch ( final Exception e ) {
             throw new Exception( TeiidI18n.dataSourceSchemaError.text(), e );
         }
     }
 
     /**
-     * @param datasourcesStream the input stream being processed (cannot be <code>null</code>)
-     * @return the data source defined in the stream (never <code>null</code>)
+     * @param connectionStream the input stream being processed (cannot be <code>null</code>)
+     * @return the connection defined in the stream (never <code>null</code>)
      * @throws Exception if an error occurs
      */
-    public DataSource read( final InputStream datasourcesStream ) throws Exception {
-        LOGGER.debug( "start Data Source read" ); //$NON-NLS-1$
+    public Connection read( final InputStream connectionStream ) throws Exception {
+        LOGGER.debug( "start connection read" ); //$NON-NLS-1$
         clearState(); // make sure state is clear if read is called multiple times
 
         // read in stream because it will be used twice
@@ -289,7 +289,7 @@ public final class DataSourceReader extends DefaultHandler {
         final byte[] buf = new byte[ 1024 ];
 
         int n = 0;
-        while ( ( n = Objects.requireNonNull( datasourcesStream, "datasourcesStream" ).read( buf ) ) >= 0 ) {
+        while ( ( n = Objects.requireNonNull( connectionStream, "connectionStream" ).read( buf ) ) >= 0 ) {
             baos.write( buf, 0, n );
         }
 
@@ -301,7 +301,7 @@ public final class DataSourceReader extends DefaultHandler {
 
         // parse
         this.parser.parse( new ByteArrayInputStream( content ), this );
-        LOGGER.debug( "finished Data Source read" ); //$NON-NLS-1$
+        LOGGER.debug( "finished connection read" ); //$NON-NLS-1$
         return this.dataSource;
     }
 
@@ -328,24 +328,24 @@ public final class DataSourceReader extends DefaultHandler {
                               final Attributes attributes ) throws SAXException {
         this.elements.push( localName );
 
-        if ( DataVirtLexicon.DataSourceXmlId.JDBC_DATA_SOURCE.equals( localName ) ) {
+        if ( DataVirtLexicon.ConnectionXmlId.JDBC_CONNECTION.equals( localName ) ) {
             clearDataSourceState();
             this.dataSource.setType( Type.JDBC );
-            final String dsName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
+            final String dsName = attributes.getValue( DataVirtLexicon.ConnectionXmlId.NAME_ATTR );
             this.dataSource.setName( dsName );
-        } else if ( DataVirtLexicon.DataSourceXmlId.RESOURCE_DATA_SOURCE.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.RESOURCE_CONNECTION.equals( localName ) ) {
             clearDataSourceState();
             this.dataSource.setType( Type.RESOURCE );
-            final String dsName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
+            final String dsName = attributes.getValue( DataVirtLexicon.ConnectionXmlId.NAME_ATTR );
             this.dataSource.setName( dsName );
-        } else if ( DataVirtLexicon.DataSourceXmlId.DESCRIPTION.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.DESCRIPTION.equals( localName ) ) {
             // nothing to do
-        } else if ( DataVirtLexicon.DataSourceXmlId.JNDI_NAME.equals( localName )
-                    || DataVirtLexicon.DataSourceXmlId.DRIVER_NAME.equals( localName )
-                    || DataVirtLexicon.DataSourceXmlId.CLASSNAME.equals( localName ) ) {
+        } else if ( DataVirtLexicon.ConnectionXmlId.JNDI_NAME.equals( localName )
+                    || DataVirtLexicon.ConnectionXmlId.DRIVER_NAME.equals( localName )
+                    || DataVirtLexicon.ConnectionXmlId.CLASSNAME.equals( localName ) ) {
             // nothing to do
-        } else if ( DataVirtLexicon.DataSourceXmlId.PROPERTY.equals( localName ) ) {
-            this.propertyName = attributes.getValue( DataVirtLexicon.DataSourceXmlId.NAME_ATTR );
+        } else if ( DataVirtLexicon.ConnectionXmlId.PROPERTY.equals( localName ) ) {
+            this.propertyName = attributes.getValue( DataVirtLexicon.ConnectionXmlId.NAME_ATTR );
         } else {
             throw new SAXException( TeiidI18n.unhandledDatasoureStartElement.text( localName ) );
         }
@@ -372,7 +372,7 @@ public final class DataSourceReader extends DefaultHandler {
         final Schema schema = factory.newSchema( this.schemaFile );
         final Validator validator = schema.newValidator();
         validator.validate( new StreamSource( stream ) );
-        LOGGER.debug( "Data Source XML file validated" ); //$NON-NLS-1$
+        LOGGER.debug( "connection XML file validated" ); //$NON-NLS-1$
     }
 
     /**

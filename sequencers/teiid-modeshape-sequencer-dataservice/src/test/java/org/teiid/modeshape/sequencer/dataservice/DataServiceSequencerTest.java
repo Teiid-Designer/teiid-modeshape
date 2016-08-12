@@ -34,34 +34,34 @@ import javax.jcr.Session;
 import org.junit.Test;
 import org.modeshape.jcr.api.JcrConstants;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
-import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.DeployPolicy;
+import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 
 public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
-    private void assertDataSource( final Node dataServiceNode,
+    private void assertConnection( final Node dataServiceNode,
                                    final String dsEntryName,
-                                   final DataServiceEntry.DeployPolicy deployPolicy ) throws Exception {
+                                   final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( dsEntryName ), is( true ) );
 
         final Node dsEntryNode = dataServiceNode.getNode( dsEntryName );
-        assertThat( dsEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataSourceEntry.NODE_TYPE ) );
-        assertThat( dsEntryNode.hasProperty( DataVirtLexicon.DataSourceEntry.PATH ), is( true ) );
-        assertThat( dsEntryNode.getProperty( DataVirtLexicon.DataSourceEntry.PATH ).getString(),
-                    is( "datasources/" + dsEntryName ) );
+        assertThat( dsEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.ConnectionEntry.NODE_TYPE ) );
+        assertThat( dsEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PATH ), is( true ) );
+        assertThat( dsEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PATH ).getString(),
+                    is( "connections/" + dsEntryName ) );
 
         // check reference
         assertReferencedResource( dsEntryNode,
-                                  DataVirtLexicon.DataSourceEntry.DATA_SOURCE_REF,
-                                  DataVirtLexicon.DataSource.NODE_TYPE,
+                                  DataVirtLexicon.ConnectionEntry.CONNECTION_REF,
+                                  DataVirtLexicon.Connection.NODE_TYPE,
                                   deployPolicy,
                                   false );
     }
 
     private void assertDdl( final Node dataServiceNode,
                             final String ddlEntryName,
-                            final DataServiceEntry.DeployPolicy deployPolicy ) throws Exception {
+                            final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( ddlEntryName ), is( true ) );
 
         final Node ddlEntryNode = dataServiceNode.getNode( ddlEntryName );
@@ -80,7 +80,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
     private void assertDriver( final Node dataServiceNode,
                                final String driverEntryName,
-                               final DataServiceEntry.DeployPolicy deployPolicy ) throws Exception {
+                               final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( driverEntryName ), is( true ) );
 
         final Node driverEntryNode = dataServiceNode.getNode( driverEntryName );
@@ -100,10 +100,10 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
     private void assertReferencedResource( final Node node,
                                            final String nameOfPropertyWithRefValue,
                                            final String typeOfResource,
-                                           final DataServiceEntry.DeployPolicy deployPolicy,
+                                           final DataServiceEntry.PublishPolicy deployPolicy,
                                            final boolean checkForFileContent ) throws Exception {
         // make sure property exists
-        boolean refExists = ( ( deployPolicy == DeployPolicy.ALWAYS ) || ( deployPolicy == DeployPolicy.IF_MISSING ) );
+        boolean refExists = ( ( deployPolicy == PublishPolicy.ALWAYS ) || ( deployPolicy == PublishPolicy.IF_MISSING ) );
         assertThat( node.hasProperty( nameOfPropertyWithRefValue ), is( refExists ) );
 
         if ( refExists ) {
@@ -122,7 +122,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
     private void assertResource( final Node dataServiceNode,
                                  final String resourceEntryName,
-                                 final DataServiceEntry.DeployPolicy deployPolicy ) throws Exception {
+                                 final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( resourceEntryName ), is( true ) );
 
         final Node resourceEntryNode = dataServiceNode.getNode( resourceEntryName );
@@ -141,7 +141,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
     private void assertUdf( final Node dataServiceNode,
                             final String udfEntryName,
-                            final DataServiceEntry.DeployPolicy deployPolicy ) throws Exception {
+                            final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( udfEntryName ), is( true ) );
 
         final Node udfEntryNode = dataServiceNode.getNode( udfEntryName );
@@ -159,7 +159,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
     private void assertVdb( final Node dataServiceNode,
                             final String vdbEntryName,
-                            final DataServiceEntry.DeployPolicy deployPolicy ) throws Exception {
+                            final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( vdbEntryName ), is( true ) );
 
         final Node vdbEntryNode = dataServiceNode.getNode( vdbEntryName );
@@ -186,26 +186,26 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    public void shouldSequenceDataservice() throws Exception {
+    public void shouldSequenceDataService() throws Exception {
         createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
-        final Node outputNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip", 300 );
+        final Node outputNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip" );
         assertNotNull( outputNode );
         assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataService.NODE_TYPE ) );
 
         // properties
-        assertThat( outputNode.hasProperty( DataVirtLexicon.DataServiceArchive.NAME ), is( true ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataServiceArchive.NAME ).getString(), is( "MyDataService" ) );
-        assertThat( outputNode.hasProperty( DataVirtLexicon.DataServiceArchive.DESCRIPTION ), is( true ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataServiceArchive.DESCRIPTION ).getString(),
+        assertThat( outputNode.hasProperty( DataVirtLexicon.DataService.NAME ), is( true ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.DataService.NAME ).getString(), is( "MyDataService" ) );
+        assertThat( outputNode.hasProperty( DataVirtLexicon.DataService.DESCRIPTION ), is( true ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.DataService.DESCRIPTION ).getString(),
                     is( "This is my data service description" ) );
-        assertThat( outputNode.hasProperty( DataVirtLexicon.DataServiceArchive.MODIFIED_BY ), is( true ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataServiceArchive.MODIFIED_BY ).getString(), is( "elvis" ) );
+        assertThat( outputNode.hasProperty( DataVirtLexicon.DataService.MODIFIED_BY ), is( true ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.DataService.MODIFIED_BY ).getString(), is( "elvis" ) );
         assertThat( outputNode.hasProperty( "propA" ), is( true ) );
         assertThat( outputNode.getProperty( "propA" ).getString(), is( "Value A" ) );
-        assertThat( outputNode.hasProperty( DataVirtLexicon.DataServiceArchive.LAST_MODIFIED ), is( true ) );
+        assertThat( outputNode.hasProperty( DataVirtLexicon.DataService.LAST_MODIFIED ), is( true ) );
 
         final Calendar modifiedDate = new GregorianCalendar( 2002, 4, 30, 9, 30, 10 );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataServiceArchive.LAST_MODIFIED ).getDate(), is( modifiedDate ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.DataService.LAST_MODIFIED ).getDate(), is( modifiedDate ) );
 
         // check child entries
         /*
@@ -220,8 +220,8 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
          /dataservices/MyDataService.zip/secondResource.xml : type = dv:resourceEntry
          /dataservices/MyDataService.zip/firstUdf.jar : type = dv:udfEntry
          /dataservices/MyDataService.zip/secondUdf.jar : type = dv:udfEntry
-         /dataservices/MyDataService.zip/booksDatasource.tds : type = dv:dataSourceEntry
-         /dataservices/MyDataService.zip/portfolioDatasource.tds : type = dv:dataSourceEntry
+         /dataservices/MyDataService.zip/books-connection.xml : type = dv:dataSourceEntry
+         /dataservices/MyDataService.zip/portfoliobooks-connection.xml : type = dv:dataSourceEntry
          /dataservices/MyDataService.zip/books-vdb.xml : type = dv:vdbEntry
          /dataservices/MyDataService.zip/Portfolio-vdb.xml : type = dv:vdbEntry
         */
@@ -242,7 +242,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
             assertReferencedResource( serviceVdbEntryNode,
                                       DataVirtLexicon.ServiceVdbEntry.VDB_REF,
                                       VdbLexicon.Vdb.VIRTUAL_DATABASE,
-                                      DeployPolicy.IF_MISSING,
+                                      PublishPolicy.IF_MISSING,
                                       false );
             final Node vdbNode = outputNode.getParent().getNode( "product-view-vdb.xml" );
             assertThat( vdbNode.getProperty( VdbLexicon.Vdb.NAME ).getString(), is( "DynamicProducts" ) );
@@ -254,58 +254,100 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
             assertReferencedResource( dependencyNode,
                                       DataVirtLexicon.VdbEntry.VDB_REF,
                                       VdbLexicon.Vdb.VIRTUAL_DATABASE,
-                                      DeployPolicy.IF_MISSING,
+                                      PublishPolicy.IF_MISSING,
                                       false );
             final Node importVdbNode = outputNode.getParent().getNode( "twitter-vdb.xml" );
             assertThat( importVdbNode.getProperty( VdbLexicon.Vdb.NAME ).getString(), is( "twitter" ) );
         }
 
         // drivers
-        assertDriver( outputNode, "books-driver-1.jar", DeployPolicy.DEFAULT );
-        assertDriver( outputNode, "books-driver-2.jar", DeployPolicy.DEFAULT );
-        assertDriver( outputNode, "portfolio-driver.jar", DeployPolicy.DEFAULT );
+        assertDriver( outputNode, "books-driver-1.jar", PublishPolicy.DEFAULT );
+        assertDriver( outputNode, "books-driver-2.jar", PublishPolicy.DEFAULT );
+        assertDriver( outputNode, "portfolio-driver.jar", PublishPolicy.DEFAULT );
 
         // metadata
-        assertDdl( outputNode, "firstDdl.ddl", DeployPolicy.ALWAYS );
-        assertDdl( outputNode, "secondDdl.ddl", DeployPolicy.ALWAYS );
+        assertDdl( outputNode, "firstDdl.ddl", PublishPolicy.ALWAYS );
+        assertDdl( outputNode, "secondDdl.ddl", PublishPolicy.ALWAYS );
 
         // resources
-        assertResource( outputNode, "firstResource.xml", DeployPolicy.DEFAULT );
-        assertResource( outputNode, "secondResource.xml", DeployPolicy.ALWAYS );
+        assertResource( outputNode, "firstResource.xml", PublishPolicy.DEFAULT );
+        assertResource( outputNode, "secondResource.xml", PublishPolicy.ALWAYS );
 
         // udfs
-        assertUdf( outputNode, "firstUdf.jar", DeployPolicy.NEVER );
-        assertUdf( outputNode, "secondUdf.jar", DeployPolicy.DEFAULT );
+        assertUdf( outputNode, "firstUdf.jar", PublishPolicy.NEVER );
+        assertUdf( outputNode, "secondUdf.jar", PublishPolicy.DEFAULT );
 
-        { // books data source
-            assertDataSource( outputNode, "booksDatasource.tds", DeployPolicy.IF_MISSING );
-            final Node dsNode = outputNode.getParent().getNode( "booksDataSource" );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.TYPE ).getString(), is( DataSource.Type.JDBC.name() ) );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.JNDI_NAME ).getString(), is( "java:/jdbcSource" ) );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.DRIVER_NAME ).getString(), is( "books-driver-1.jar" ) );
-            assertThat( dsNode.hasProperty( DataVirtLexicon.DataSource.CLASS_NAME ), is( false ) );
+        { // books connection
+            assertConnection( outputNode, "books-connection.xml", PublishPolicy.IF_MISSING );
+            final Node dsNode = outputNode.getParent().getNode( "booksConnection" );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.TYPE ).getString(), is( Connection.Type.JDBC.name() ) );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.JNDI_NAME ).getString(), is( "java:/jdbcSource" ) );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.DRIVER_NAME ).getString(), is( "books-driver-1.jar" ) );
+            assertThat( dsNode.hasProperty( DataVirtLexicon.Connection.CLASS_NAME ), is( false ) );
             assertThat( dsNode.getProperty( "prop1" ).getString(), is( "one" ) );
             assertThat( dsNode.getProperty( "prop2" ).getString(), is( "two" ) );
             assertThat( dsNode.getProperty( "prop3" ).getString(), is( "three" ) );
             assertThat( dsNode.getProperty( "prop4" ).getString(), is( "four" ) );
         }
 
-        { // portfolio data source
-            assertDataSource( outputNode, "portfolioDatasource.tds", DeployPolicy.DEFAULT );
-            final Node dsNode = outputNode.getParent().getNode( "portfolioDataSource" );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.TYPE ).getString(),
-                        is( DataSource.Type.RESOURCE.name() ) );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.JNDI_NAME ).getString(), is( "java:/jndiName" ) );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.DRIVER_NAME ).getString(), is( "portfolio-driver.jar" ) );
-            assertThat( dsNode.getProperty( DataVirtLexicon.DataSource.CLASS_NAME ).getString(),
+        { // portfolio connection
+            assertConnection( outputNode, "portfolio-connection.xml", PublishPolicy.DEFAULT );
+            final Node dsNode = outputNode.getParent().getNode( "portfolioConnection" );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.TYPE ).getString(),
+                        is( Connection.Type.RESOURCE.name() ) );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.JNDI_NAME ).getString(), is( "java:/jndiName" ) );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.DRIVER_NAME ).getString(), is( "portfolio-driver.jar" ) );
+            assertThat( dsNode.getProperty( DataVirtLexicon.Connection.CLASS_NAME ).getString(),
                         is( "portfolioDriverClassname" ) );
             assertThat( dsNode.getProperty( "prop1" ).getString(), is( "prop1Value" ) );
             assertThat( dsNode.getProperty( "prop2" ).getString(), is( "prop2Value" ) );
         }
 
         // VDBs
-        assertVdb( outputNode, "books-vdb.xml", DeployPolicy.IF_MISSING );
-        assertVdb( outputNode, "Portfolio-vdb.xml", DeployPolicy.DEFAULT );
+        assertVdb( outputNode, "books-vdb.xml", PublishPolicy.IF_MISSING );
+        assertVdb( outputNode, "Portfolio-vdb.xml", PublishPolicy.DEFAULT );
+    }
+
+    @Test
+    public void shouldSequenceDataServiceAtCustomPaths() throws Exception {
+        final Node connectionsNode = this.rootNode.addNode( "connections" );
+        System.setProperty( DataServiceSequencer.CONNECTION_PATH_PROPERTY, connectionsNode.getPath() );
+
+        final Node driversNode = this.rootNode.addNode( "drivers" );
+        System.setProperty( DataServiceSequencer.DRIVER_PATH_PROPERTY, driversNode.getPath() );
+
+        final Node metadataNode = this.rootNode.addNode( "metadata" );
+        System.setProperty( DataServiceSequencer.METADATA_PATH_PROPERTY, metadataNode.getPath() );
+
+        final Node resourcesNode = this.rootNode.addNode( "resources" );
+        System.setProperty( DataServiceSequencer.RESOURCE_PATH_PROPERTY, resourcesNode.getPath() );
+
+        final Node udfsNode = this.rootNode.addNode( "udfs" );
+        System.setProperty( DataServiceSequencer.UDF_PATH_PROPERTY, udfsNode.getPath() );
+
+        final Node vdbsNode = this.rootNode.addNode( "vdbs" );
+        System.setProperty( DataServiceSequencer.VDB_PATH_PROPERTY, vdbsNode.getPath() );
+
+        createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
+        final Node outputNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip" );
+        assertNotNull( outputNode );
+        assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataService.NODE_TYPE ) );
+
+        assertThat( vdbsNode.hasNode( "product-view-vdb.xml" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "twitter-vdb.xml" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "books-vdb.xml" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "Portfolio-vdb.xml" ), is( true ) );
+        assertThat( driversNode.hasNode( "books-driver-1.jar" ), is( true ) );
+        assertThat( driversNode.hasNode( "books-driver-2.jar" ), is( true ) );
+        assertThat( driversNode.hasNode( "portfolio-driver.jar" ), is( true ) );
+        assertThat( metadataNode.hasNode( "firstDdl.ddl" ), is( true ) );
+        assertThat( metadataNode.hasNode( "secondDdl.ddl" ), is( true ) );
+        assertThat( resourcesNode.hasNode( "firstResource.xml" ), is( true ) );
+        assertThat( resourcesNode.hasNode( "secondResource.xml" ), is( true ) );
+        assertThat( udfsNode.hasNode( "firstUdf.jar" ), is( false ) ); // never publish
+        assertThat( udfsNode.hasNode( "secondUdf.jar" ), is( true ) );
+        assertThat( connectionsNode.hasNode( "booksConnection" ), is( true ) );
+        assertThat( connectionsNode.hasNode( "portfolioConnection" ), is( true ) );
     }
 
 }

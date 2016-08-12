@@ -24,7 +24,7 @@ package org.teiid.modeshape.sequencer.dataservice;
 import java.util.Objects;
 
 /**
- * Represents a Data Source entry in a Data Service archive.
+ * Represents a connection entry in a Data Service archive.
  */
 public class VdbEntry extends DataServiceEntry {
 

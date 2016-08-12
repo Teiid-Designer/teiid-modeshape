@@ -54,7 +54,7 @@ public class DataServiceManifest implements VdbEntryContainer {
         return new DataServiceManifestReader().read( stream );
     }
 
-    private final Collection< DataSourceEntry > dataSources = new ArrayList<>();
+    private final Collection< ConnectionEntry > dataSources = new ArrayList<>();
     private String description;
     private final Collection< DataServiceEntry > drivers = new ArrayList<>();
     private LocalDateTime lastModified;
@@ -68,9 +68,9 @@ public class DataServiceManifest implements VdbEntryContainer {
     private final Collection< VdbEntry > vdbs = new ArrayList<>();
 
     /**
-     * @param dataSourceEntry a data source entry (cannot be <code>null</code>)
+     * @param dataSourceEntry a connection entry (cannot be <code>null</code>)
      */
-    public void addDataSource( final DataSourceEntry dataSourceEntry ) {
+    public void addDataSource( final ConnectionEntry dataSourceEntry ) {
         this.dataSources.add( Objects.requireNonNull( dataSourceEntry, "dataSourceEntry" ) );
     }
 
@@ -114,7 +114,7 @@ public class DataServiceManifest implements VdbEntryContainer {
     }
 
     /**
-     * @return the entry paths of the data source files (never <code>null</code> but can be empty)
+     * @return the entry paths of the connection files (never <code>null</code> but can be empty)
      */
     public String[] getDataSourcePaths() {
         final DataServiceEntry[] entries = getDataSources();
@@ -127,14 +127,14 @@ public class DataServiceManifest implements VdbEntryContainer {
     }
 
     /**
-     * @return the data source entries (never <code>null</code> but can be empty)
+     * @return the connection entries (never <code>null</code> but can be empty)
      */
-    public DataSourceEntry[] getDataSources() {
+    public ConnectionEntry[] getDataSources() {
         if ( this.dataSources.isEmpty() ) {
-            return DataSourceEntry.NO_DATA_SOURCES;
+            return ConnectionEntry.NO_DATA_SOURCES;
         }
 
-        return this.dataSources.toArray( new DataSourceEntry[ this.dataSources.size() ] );
+        return this.dataSources.toArray( new ConnectionEntry[ this.dataSources.size() ] );
     }
 
     /**
@@ -162,7 +162,7 @@ public class DataServiceManifest implements VdbEntryContainer {
      */
     public DataServiceEntry[] getDrivers() {
         if ( this.drivers.isEmpty() ) {
-            return DataSourceEntry.NO_DATA_SOURCES;
+            return ConnectionEntry.NO_DATA_SOURCES;
         }
 
         return this.drivers.toArray( new DataServiceEntry[ this.drivers.size() ] );
@@ -180,7 +180,7 @@ public class DataServiceManifest implements VdbEntryContainer {
      */
     public DataServiceEntry[] getMetadata() {
         if ( this.metadata.isEmpty() ) {
-            return DataSourceEntry.NO_DATA_SOURCES;
+            return ConnectionEntry.NO_DATA_SOURCES;
         }
 
         return this.metadata.toArray( new DataServiceEntry[ this.metadata.size() ] );
@@ -246,7 +246,7 @@ public class DataServiceManifest implements VdbEntryContainer {
      */
     public DataServiceEntry[] getResources() {
         if ( this.resources.isEmpty() ) {
-            return DataSourceEntry.NO_DATA_SOURCES;
+            return ConnectionEntry.NO_DATA_SOURCES;
         }
 
         return this.resources.toArray( new DataServiceEntry[ this.resources.size() ] );
@@ -288,7 +288,7 @@ public class DataServiceManifest implements VdbEntryContainer {
      */
     public DataServiceEntry[] getUdfs() {
         if ( this.udfs.isEmpty() ) {
-            return DataSourceEntry.NO_DATA_SOURCES;
+            return ConnectionEntry.NO_DATA_SOURCES;
         }
 
         return this.udfs.toArray( new DataServiceEntry[ this.udfs.size() ] );

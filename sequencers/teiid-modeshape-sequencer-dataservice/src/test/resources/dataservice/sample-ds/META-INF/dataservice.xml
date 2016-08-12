@@ -9,14 +9,14 @@
 
     <service-vdb-file
         path="product-view-vdb.xml"
-        deploy="ifMissing"
+        publish="ifMissing"
         vdbName="ServiceVdb"
         vdbVersion="1"
     >
         <dependencies>
             <vdb-file
                 path="vdbs/twitter-vdb.xml"
-                deploy="ifMissing"
+                publish="ifMissing"
                 vdbName="twitter"
                 vdbVersion="1" />
         </dependencies>
@@ -25,21 +25,21 @@
     <metadata>
         <ddl-file
             path="metadata/firstDdl.ddl"
-            deploy="always" />
+            publish="always" />
         <ddl-file
             path="metadata/secondDdl.ddl"
-            deploy="always" />
+            publish="always" />
     </metadata>
 
-    <datasources>
-        <datasource-file
-            path="datasources/booksDatasource.tds"
-            deploy="ifMissing"
+    <connections>
+        <connection-file
+            path="connections/books-connection.xml"
+            publish="ifMissing"
             jndiName="java:/jdbcSource" />
-        <datasource-file
-            path="datasources/portfolioDatasource.tds"
+        <connection-file
+            path="connections/portfolio-connection.xml"
             jndiName="java:/jndiName" />
-    </datasources>
+    </connections>
 
     <drivers>
         <driver-file path="drivers/books-driver-1.jar" />
@@ -50,14 +50,14 @@
     <udfs>
         <udf-file
             path="udfs/firstUdf.jar"
-            deploy="never" />
+            publish="never" />
         <udf-file path="udfs/secondUdf.jar" />
     </udfs>
 
     <vdbs>
         <vdb-file
             path="vdbs/books-vdb.xml"
-            deploy="ifMissing"
+            publish="ifMissing"
             vdbName="BooksExample"
             vdbVersion="1" />
         <vdb-file
@@ -70,7 +70,7 @@
         <resource-file path="resources/firstResource.xml" />
         <resource-file
             path="resources/secondResource.xml"
-            deploy="always" />
+            publish="always" />
     </resources>
 
 </dataservice>

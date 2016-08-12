@@ -6,7 +6,7 @@
     <metadata>
         <ddl-file
             path="my.ddl"
-            deploy="ifMissing" />
+            publish="ifMissing" />
     </metadata>
 
 </dataservice>

@@ -54,15 +54,65 @@ import org.teiid.modeshape.sequencer.vdb.VdbDynamicSequencer;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 
 /**
- * A sequencer of Teiid Dataservice files.
+ * A sequencer of Teiid data service archives.
  */
 @ThreadSafe
 public class DataServiceSequencer extends Sequencer {
 
+    /**
+     * A system property for storing the absolute root path where {@link Connection connections} should be sequenced. If no value
+     * is set, it defaults to the same parent path as the data service node.
+     */
+    public static final String CONNECTION_PATH_PROPERTY = "dv.connection.path";
+
+    /**
+     * A system property for storing the absolute root path where driver archives should be sequenced. If no value is set, it
+     * defaults to the same parent path as the data service node.
+     */
+    public static final String DRIVER_PATH_PROPERTY = "dv.driver.path";
+
     private static final Logger LOGGER = Logger.getLogger( DataServiceSequencer.class );
+
     private static final String MANIFEST_FILE = "META-INF/dataservice.xml";
 
-    private DataSourceSequencer datasourceSequencer; // constructed during initialize method
+    /**
+     * A system property for storing the absolute root path where metadata files, like DDL, should be sequenced. If no value is
+     * set, it defaults to the same parent path as the data service node.
+     */
+    public static final String METADATA_PATH_PROPERTY = "dv.metadata.path";
+
+    /**
+     * A system property for storing the absolute root path where miscellaneous files should be sequenced. If no value is set, it
+     * defaults to the same parent path as the data service node.
+     */
+    public static final String RESOURCE_PATH_PROPERTY = "dv.resource.path";
+
+    /**
+     * A system property for storing the absolute root path where UDF archives should be sequenced. If no value is set, it
+     * defaults to the same parent path as the data service node.
+     */
+    public static final String UDF_PATH_PROPERTY = "dv.udf.path";
+
+    /**
+     * A system property for storing the absolute root path where VDBs should be sequenced. If no value is set, it defaults to the
+     * same parent path as the data service node.
+     */
+    public static final String VDB_PATH_PROPERTY = "dv.vdb.path";
+
+    private String connectionPath;
+
+    private ConnectionSequencer datasourceSequencer; // constructed during initialize method
+
+    private String driverPath;
+
+    private String metadataPath;
+
+    private String resourcePath;
+
+    private String udfPath;
+
+    private String vdbPath;
+
     private VdbDynamicSequencer vdbSequencer; // constructed during initialize method
 
     /**
@@ -138,7 +188,7 @@ public class DataServiceSequencer extends Sequencer {
 
             // sequence everything else
             sequenceFiles( manifest, binaryValue, outputNode );
-            sequenceDataSources( manifest, binaryValue, outputNode, inputProperty, context );
+            sequenceConnections( manifest, binaryValue, outputNode, inputProperty, context );
             sequenceVdbs( manifest, binaryValue, outputNode, serviceVdbEntryNode, inputProperty, context );
 
             if ( LOGGER.isDebugEnabled() ) {
@@ -169,9 +219,9 @@ public class DataServiceSequencer extends Sequencer {
         }
     }
 
-    private DataSourceEntry findDataSourceEntry( final String path,
+    private ConnectionEntry findConnectionEntry( final String path,
                                                  final DataServiceManifest manifest ) {
-        for ( final DataSourceEntry dsEntry : manifest.getDataSources() ) {
+        for ( final ConnectionEntry dsEntry : manifest.getDataSources() ) {
             if ( dsEntry.getPath().equals( path ) ) {
                 return dsEntry;
             }
@@ -191,15 +241,14 @@ public class DataServiceSequencer extends Sequencer {
         return null;
     }
 
-    private Node findExistingNode( final Node dataServiceNode,
+    private Node findExistingNode( final Node parentNode,
                                    final DataServiceEntry entry,
                                    final String primaryNodeType ) throws Exception {
-        final Node parent = dataServiceNode.getParent();
-        final String path = ( parent.getPath() + '/' + entry.getEntryName() );
+        final String path = ( parentNode.getPath() + '/' + entry.getEntryName() );
 
         // see if a node exists with that name
-        if ( parent.getSession().nodeExists( path ) ) {
-            final NodeIterator itr = parent.getNodes();
+        if ( parentNode.getSession().nodeExists( path ) ) {
+            final NodeIterator itr = parentNode.getNodes();
 
             // see if type matches
             while ( itr.hasNext() ) {
@@ -213,7 +262,7 @@ public class DataServiceSequencer extends Sequencer {
         }
 
         LOGGER.debug( "No existing child node found at parent {0} with name of {1} and type of {2}",
-                      parent.getPath(),
+                      parentNode.getPath(),
                       entry.getEntryName(),
                       primaryNodeType );
         return null;
@@ -272,6 +321,90 @@ public class DataServiceSequencer extends Sequencer {
         return null;
     }
 
+    private Node getConnectionRoot( final Node dataServiceNode ) throws Exception {
+        String path = ( ( this.connectionPath == null ) ? null : this.connectionPath );
+
+        if ( StringUtil.isBlank( path ) ) {
+            path = System.getProperty( CONNECTION_PATH_PROPERTY );
+        }
+
+        if ( !StringUtil.isBlank( path ) && dataServiceNode.getSession().nodeExists( path ) ) {
+            return dataServiceNode.getSession().getNode( path );
+        }
+
+        return dataServiceNode.getParent();
+    }
+
+    private Node getDriverRoot( final Node dataServiceNode ) throws Exception {
+        String path = ( ( this.driverPath == null ) ? null : this.driverPath );
+
+        if ( StringUtil.isBlank( path ) ) {
+            path = System.getProperty( DRIVER_PATH_PROPERTY );
+        }
+
+        if ( !StringUtil.isBlank( path ) && dataServiceNode.getSession().nodeExists( path ) ) {
+            return dataServiceNode.getSession().getNode( path );
+        }
+
+        return dataServiceNode.getParent();
+    }
+
+    private Node getMetadataRoot( final Node dataServiceNode ) throws Exception {
+        String path = ( ( this.metadataPath == null ) ? null : this.metadataPath );
+
+        if ( StringUtil.isBlank( path ) ) {
+            path = System.getProperty( METADATA_PATH_PROPERTY );
+        }
+
+        if ( !StringUtil.isBlank( path ) && dataServiceNode.getSession().nodeExists( path ) ) {
+            return dataServiceNode.getSession().getNode( path );
+        }
+
+        return dataServiceNode.getParent();
+    }
+
+    private Node getResourceRoot( final Node dataServiceNode ) throws Exception {
+        String path = ( ( this.resourcePath == null ) ? null : this.resourcePath );
+
+        if ( StringUtil.isBlank( path ) ) {
+            path = System.getProperty( RESOURCE_PATH_PROPERTY );
+        }
+
+        if ( !StringUtil.isBlank( path ) && dataServiceNode.getSession().nodeExists( path ) ) {
+            return dataServiceNode.getSession().getNode( path );
+        }
+
+        return dataServiceNode.getParent();
+    }
+
+    private Node getUdfRoot( final Node dataServiceNode ) throws Exception {
+        String path = ( ( this.udfPath == null ) ? null : this.udfPath );
+
+        if ( StringUtil.isBlank( path ) ) {
+            path = System.getProperty( UDF_PATH_PROPERTY );
+        }
+
+        if ( !StringUtil.isBlank( path ) && dataServiceNode.getSession().nodeExists( path ) ) {
+            return dataServiceNode.getSession().getNode( path );
+        }
+
+        return dataServiceNode.getParent();
+    }
+
+    private Node getVdbRoot( final Node dataServiceNode ) throws Exception {
+        String path = ( ( this.vdbPath == null ) ? null : this.vdbPath );
+
+        if ( StringUtil.isBlank( path ) ) {
+            path = System.getProperty( VDB_PATH_PROPERTY );
+        }
+
+        if ( !StringUtil.isBlank( path ) && dataServiceNode.getSession().nodeExists( path ) ) {
+            return dataServiceNode.getSession().getNode( path );
+        }
+
+        return dataServiceNode.getParent();
+    }
+
     /**
      * @throws IOException
      * @see org.modeshape.jcr.api.sequencer.Sequencer#initialize(javax.jcr.NamespaceRegistry,
@@ -288,7 +421,7 @@ public class DataServiceSequencer extends Sequencer {
         this.vdbSequencer = new VdbDynamicSequencer();
         this.vdbSequencer.initialize( registry, nodeTypeManager );
 
-        this.datasourceSequencer = new DataSourceSequencer();
+        this.datasourceSequencer = new ConnectionSequencer();
         this.datasourceSequencer.initialize( registry, nodeTypeManager );
 
         LOGGER.debug( "exit initialize" );
@@ -302,23 +435,23 @@ public class DataServiceSequencer extends Sequencer {
 
         final DataServiceManifest manifest = DataServiceManifest.read( inputStream );
         outputNode.setPrimaryType( DataVirtLexicon.DataService.NODE_TYPE );
-        outputNode.setProperty( DataVirtLexicon.DataServiceArchive.NAME, manifest.getName() );
+        outputNode.setProperty( DataVirtLexicon.DataService.NAME, manifest.getName() );
 
         // description
         if ( !StringUtil.isBlank( manifest.getDescription() ) ) {
-            outputNode.setProperty( DataVirtLexicon.DataServiceArchive.DESCRIPTION, manifest.getDescription() );
+            outputNode.setProperty( DataVirtLexicon.DataService.DESCRIPTION, manifest.getDescription() );
         }
 
         // modified by
         if ( !StringUtil.isBlank( manifest.getModifiedBy() ) ) {
-            outputNode.setProperty( DataVirtLexicon.DataServiceArchive.MODIFIED_BY, manifest.getModifiedBy() );
+            outputNode.setProperty( DataVirtLexicon.DataService.MODIFIED_BY, manifest.getModifiedBy() );
         }
 
         // last modified date
         if ( manifest.getLastModified() != null ) {
             final LocalDateTime modifiedDate = manifest.getLastModified();
             final Calendar calendar = GregorianCalendar.from( modifiedDate.atZone( ZoneId.systemDefault() ) );
-            outputNode.setProperty( DataVirtLexicon.DataServiceArchive.LAST_MODIFIED, calendar );
+            outputNode.setProperty( DataVirtLexicon.DataService.LAST_MODIFIED, calendar );
         }
 
         // generic properties
@@ -334,49 +467,50 @@ public class DataServiceSequencer extends Sequencer {
         return manifest;
     }
 
-    private void sequenceDataSource( final InputStream stream,
-                                     final DataSourceEntry dsEntry,
+    private void sequenceConnection( final InputStream stream,
+                                     final ConnectionEntry dsEntry,
                                      final Node dataServiceNode ) throws Exception {
-        final Node dsEntryNode = dataServiceNode.addNode( dsEntry.getEntryName(), DataVirtLexicon.DataSourceEntry.NODE_TYPE );
-        dsEntryNode.setProperty( DataVirtLexicon.DataSourceEntry.PATH, dsEntry.getPath() );
-        dsEntryNode.setProperty( DataVirtLexicon.DataSourceEntry.JDNI_NAME, dsEntry.getJndiName() );
+        final Node dsEntryNode = dataServiceNode.addNode( dsEntry.getEntryName(), DataVirtLexicon.ConnectionEntry.NODE_TYPE );
+        dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.PATH, dsEntry.getPath() );
+        dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.JDNI_NAME, dsEntry.getJndiName() );
 
-        // sequence data source if necessary
+        // sequence connection if necessary
         boolean shouldSequence = false;
 
-        switch ( dsEntry.getDeployPolicy() ) {
+        switch ( dsEntry.getPublishPolicy() ) {
             case ALWAYS:
                 shouldSequence = true;
                 break;
             case IF_MISSING:
-                final Node match = findExistingNode( dataServiceNode, dsEntry, DataVirtLexicon.DataSource.NODE_TYPE );
+                final Node match = findExistingNode( getConnectionRoot( dataServiceNode ),
+                                                     dsEntry,
+                                                     DataVirtLexicon.Connection.NODE_TYPE );
 
                 if ( match == null ) {
                     shouldSequence = true;
                 } else {
-                    // add reference to existing data source node from the data source entry node
+                    // add reference to existing connection node from the connection entry node
                     final Value ref = dataServiceNode.getSession().getValueFactory().createValue( match );
-                    dsEntryNode.setProperty( DataVirtLexicon.DataSourceEntry.DATA_SOURCE_REF, ref );
+                    dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
                 }
 
                 break;
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( dsEntry.getDeployPolicy(),
+                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( dsEntry.getPublishPolicy(),
                                                                                    dsEntry.getPath() ) );
         }
 
         if ( shouldSequence ) {
-            // put data source node as sibling of data service node
-            final Node parent = dataServiceNode.getParent();
-            final Node dsNode = parent.addNode( dsEntry.getEntryName(), DataVirtLexicon.DataSource.NODE_TYPE );
-            final boolean success = this.datasourceSequencer.sequenceDatasource( stream, dsNode );
+            final Node parent = getConnectionRoot( dataServiceNode );
+            final Node dsNode = parent.addNode( dsEntry.getEntryName(), DataVirtLexicon.Connection.NODE_TYPE );
+            final boolean success = this.datasourceSequencer.sequenceConnection( stream, dsNode );
 
             if ( success ) {
-                // reference sequenced node from the data source entry
+                // reference sequenced node from the connection entry
                 final Value ref = dataServiceNode.getSession().getValueFactory().createValue( dsNode );
-                dsEntryNode.setProperty( DataVirtLexicon.DataSourceEntry.DATA_SOURCE_REF, ref );
+                dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
             } else {
                 dsNode.remove();
                 dsEntryNode.remove();
@@ -385,12 +519,12 @@ public class DataServiceSequencer extends Sequencer {
         }
     }
 
-    private void sequenceDataSources( final DataServiceManifest manifest,
+    private void sequenceConnections( final DataServiceManifest manifest,
                                       final Binary binaryValue,
                                       final Node dataServiceNode,
                                       final Property inputProperty,
                                       final Context context ) throws Exception {
-        LOGGER.debug( "sequenceDataSources called: all data sources sequenced at once" );
+        LOGGER.debug( "sequenceDataSources called: all connections sequenced at once" );
         try ( final ZipInputStream zis = new ZipInputStream( binaryValue.getStream() ) ) {
             ZipEntry entry = null;
 
@@ -401,9 +535,9 @@ public class DataServiceSequencer extends Sequencer {
                     continue;
                 }
 
-                if ( findDataSourceEntry( entryName, manifest ) != null ) {
-                    final DataSourceEntry dsEntry = findDataSourceEntry( entryName, manifest );
-                    sequenceDataSource( zis, dsEntry, dataServiceNode );
+                if ( findConnectionEntry( entryName, manifest ) != null ) {
+                    final ConnectionEntry dsEntry = findConnectionEntry( entryName, manifest );
+                    sequenceConnection( zis, dsEntry, dataServiceNode );
                 }
             }
         } catch ( final Exception e ) {
@@ -417,6 +551,7 @@ public class DataServiceSequencer extends Sequencer {
         sequenceFile( zis,
                       driverEntry,
                       dataServiceNode,
+                      getDriverRoot( dataServiceNode ),
                       DataVirtLexicon.DriverEntry.NODE_TYPE,
                       DataVirtLexicon.DriverFile.NODE_TYPE );
     }
@@ -424,33 +559,21 @@ public class DataServiceSequencer extends Sequencer {
     private void sequenceFile( final ZipInputStream zis,
                                final DataServiceEntry entry,
                                final Node dataServiceNode,
+                               final Node resourceParentNode,
                                final String entryNodeType,
                                final String fileNodeType ) throws Exception {
         final Node entryNode = dataServiceNode.addNode( entry.getEntryName(), entryNodeType );
         entryNode.setProperty( DataVirtLexicon.DataServiceEntry.PATH, entry.getPath() );
 
-        // TODO only do this if we need to upload
-        // extract file
-        final byte[] buf = new byte[ 1024 ];
-        final File file = File.createTempFile( entry.getEntryName(), null );
-
-        try ( final FileOutputStream fos = new FileOutputStream( file ) ) {
-            int numRead = 0;
-
-            while ( ( numRead = zis.read( buf ) ) > 0 ) {
-                fos.write( buf, 0, numRead );
-            }
-        }
-
         // save file if necessary
         boolean save = false;
 
-        switch ( entry.getDeployPolicy() ) {
+        switch ( entry.getPublishPolicy() ) {
             case ALWAYS:
                 save = true;
                 break;
             case IF_MISSING:
-                final Node match = findExistingNode( dataServiceNode, entry, fileNodeType );
+                final Node match = findExistingNode( resourceParentNode, entry, fileNodeType );
 
                 if ( match == null ) {
                     save = true;
@@ -464,13 +587,11 @@ public class DataServiceSequencer extends Sequencer {
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( entry.getDeployPolicy(), entry.getPath() ) );
+                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( entry.getPublishPolicy(), entry.getPath() ) );
         }
 
         if ( save ) {
-            // add file node as sibling of data service node
-            final Node parent = dataServiceNode.getParent();
-            final Node fileNode = parent.addNode( entry.getEntryName(), fileNodeType );
+            final Node fileNode = resourceParentNode.addNode( entry.getEntryName(), fileNodeType );
 
             // add reference to file node to its entry node
             final ValueFactory valueFactory = dataServiceNode.getSession().getValueFactory();
@@ -478,11 +599,21 @@ public class DataServiceSequencer extends Sequencer {
             entryNode.setProperty( DataVirtLexicon.DataServiceEntry.SOURCE_RESOURCE, ref );
 
             // upload file
-            final Node contentNode = fileNode.addNode( JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE );
+            final byte[] buf = new byte[ 1024 ];
+            final File file = File.createTempFile( entry.getEntryName(), null );
 
-            // set data property
+            try ( final FileOutputStream fos = new FileOutputStream( file ) ) {
+                int numRead = 0;
+
+                while ( ( numRead = zis.read( buf ) ) > 0 ) {
+                    fos.write( buf, 0, numRead );
+                }
+            }
+
+            // set content and data properties
             final InputStream fileContent = new BufferedInputStream( new FileInputStream( file ) );
             final Binary binary = valueFactory.createBinary( fileContent );
+            final Node contentNode = fileNode.addNode( JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE );
             contentNode.setProperty( JcrConstants.JCR_DATA, binary );
 
             // set last modified property
@@ -527,6 +658,7 @@ public class DataServiceSequencer extends Sequencer {
         sequenceFile( zis,
                       metadataEntry,
                       dataServiceNode,
+                      getMetadataRoot( dataServiceNode ),
                       DataVirtLexicon.MetadataEntry.DDL_FILE_NODE_TYPE,
                       DataVirtLexicon.MetadaFile.DDL_FILE_NODE_TYPE );
     }
@@ -537,6 +669,7 @@ public class DataServiceSequencer extends Sequencer {
         sequenceFile( zis,
                       resourceEntry,
                       dataServiceNode,
+                      getResourceRoot( dataServiceNode ),
                       DataVirtLexicon.ResourceEntry.NODE_TYPE,
                       DataVirtLexicon.ResourceFile.NODE_TYPE );
     }
@@ -553,12 +686,12 @@ public class DataServiceSequencer extends Sequencer {
         // sequence data source if necessary
         boolean shouldSequence = false;
 
-        switch ( vdbEntry.getDeployPolicy() ) {
+        switch ( vdbEntry.getPublishPolicy() ) {
             case ALWAYS:
                 shouldSequence = true;
                 break;
             case IF_MISSING:
-                final Node match = findExistingNode( dataServiceNode, vdbEntry, VdbLexicon.Vdb.VIRTUAL_DATABASE );
+                final Node match = findExistingNode( getVdbRoot( dataServiceNode ), vdbEntry, VdbLexicon.Vdb.VIRTUAL_DATABASE );
 
                 if ( match == null ) {
                     shouldSequence = true;
@@ -572,20 +705,19 @@ public class DataServiceSequencer extends Sequencer {
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getDeployPolicy(),
+                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getPublishPolicy(),
                                                                                    vdbEntry.getPath() ) );
         }
 
         if ( shouldSequence ) {
-            // put vdb node as sibling of data service node
-            final Node parent = dataServiceNode.getParent();
+            final Node parent = getVdbRoot( dataServiceNode );
             final Node vdbNode = parent.addNode( vdbEntry.getEntryName(), VdbLexicon.Vdb.VIRTUAL_DATABASE );
             final boolean success = this.vdbSequencer.sequenceVdb( stream, vdbNode );
 
             if ( success ) {
-                // reference sequenced node from the data source entry
+                // reference sequenced node from the connection entry
                 final Value ref = dataServiceNode.getSession().getValueFactory().createValue( vdbNode );
-                vdbEntryNode.setProperty( DataVirtLexicon.DataSourceEntry.DATA_SOURCE_REF, ref );
+                vdbEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
             } else {
                 vdbNode.remove();
                 vdbEntryNode.remove();
@@ -602,6 +734,7 @@ public class DataServiceSequencer extends Sequencer {
         sequenceFile( zis,
                       udfEntry,
                       dataServiceNode,
+                      getUdfRoot( dataServiceNode ),
                       DataVirtLexicon.ResourceEntry.UDF_FILE_NODE_TYPE,
                       DataVirtLexicon.ResourceFile.UDF_FILE_NODE_TYPE );
     }
@@ -623,12 +756,12 @@ public class DataServiceSequencer extends Sequencer {
         // sequence VDB if necessary
         boolean shouldSequence = false;
 
-        switch ( vdbEntry.getDeployPolicy() ) {
+        switch ( vdbEntry.getPublishPolicy() ) {
             case ALWAYS:
                 shouldSequence = true;
                 break;
             case IF_MISSING:
-                final Node match = findExistingNode( dataServiceNode, vdbEntry, VdbLexicon.Vdb.VIRTUAL_DATABASE );
+                final Node match = findExistingNode( getVdbRoot( dataServiceNode ), vdbEntry, VdbLexicon.Vdb.VIRTUAL_DATABASE );
 
                 if ( match == null ) {
                     shouldSequence = true;
@@ -642,20 +775,19 @@ public class DataServiceSequencer extends Sequencer {
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getDeployPolicy(),
+                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getPublishPolicy(),
                                                                                    vdbEntry.getPath() ) );
         }
 
         if ( shouldSequence ) {
-            // put vdb node as sibling of data service node
-            final Node parent = dataServiceNode.getParent();
+            final Node parent = getVdbRoot( dataServiceNode );
             final Node vdbNode = parent.addNode( vdbEntry.getEntryName(), VdbLexicon.Vdb.VIRTUAL_DATABASE );
             final boolean success = this.vdbSequencer.sequenceVdb( stream, vdbNode );
 
             if ( success ) {
-                // reference sequenced node from the data source entry
+                // reference sequenced node from the VDB entry
                 final Value ref = dataServiceNode.getSession().getValueFactory().createValue( vdbNode );
-                vdbEntryNode.setProperty( DataVirtLexicon.DataSourceEntry.DATA_SOURCE_REF, ref );
+                vdbEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
             } else {
                 vdbNode.remove();
                 vdbEntryNode.remove();
@@ -689,6 +821,54 @@ public class DataServiceSequencer extends Sequencer {
         } catch ( final Exception e ) {
             throw new RuntimeException( TeiidI18n.vdbSequencingError.text( dataServiceNode.getPath() ), e );
         }
+    }
+
+    /**
+     * @param connectionPath the absolute path of the root node where connection files are sequenced (can be <code>null</code> or
+     *        empty if {@link #CONNECTION_PATH_PROPERTY} or the default path should be used)
+     */
+    public void setConnectionPath( final String connectionPath ) {
+        this.connectionPath = ( StringUtil.isBlank( connectionPath ) ? null : connectionPath );
+    }
+
+    /**
+     * @param driverPath the absolute path of the root node where driver files are sequenced (can be <code>null</code> or empty if
+     *        {@link #DRIVER_PATH_PROPERTY} or the default path should be used)
+     */
+    public void setDriverPath( final String driverPath ) {
+        this.driverPath = ( StringUtil.isBlank( driverPath ) ? null : driverPath );
+    }
+
+    /**
+     * @param metadataPath the absolute path of the root node where metadata files are sequenced (can be <code>null</code> or
+     *        empty if {@link #METADATA_PATH_PROPERTY} or the default path should be used)
+     */
+    public void setMetadataPath( final String metadataPath ) {
+        this.metadataPath = ( StringUtil.isBlank( metadataPath ) ? null : metadataPath );
+    }
+
+    /**
+     * @param resourcePath the absolute path of the root node where miscellaneous files are sequenced (can be <code>null</code> or
+     *        empty if {@link #RESOURCE_PATH_PROPERTY} or the default path should be used)
+     */
+    public void setResourcePath( final String resourcePath ) {
+        this.resourcePath = ( StringUtil.isBlank( resourcePath ) ? null : resourcePath );
+    }
+
+    /**
+     * @param udfPath the absolute path of the root node where UDF files are sequenced (can be <code>null</code> or empty if
+     *        {@link #UDF_PATH_PROPERTY} or the default path should be used)
+     */
+    public void setUdfPath( final String udfPath ) {
+        this.udfPath = ( StringUtil.isBlank( udfPath ) ? null : udfPath );
+    }
+
+    /**
+     * @param vdbPath the absolute path of the root node where VDB files are sequenced (can be <code>null</code> or empty if
+     *        {@link #VDB_PATH_PROPERTY} or the default path should be used)
+     */
+    public void setVdbPath( final String vdbPath ) {
+        this.vdbPath = ( StringUtil.isBlank( vdbPath ) ? null : vdbPath );
     }
 
 }

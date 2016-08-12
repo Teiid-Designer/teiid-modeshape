@@ -22,11 +22,11 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 /**
- * Represents a Data Source entry in a Data Service archive.
+ * Represents a connection entry in a Data Service archive.
  */
-public class DataSourceEntry extends DataServiceEntry {
+public class ConnectionEntry extends DataServiceEntry {
 
-    static final DataSourceEntry[] NO_DATA_SOURCES = new DataSourceEntry[ 0 ];
+    static final ConnectionEntry[] NO_DATA_SOURCES = new ConnectionEntry[ 0 ];
 
     private String jndiName;
 

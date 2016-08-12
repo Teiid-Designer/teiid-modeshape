@@ -26,15 +26,8 @@ public class DataServiceEntry {
                                                       "entries" ) ).stream().map( DataServiceEntry::getPath ).toArray( String[]::new );
     }
 
-    private DeployPolicy deployPolicy = DeployPolicy.DEFAULT;
+    private PublishPolicy publishPolicy = PublishPolicy.DEFAULT;
     private String path;
-
-    /**
-     * @return the deploy/upload/save policy or the default value if not set (never <code>null</code>)
-     */
-    public DeployPolicy getDeployPolicy() {
-        return this.deployPolicy;
-    }
 
     /**
      * @return the entry path's last segment (can be <code>null</code> or empty)
@@ -63,11 +56,10 @@ public class DataServiceEntry {
     }
 
     /**
-     * @param policy the deploy policy (can be <code>null</code> if default policy is wanted)
-     * @see DeployPolicy#DEFAULT
+     * @return the publish/deploy/upload/save policy or the default value if not set (never <code>null</code>)
      */
-    public void setDeployPolicy( final DeployPolicy policy ) {
-        this.deployPolicy = ( ( policy == null ) ? DeployPolicy.DEFAULT : policy );
+    public PublishPolicy getPublishPolicy() {
+        return this.publishPolicy;
     }
 
     /**
@@ -78,39 +70,47 @@ public class DataServiceEntry {
     }
 
     /**
+     * @param policy the publish policy (can be <code>null</code> if default policy is wanted)
+     * @see PublishPolicy#DEFAULT
+     */
+    public void setPublishPolicy( final PublishPolicy policy ) {
+        this.publishPolicy = ( ( policy == null ) ? PublishPolicy.DEFAULT : policy );
+    }
+
+    /**
      * Indicates how the entry should uploaded and/or deployed.
      */
-    public enum DeployPolicy {
+    public enum PublishPolicy {
 
         /**
-         * Always deploy the file.
+         * Always publish the file.
          */
         ALWAYS( "always" ),
 
         /**
-         * Only deploy the file if not already deployed.
+         * Only publish if not already published.
          */
         IF_MISSING( "ifMissing" ),
 
         /**
-         * Never deploy the file.
+         * Never publish the file.
          */
         NEVER( "never" );
 
         /**
-         * The default deployment method.
+         * The default policy.
          *
          * @see #IF_MISSING
          */
-        public static final DeployPolicy DEFAULT = IF_MISSING;
+        public static final PublishPolicy DEFAULT = IF_MISSING;
 
         /**
          * @param xml the XML value whose type is being requested (can be <code>null</code> or empty)
          * @return the appropriate type or the default value if not found
          * @see #DEFAULT
          */
-        public static DeployPolicy fromXml( final String xml ) {
-            for ( final DeployPolicy type : values() ) {
+        public static PublishPolicy fromXml( final String xml ) {
+            for ( final PublishPolicy type : values() ) {
                 if ( type.xml.equals( xml ) ) {
                     return type;
                 }
@@ -121,7 +121,7 @@ public class DataServiceEntry {
 
         private final String xml;
 
-        private DeployPolicy( final String xmlValue ) {
+        private PublishPolicy( final String xmlValue ) {
             this.xml = xmlValue;
         }
 

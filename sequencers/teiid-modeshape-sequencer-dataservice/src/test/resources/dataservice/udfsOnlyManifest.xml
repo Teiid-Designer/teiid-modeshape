@@ -10,7 +10,7 @@
     <udfs>
         <udf-file
             path="udf.jar"
-            deploy="ifMissing" />
+            publish="ifMissing" />
     </udfs>
 
 </dataservice>

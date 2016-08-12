@@ -9,9 +9,9 @@
                 "classname" : "org.teiid.modeshape.sequencer.dataservice.DataServiceSequencer",
                 "pathExpressions" : [ "default://(*.zip)/jcr:content[@jcr:data] => /dataservices" ]
             },
-            "Teiid Sequencer in different location for container datasources" : {
-                "classname" : "org.teiid.modeshape.sequencer.dataservice.DataSourceSequencer",
-                "pathExpressions" : [ "default://(*.tds)/jcr:content[@jcr:data] => /datasources" ]
+            "Teiid Sequencer for container connections" : {
+                "classname" : "org.teiid.modeshape.sequencer.dataservice.ConnectionSequencer",
+                "pathExpressions" : [ "default://(*-connection.xml)/jcr:content[@jcr:data] => /connections" ]
             }
         }
     }

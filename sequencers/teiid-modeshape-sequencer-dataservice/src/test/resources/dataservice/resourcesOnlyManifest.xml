@@ -8,7 +8,7 @@
     <resources>
         <resource-file
             path="my.xml"
-            deploy="ifMissing" />
+            publish="ifMissing" />
     </resources>
 
 </dataservice>

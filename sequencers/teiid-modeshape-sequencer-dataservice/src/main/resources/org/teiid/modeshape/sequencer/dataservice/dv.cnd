@@ -49,9 +49,9 @@
 [dv:udfFile] > dv:resourceFile
    
 /*
- * A data source.
+ * A connection.
  */
-[dv:dataSource] > nt:unstructured, mix:referenceable
+[dv:connection] > nt:unstructured, mix:referenceable
   - dv:type (string) < 'JDBC','RESOURCE'
   - dv:jndiName (string)
   - dv:className (string) // driver class name
@@ -67,16 +67,11 @@
 /*
  * A data service archive.
  */
-[dv:dataServiceArchive] > nt:unstructured
+[dv:dataService] > nt:unstructured
   - dv:description (string)
   - dv:lastModified (date)
   - dv:modifiedBy (string)
   + * (dv:dataServiceEntry) copy
-
-/*
- * An archive that contains a service VDB.
- */
-[dv:dataService] > dv:dataServiceArchive
   
 /*
  * A data service archive import VDB entry.
@@ -92,9 +87,9 @@
   + * (dv:vdbEntry) copy // references to dv:vdbEntry dependent VDBs
 
 /*
- * A data service archive data source entry.
+ * A data service archive connection entry.
  */
-[dv:dataSourceEntry] > dv:dataServiceEntry // reference to a dv:dataSource
+[dv:connectionEntry] > dv:dataServiceEntry // reference to a dv:connection
   - dv:jndiName (string)
 
 /*

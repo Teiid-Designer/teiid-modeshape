@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 
-public final class DataSourceSequencerTest extends AbstractSequencerTest {
+public final class ConnectionSequencerTest extends AbstractSequencerTest {
 
     @Override
     protected InputStream getRepositoryConfigStream() {
@@ -43,16 +43,16 @@ public final class DataSourceSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    public void shouldSequenceJdbcDatasource() throws Exception {
-        createNodeWithContentFromFile( "datasource.tds", "datasource/jdbcDatasource.tds" );
-        final Node outputNode = getOutputNode( this.rootNode, "datasources/jdbcSource" );
+    public void shouldSequenceJdbcConnection() throws Exception {
+        createNodeWithContentFromFile( "jdbc-connection.xml", "connections/jdbc-connection.xml" );
+        final Node outputNode = getOutputNode( this.rootNode, "connections/jdbcConnection" );
         assertNotNull( outputNode );
-        assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataSource.NODE_TYPE ) );
+        assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.Connection.NODE_TYPE ) );
 
         // check properties
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.TYPE ).getString(), is( "JDBC" ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.DRIVER_NAME ).getString(), is( "dsDriver" ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.JNDI_NAME ).getString(), is( "java:/jdbcSource" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.TYPE ).getString(), is( "JDBC" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.DRIVER_NAME ).getString(), is( "dsDriver" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.JNDI_NAME ).getString(), is( "java:/jdbcSource" ) );
         assertThat( outputNode.getProperty( "prop1" ).getString(), is( "one" ) );
         assertThat( outputNode.getProperty( "prop2" ).getString(), is( "two" ) );
         assertThat( outputNode.getProperty( "prop3" ).getString(), is( "three" ) );
@@ -60,17 +60,17 @@ public final class DataSourceSequencerTest extends AbstractSequencerTest {
     }
 
     @Test
-    public void shouldSequenceRaDatasource() throws Exception {
-        createNodeWithContentFromFile( "datasource.tds", "datasource/raDatasource.tds" );
-        final Node outputNode = getOutputNode( this.rootNode, "datasources/raSource" );
+    public void shouldSequenceResourceConnection() throws Exception {
+        createNodeWithContentFromFile( "resource-connection.xml", "connections/resource-connection.xml" );
+        final Node outputNode = getOutputNode( this.rootNode, "connections/resourceConnection" );
         assertNotNull( outputNode );
-        assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataSource.NODE_TYPE ) );
+        assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.Connection.NODE_TYPE ) );
 
         // check properties
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.TYPE ).getString(), is( "RESOURCE" ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.CLASS_NAME ).getString(), is( "dsClassname" ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.DRIVER_NAME ).getString(), is( "dsDriver" ) );
-        assertThat( outputNode.getProperty( DataVirtLexicon.DataSource.JNDI_NAME ).getString(), is( "java:/jndiName" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.TYPE ).getString(), is( "RESOURCE" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.CLASS_NAME ).getString(), is( "dsClassname" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.DRIVER_NAME ).getString(), is( "dsDriver" ) );
+        assertThat( outputNode.getProperty( DataVirtLexicon.Connection.JNDI_NAME ).getString(), is( "java:/jndiName" ) );
         assertThat( outputNode.getProperty( "prop2" ).getString(), is( "prop2Value" ) );
         assertThat( outputNode.getProperty( "prop1" ).getString(), is( "prop1Value" ) );
     }
