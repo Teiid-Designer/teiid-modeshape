@@ -233,7 +233,11 @@ public class VdbSequencer extends Sequencer {
         outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
         outputNode.setProperty(VdbLexicon.Vdb.VERSION, manifest.getVersion());
         outputNode.setProperty(VdbLexicon.Vdb.ORIGINAL_FILE, outputNode.getPath());
-        outputNode.setProperty(JcrConstants.MODE_SHA1, ((org.modeshape.jcr.api.Binary)binaryValue).getHexHash());
+        
+        if ( binaryValue != null ) {
+            outputNode.setProperty( JcrConstants.MODE_SHA1, ( ( org.modeshape.jcr.api.Binary )binaryValue ).getHexHash() );
+        }
+        
         setProperty(outputNode, VdbLexicon.Vdb.NAME, manifest.getName());
         setProperty(outputNode, VdbLexicon.Vdb.DESCRIPTION, manifest.getDescription());
         setProperty(outputNode, VdbLexicon.Vdb.CONNECTION_TYPE, manifest.getConnectionType());

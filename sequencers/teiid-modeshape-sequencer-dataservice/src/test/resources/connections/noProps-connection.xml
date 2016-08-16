@@ -1,0 +1,4 @@
+ <jdbc-connection name="noPropsSource">
+     <jndi-name>java:/jdbcSource</jndi-name>
+     <driver-name>dsDriver</driver-name>
+ </jdbc-connection>

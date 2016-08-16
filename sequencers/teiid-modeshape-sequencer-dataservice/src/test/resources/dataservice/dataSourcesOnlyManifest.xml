@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="DataSourceEntriesOnly">
+
+    <connections>
+        <connection-file
+            path="products-connection.xml"
+            publish="ifMissing"
+            jndiName="productsConnection" />
+    </connections>
+
+</dataservice>

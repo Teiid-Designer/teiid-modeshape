@@ -26,6 +26,7 @@ import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import org.modeshape.common.util.CheckArg;
+import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 
 /**
  * The Dynamic Vdb Sequencer that reads dynamics VDB files defined wholly by DDL
@@ -52,4 +53,32 @@ public class VdbDynamicSequencer extends VdbSequencer {
 
         return true;
     }
+    
+    /**
+     * @param vdbStream the VDB input stream (cannot be <code>null</code>)
+     * @param vdbOutputNode the root node of the VDB being sequenced (cannot be <code>null</code>)
+     * @return <code>true</code> if the VDB input stream was successfully sequenced
+     * @throws Exception if there is a problem during sequencing or node does not have a VDB primary type
+     */
+    public boolean sequenceVdb( final InputStream vdbStream,
+                                final Node vdbOutputNode ) throws Exception {
+        CheckArg.isNotNull( vdbStream, "vdbStream" );
+
+        if ( !vdbOutputNode.isNodeType( VdbLexicon.Vdb.VIRTUAL_DATABASE ) ) {
+            throw new RuntimeException( TeiidI18n.invalidVdbModelNodeType.text( vdbOutputNode.getPath() ) );
+        }
+
+        try {
+            final VdbManifest manifest = readManifest( null, vdbStream, vdbOutputNode, null );
+
+            if ( manifest == null ) {
+                throw new Exception( "VdbDynamicSequencer.execute failed. The xml cannot be read." );
+            }
+        } catch ( final Exception e ) {
+            throw new RuntimeException( TeiidI18n.errorReadingVdbFile.text( vdbOutputNode.getPath(), e.getMessage() ), e );
+        }
+
+        return true;
+    }
+    
 }

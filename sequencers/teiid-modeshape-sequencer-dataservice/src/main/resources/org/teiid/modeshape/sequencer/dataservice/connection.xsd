@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+>
+
+    <!-- -->
+    <!-- A JDBC connection instance -->
+    <!-- -->
+    <xs:element
+        name="jdbc-connection"
+        type="jdbcConnectionType"
+    >
+        <xs:annotation>
+            <xs:documentation>A JDBC connection.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- -->
+    <!-- A resource adapter connection instance -->
+    <!-- -->
+    <xs:element
+        name="resource-connection"
+        type="resourceConnectionType"
+    >
+        <xs:annotation>
+            <xs:documentation>A resource adapter connection.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- -->
+    <!-- A resource adapter connection. -->
+    <!-- -->
+    <xs:complexType name="resourceConnectionType">
+        <xs:complexContent>
+            <xs:extension base="connectionType">
+                <xs:sequence>
+                    <xs:element
+                        name="driver-class"
+                        type="xs:string"
+                    >
+                        <xs:annotation>
+                            <xs:documentation>The required driver class name.</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A JDBC connection. -->
+    <!-- -->
+    <xs:complexType name="jdbcConnectionType">
+        <xs:complexContent>
+            <xs:extension base="connectionType" />
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A base type for a connection. -->
+    <!-- -->
+    <xs:complexType
+        name="connectionType"
+        abstract="true"
+    >
+        <xs:sequence>
+            <xs:element
+                name="description"
+                type="xs:string"
+                minOccurs="0"
+            >
+                <xs:annotation>
+                    <xs:documentation>An optional description of the connection.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element
+                name="jndi-name"
+                type="xs:string"
+            >
+                <xs:annotation>
+                    <xs:documentation>The required JNDI name.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element
+                name="driver-name"
+                type="xs:string"
+            >
+                <xs:annotation>
+                    <xs:documentation>The required driver file name.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+
+            <xs:element
+                name="property"
+                type="propertyType"
+                minOccurs="0"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>Zero or more properties for the validation.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+
+        <xs:attribute
+            name="name"
+            type="xs:string"
+            use="required"
+        >
+            <xs:annotation>
+                <xs:documentation>The connection name.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A non-empty property. -->
+    <!-- -->
+    <xs:complexType name="propertyType">
+        <xs:annotation>
+            <xs:documentation>A property with name attribute.</xs:documentation>
+        </xs:annotation>
+
+        <xs:simpleContent>
+            <xs:extension base="nonEmptyStringType">
+                <xs:attribute
+                    name="name"
+                    type="xs:string"
+                    use="required"
+                >
+                    <xs:annotation>
+                        <xs:documentation>The property name.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A non-empty string. -->
+    <!-- -->
+    <xs:simpleType name="nonEmptyStringType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

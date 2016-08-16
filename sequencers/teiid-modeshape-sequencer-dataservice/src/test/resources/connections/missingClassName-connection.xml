@@ -1,0 +1,6 @@
+ <resource-connection name="raSource">
+     <jndi-name>java:/jndiName</jndi-name>
+     <driver-name>dsDriver</driver-name>
+     <property name="prop2">prop2Value</property>
+     <property name="prop1">prop1Value</property>
+ </resource-connection>

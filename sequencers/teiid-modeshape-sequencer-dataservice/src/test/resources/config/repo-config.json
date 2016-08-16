@@ -1,0 +1,18 @@
+{
+    "name" : "teiid-modeshape-sequencer-test-repository",
+    "monitoring" : {
+        "enabled" : false
+     },
+    "sequencing" : {
+        "sequencers" : {
+            "Teiid Sequencer in different location for container dataservices" : {
+                "classname" : "org.teiid.modeshape.sequencer.dataservice.DataServiceSequencer",
+                "pathExpressions" : [ "default://(*.zip)/jcr:content[@jcr:data] => /dataservices" ]
+            },
+            "Teiid Sequencer for container connections" : {
+                "classname" : "org.teiid.modeshape.sequencer.dataservice.ConnectionSequencer",
+                "pathExpressions" : [ "default://(*-connection.xml)/jcr:content[@jcr:data] => /connections" ]
+            }
+        }
+    }
+}
