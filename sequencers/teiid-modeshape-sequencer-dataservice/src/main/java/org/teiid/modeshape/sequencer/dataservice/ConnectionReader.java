@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -52,11 +53,11 @@ import org.xml.sax.helpers.DefaultHandler;
 public final class ConnectionReader extends DefaultHandler {
 
     /**
-     * The valid connection file extensions. Value is {@value}.
+     * The valid connection file extension. Value is {@value}.
      */
-    public static final String[] FILE_EXTENSIONS = { "-connection.xml" }; //$NON-NLS-1$
+    public static final String FILE_EXTENSION = "-connection.xml"; //$NON-NLS-1$
 
-    private static final String DATA_SOURCE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataService/connection.xsd"; //$NON-NLS-1$
+    private static final String DATA_SOURCE_SCHEMA_FILE = "connection.xsd"; //$NON-NLS-1$
     private static final Logger LOGGER = Logger.getLogger( ConnectionReader.class );
 
     private final StringBuilder className;
@@ -248,11 +249,11 @@ public final class ConnectionReader extends DefaultHandler {
     }
 
     private void initParser() throws Exception {
-        final InputStream schemaStream = getClass().getClassLoader().getResourceAsStream( DATA_SOURCE_SCHEMA_FILE );
-
+        final URL schemaUrl = getClass().getResource( DATA_SOURCE_SCHEMA_FILE );
+        
         try {
             this.schemaFile = File.createTempFile( "dataSourceSchemaFile", ".xsd" ); //$NON-NLS-1$ //$NON-NLS-2$
-            Files.copy( schemaStream, this.schemaFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+            Files.copy( schemaUrl.openStream(), this.schemaFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
             this.schemaFile.deleteOnExit();
             LOGGER.debug( "connection schema file loaded" ); //$NON-NLS-1$
         } catch ( final IOException e ) {

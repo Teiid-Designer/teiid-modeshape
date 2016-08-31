@@ -144,6 +144,7 @@ public final class VdbSequencerTest extends AbstractSequencerTest {
         Node outputNode = getOutputNode(this.rootNode, "vdbs/BooksVDB.vdb");
         assertNotNull(outputNode);
         assertThat(outputNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.VIRTUAL_DATABASE));
+        assertThat(outputNode.isNodeType( JcrConstants.MIX_REFERENCEABLE ), is(true));
 
         // check properties
         assertThat(outputNode.getProperty(VdbLexicon.Vdb.DESCRIPTION).getString(), is("This is a VDB description"));

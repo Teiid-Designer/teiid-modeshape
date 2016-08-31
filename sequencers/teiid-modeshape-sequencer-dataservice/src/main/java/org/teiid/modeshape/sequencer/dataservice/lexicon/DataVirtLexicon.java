@@ -209,6 +209,11 @@ public interface DataVirtLexicon {
         String PATH = PREFIX + ":entryPath";
 
         /**
+         * The name of the property whose value is the publish policy of the entry. Value is {@value}.
+         */
+        String PUBLISH_POLICY = PREFIX + ":publishPolicy";
+
+        /**
          * The name of the property whose value is a reference to a resource or a node that can export a resource. Value is
          * {@value}.
          */
@@ -262,6 +267,11 @@ public interface DataVirtLexicon {
          * The name of the property whose value is the archive path of the entry. Value is {@value}.
          */
         String PATH = DataServiceEntry.PATH;
+
+        /**
+         * The name of the property whose value is the publish policy of the entry. Value is {@value}.
+         */
+        String PUBLISH_POLICY = DataServiceEntry.PUBLISH_POLICY;
 
         /**
          * The name of the property whose value is the reference of the connection resource. Value is {@value}.
@@ -323,84 +333,6 @@ public interface DataVirtLexicon {
     }
 
     /**
-     * JCR identifiers relating to a data service entry for a driver file.
-     */
-    interface DriverEntry {
-
-        /**
-         * The name of the driver entry node type. Value is {@value}.
-         */
-        String NODE_TYPE = PREFIX + ":driverEntry";
-
-        /**
-         * The name of the property whose value is the archive path of the entry. Value is {@value}.
-         */
-        String PATH = DataServiceEntry.PATH;
-
-        /**
-         * The name of the property whose value is the reference of the driver resource. Value is {@value}.
-         */
-        String DRIVER_REF = DataServiceEntry.SOURCE_RESOURCE;
-
-    }
-
-    /**
-     * JCR identifiers relating to a driver file.
-     */
-    interface DriverFile {
-
-        /**
-         * The name of the driver file node type. Value is {@value}.
-         */
-        String NODE_TYPE = PREFIX + ":driverFile";
-
-    }
-
-    /**
-     * JCR identifiers relating to metadata files.
-     */
-    interface MetadaFile {
-
-        /**
-         * The name of the DDL metadata file node type. Value is {@value}.
-         */
-        String DDL_FILE_NODE_TYPE = PREFIX + ":ddlFile";
-
-        /**
-         * The name of the abstract metadata file node type. Value is {@value}.
-         */
-        String NODE_TYPE = PREFIX + ":metadataFile";
-
-    }
-
-    /**
-     * JCR identifiers relating to a data service entry for a metadata file.
-     */
-    interface MetadataEntry {
-
-        /**
-         * The name of the DDL file entry node type. Value is {@value}.
-         */
-        String DDL_FILE_NODE_TYPE = PREFIX + ":ddlEntry";
-
-        /**
-         * The name of the abstract metadata entry node type. Value is {@value}.
-         */
-        String NODE_TYPE = PREFIX + ":metadataEntry";
-
-        /**
-         * The name of the property whose value is the path of the metadata entry. Value is {@value}.
-         */
-        String PATH = DataServiceEntry.PATH;
-
-        /**
-         * The name of the property whose value is the reference of the metadata file. Value is {@value}.
-         */
-        String METADATA_REF = DataServiceEntry.SOURCE_RESOURCE;
-
-    }
-
-    /**
      * The URI and prefix constants of the DV namespace.
      */
     interface Namespace {
@@ -428,14 +360,29 @@ public interface DataVirtLexicon {
         String NODE_TYPE = PREFIX + ":resourceEntry";
 
         /**
+         * The name of the DDL file entry node type. Value is {@value}.
+         */
+        String DDL_ENTRY_NODE_TYPE = PREFIX + ":ddlEntry";
+
+        /**
+         * The name of the driver entry node type. Value is {@value}.
+         */
+        String DRIVER_ENTRY_NODE_TYPE = PREFIX + ":driverEntry";
+
+        /**
          * The name of the UDF file entry node type. Value is {@value}.
          */
-        String UDF_FILE_NODE_TYPE = PREFIX + ":udfEntry";
+        String UDF_ENTRY_NODE_TYPE = PREFIX + ":udfEntry";
 
         /**
          * The name of the property whose value is the resource path of the entry. Value is {@value}.
          */
         String PATH = DataServiceEntry.PATH;
+
+        /**
+         * The name of the property whose value is the publish policy of the entry. Value is {@value}.
+         */
+        String PUBLISH_POLICY = DataServiceEntry.PUBLISH_POLICY;
 
         /**
          * The name of the property whose value is the reference of the resource file. Value is {@value}.
@@ -453,6 +400,16 @@ public interface DataVirtLexicon {
          * The name of the generic resource file node type. Value is {@value}.
          */
         String NODE_TYPE = PREFIX + ":resourceFile";
+
+        /**
+         * The name of the DDL metadata file node type. Value is {@value}.
+         */
+        String DDL_FILE_NODE_TYPE = PREFIX + ":ddlFile";
+
+        /**
+         * The name of the driver file node type. Value is {@value}.
+         */
+        String DRIVER_FILE_NODE_TYPE = PREFIX + ":driverFile";
 
         /**
          * The name of the UDF file node type. Value is {@value}.
@@ -475,6 +432,11 @@ public interface DataVirtLexicon {
          * The name of the property whose value is the archive path of the entry. Value is {@value}.
          */
         String PATH = DataServiceEntry.PATH;
+
+        /**
+         * The name of the property whose value is the publish policy of the entry. Value is {@value}.
+         */
+        String PUBLISH_POLICY = DataServiceEntry.PUBLISH_POLICY;
 
         /**
          * The name of the property whose value is the reference of the driver resource. Value is {@value}.
@@ -507,6 +469,11 @@ public interface DataVirtLexicon {
          * The name of the property whose value is the archive path of the entry. Value is {@value}.
          */
         String PATH = DataServiceEntry.PATH;
+
+        /**
+         * The name of the property whose value is the publish policy of the entry. Value is {@value}.
+         */
+        String PUBLISH_POLICY = DataServiceEntry.PUBLISH_POLICY;
 
         /**
          * The name of the property whose value is the reference of the driver resource. Value is {@value}.

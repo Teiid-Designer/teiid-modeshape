@@ -49,6 +49,7 @@ import org.modeshape.common.util.StringUtil;
 import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.modeshape.jcr.api.sequencer.Sequencer;
+import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
 import org.teiid.modeshape.sequencer.vdb.VdbDynamicSequencer;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
@@ -144,7 +145,7 @@ public class DataServiceSequencer extends Sequencer {
                         LOGGER.debug( "ignoring directory '{0}'", entryName );
                         continue;
                     } else if ( entryName.endsWith( MANIFEST_FILE ) ) {
-                        manifest = readManifest( binaryValue, zis, outputNode, context );
+                        manifest = readManifest( zis, outputNode, context );
                         break;
                     } else {
                         LOGGER.debug( "skipping '{0}' and will sequence later", entryName );
@@ -154,7 +155,7 @@ public class DataServiceSequencer extends Sequencer {
 
             // make sure we have a manifest
             if ( manifest == null ) {
-                throw new RuntimeException( TeiidI18n.missingDataServiceManifestFile.text( inputProperty.getPath() ) );
+                throw new Exception( TeiidI18n.missingDataServiceManifestFile.text( inputProperty.getPath() ) );
             }
 
             final ServiceVdbEntry serviceVdb = manifest.getServiceVdb();
@@ -214,14 +215,13 @@ public class DataServiceSequencer extends Sequencer {
 
             return true;
         } catch ( final Exception e ) {
-            throw new RuntimeException( TeiidI18n.errorReadingDataserviceFile.text( inputProperty.getPath(), e.getMessage() ),
-                                        e );
+            throw new Exception( TeiidI18n.errorReadingDataserviceFile.text( inputProperty.getPath(), e.getMessage() ), e );
         }
     }
 
     private ConnectionEntry findConnectionEntry( final String path,
                                                  final DataServiceManifest manifest ) {
-        for ( final ConnectionEntry dsEntry : manifest.getDataSources() ) {
+        for ( final ConnectionEntry dsEntry : manifest.getConnections() ) {
             if ( dsEntry.getPath().equals( path ) ) {
                 return dsEntry;
             }
@@ -427,8 +427,7 @@ public class DataServiceSequencer extends Sequencer {
         LOGGER.debug( "exit initialize" );
     }
 
-    private DataServiceManifest readManifest( final Binary binaryValue,
-                                              final InputStream inputStream,
+    private DataServiceManifest readManifest( final InputStream inputStream,
                                               final Node outputNode,
                                               final Context context ) throws Exception {
         LOGGER.debug( "before reading manifest xml" );
@@ -468,22 +467,27 @@ public class DataServiceSequencer extends Sequencer {
     }
 
     private void sequenceConnection( final InputStream stream,
-                                     final ConnectionEntry dsEntry,
+                                     final ConnectionEntry connectionEntry,
                                      final Node dataServiceNode ) throws Exception {
-        final Node dsEntryNode = dataServiceNode.addNode( dsEntry.getEntryName(), DataVirtLexicon.ConnectionEntry.NODE_TYPE );
-        dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.PATH, dsEntry.getPath() );
-        dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.JDNI_NAME, dsEntry.getJndiName() );
+        final Node connectionEntryNode = dataServiceNode.addNode( connectionEntry.getEntryName(),
+                                                                  DataVirtLexicon.ConnectionEntry.NODE_TYPE );
+        connectionEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.PATH, connectionEntry.getPath() );
+        connectionEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.JDNI_NAME, connectionEntry.getJndiName() );
+
+        // publish policy
+        final PublishPolicy publishPolicy = connectionEntry.getPublishPolicy();
+        connectionEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY, publishPolicy.name() );
 
         // sequence connection if necessary
         boolean shouldSequence = false;
 
-        switch ( dsEntry.getPublishPolicy() ) {
+        switch ( publishPolicy ) {
             case ALWAYS:
                 shouldSequence = true;
                 break;
             case IF_MISSING:
                 final Node match = findExistingNode( getConnectionRoot( dataServiceNode ),
-                                                     dsEntry,
+                                                     connectionEntry,
                                                      DataVirtLexicon.Connection.NODE_TYPE );
 
                 if ( match == null ) {
@@ -491,30 +495,31 @@ public class DataServiceSequencer extends Sequencer {
                 } else {
                     // add reference to existing connection node from the connection entry node
                     final Value ref = dataServiceNode.getSession().getValueFactory().createValue( match );
-                    dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
+                    connectionEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
                 }
 
                 break;
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( dsEntry.getPublishPolicy(),
-                                                                                   dsEntry.getPath() ) );
+                throw new Exception( TeiidI18n.unexpectedDeployPolicy.text( connectionEntry.getPublishPolicy(),
+                                                                            connectionEntry.getPath() ) );
         }
 
         if ( shouldSequence ) {
             final Node parent = getConnectionRoot( dataServiceNode );
-            final Node dsNode = parent.addNode( dsEntry.getEntryName(), DataVirtLexicon.Connection.NODE_TYPE );
-            final boolean success = this.datasourceSequencer.sequenceConnection( stream, dsNode );
+            final Node connectionNode = parent.addNode( connectionEntry.getEntryName(), DataVirtLexicon.Connection.NODE_TYPE );
 
-            if ( success ) {
+            try {
+                this.datasourceSequencer.sequenceConnection( stream, connectionNode );
+
                 // reference sequenced node from the connection entry
-                final Value ref = dataServiceNode.getSession().getValueFactory().createValue( dsNode );
-                dsEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
-            } else {
-                dsNode.remove();
-                dsEntryNode.remove();
-                throw new Exception( TeiidI18n.dataSourceNotSequenced.text( dsEntry.getPath() ) );
+                final Value ref = dataServiceNode.getSession().getValueFactory().createValue( connectionNode );
+                connectionEntryNode.setProperty( DataVirtLexicon.ConnectionEntry.CONNECTION_REF, ref );
+            } catch ( final Exception e ) {
+                connectionNode.remove();
+                connectionEntryNode.remove();
+                throw new Exception( TeiidI18n.dataSourceNotSequenced.text( connectionEntry.getPath() ) );
             }
         }
     }
@@ -541,7 +546,7 @@ public class DataServiceSequencer extends Sequencer {
                 }
             }
         } catch ( final Exception e ) {
-            throw new RuntimeException( TeiidI18n.dataSourceSequencingError.text(), e );
+            throw new Exception( TeiidI18n.dataSourceSequencingError.text(), e );
         }
     }
 
@@ -552,8 +557,8 @@ public class DataServiceSequencer extends Sequencer {
                       driverEntry,
                       dataServiceNode,
                       getDriverRoot( dataServiceNode ),
-                      DataVirtLexicon.DriverEntry.NODE_TYPE,
-                      DataVirtLexicon.DriverFile.NODE_TYPE );
+                      DataVirtLexicon.ResourceEntry.DRIVER_ENTRY_NODE_TYPE,
+                      DataVirtLexicon.ResourceFile.DRIVER_FILE_NODE_TYPE );
     }
 
     private void sequenceFile( final ZipInputStream zis,
@@ -565,10 +570,14 @@ public class DataServiceSequencer extends Sequencer {
         final Node entryNode = dataServiceNode.addNode( entry.getEntryName(), entryNodeType );
         entryNode.setProperty( DataVirtLexicon.DataServiceEntry.PATH, entry.getPath() );
 
+        // publish policy
+        final PublishPolicy publishPolicy = entry.getPublishPolicy();
+        entryNode.setProperty( DataVirtLexicon.DataServiceEntry.PUBLISH_POLICY, publishPolicy.name() );
+
         // save file if necessary
         boolean save = false;
 
-        switch ( entry.getPublishPolicy() ) {
+        switch ( publishPolicy ) {
             case ALWAYS:
                 save = true;
                 break;
@@ -587,7 +596,7 @@ public class DataServiceSequencer extends Sequencer {
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( entry.getPublishPolicy(), entry.getPath() ) );
+                throw new Exception( TeiidI18n.unexpectedDeployPolicy.text( entry.getPublishPolicy(), entry.getPath() ) );
         }
 
         if ( save ) {
@@ -648,7 +657,7 @@ public class DataServiceSequencer extends Sequencer {
                 }
             }
         } catch ( final Exception e ) {
-            throw new RuntimeException( TeiidI18n.fileSequencingError.text( dataServiceNode.getPath() ), e );
+            throw new Exception( TeiidI18n.fileSequencingError.text( dataServiceNode.getPath() ), e );
         }
     }
 
@@ -659,8 +668,8 @@ public class DataServiceSequencer extends Sequencer {
                       metadataEntry,
                       dataServiceNode,
                       getMetadataRoot( dataServiceNode ),
-                      DataVirtLexicon.MetadataEntry.DDL_FILE_NODE_TYPE,
-                      DataVirtLexicon.MetadaFile.DDL_FILE_NODE_TYPE );
+                      DataVirtLexicon.ResourceEntry.DDL_ENTRY_NODE_TYPE,
+                      DataVirtLexicon.ResourceFile.DDL_FILE_NODE_TYPE );
     }
 
     private void sequenceResource( final ZipInputStream zis,
@@ -681,12 +690,16 @@ public class DataServiceSequencer extends Sequencer {
         final Node vdbEntryNode = dataServiceNode.addNode( vdbEntry.getEntryName(), DataVirtLexicon.ServiceVdbEntry.NODE_TYPE );
         vdbEntryNode.setProperty( DataVirtLexicon.ServiceVdbEntry.PATH, vdbEntry.getPath() );
         vdbEntryNode.setProperty( DataVirtLexicon.ServiceVdbEntry.VDB_NAME, vdbEntry.getVdbName() );
-        vdbEntryNode.setProperty( DataVirtLexicon.ServiceVdbEntry.VDB_NAME, vdbEntry.getVdbName() );
+        vdbEntryNode.setProperty( DataVirtLexicon.ServiceVdbEntry.VDB_VERSION, vdbEntry.getVdbVersion() );
+
+        // publish policy
+        final PublishPolicy publishPolicy = vdbEntry.getPublishPolicy();
+        vdbEntryNode.setProperty( DataVirtLexicon.ServiceVdbEntry.PUBLISH_POLICY, publishPolicy.name() );
 
         // sequence data source if necessary
         boolean shouldSequence = false;
 
-        switch ( vdbEntry.getPublishPolicy() ) {
+        switch ( publishPolicy ) {
             case ALWAYS:
                 shouldSequence = true;
                 break;
@@ -705,8 +718,7 @@ public class DataServiceSequencer extends Sequencer {
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getPublishPolicy(),
-                                                                                   vdbEntry.getPath() ) );
+                throw new Exception( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getPublishPolicy(), vdbEntry.getPath() ) );
         }
 
         if ( shouldSequence ) {
@@ -735,7 +747,7 @@ public class DataServiceSequencer extends Sequencer {
                       udfEntry,
                       dataServiceNode,
                       getUdfRoot( dataServiceNode ),
-                      DataVirtLexicon.ResourceEntry.UDF_FILE_NODE_TYPE,
+                      DataVirtLexicon.ResourceEntry.UDF_ENTRY_NODE_TYPE,
                       DataVirtLexicon.ResourceFile.UDF_FILE_NODE_TYPE );
     }
 
@@ -753,10 +765,14 @@ public class DataServiceSequencer extends Sequencer {
         vdbEntryNode.setProperty( DataVirtLexicon.VdbEntry.VDB_NAME, vdbEntry.getVdbName() );
         vdbEntryNode.setProperty( DataVirtLexicon.VdbEntry.VDB_VERSION, vdbEntry.getVdbVersion() );
 
+        // publish policy
+        final PublishPolicy publishPolicy = vdbEntry.getPublishPolicy();
+        vdbEntryNode.setProperty( DataVirtLexicon.VdbEntry.PUBLISH_POLICY, publishPolicy.name() );
+
         // sequence VDB if necessary
         boolean shouldSequence = false;
 
-        switch ( vdbEntry.getPublishPolicy() ) {
+        switch ( publishPolicy ) {
             case ALWAYS:
                 shouldSequence = true;
                 break;
@@ -775,8 +791,7 @@ public class DataServiceSequencer extends Sequencer {
             case NEVER:
                 break;
             default:
-                throw new RuntimeException( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getPublishPolicy(),
-                                                                                   vdbEntry.getPath() ) );
+                throw new Exception( TeiidI18n.unexpectedDeployPolicy.text( vdbEntry.getPublishPolicy(), vdbEntry.getPath() ) );
         }
 
         if ( shouldSequence ) {
@@ -819,7 +834,7 @@ public class DataServiceSequencer extends Sequencer {
                 }
             }
         } catch ( final Exception e ) {
-            throw new RuntimeException( TeiidI18n.vdbSequencingError.text( dataServiceNode.getPath() ), e );
+            throw new Exception( TeiidI18n.vdbSequencingError.text( dataServiceNode.getPath() ), e );
         }
     }
 

@@ -37,9 +37,14 @@ import org.modeshape.common.util.StringUtil;
 public class DataServiceManifest implements VdbEntryContainer {
 
     /**
+     * The date pattern used for the last modified property.
+     */
+    public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+
+    /**
      * The date formatter for the last modified property.
      */
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd'T'HH:mm:ss" );
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern( DATE_PATTERN );
 
     /**
      * @param lastModifiedDate the string representation of the date being parsed (cannot be <code>null</code>)
@@ -116,8 +121,8 @@ public class DataServiceManifest implements VdbEntryContainer {
     /**
      * @return the entry paths of the connection files (never <code>null</code> but can be empty)
      */
-    public String[] getDataSourcePaths() {
-        final DataServiceEntry[] entries = getDataSources();
+    public String[] getConnectionPaths() {
+        final DataServiceEntry[] entries = getConnections();
 
         if ( entries.length == 0 ) {
             return DataServiceEntry.NO_PATHS;
@@ -129,7 +134,7 @@ public class DataServiceManifest implements VdbEntryContainer {
     /**
      * @return the connection entries (never <code>null</code> but can be empty)
      */
-    public ConnectionEntry[] getDataSources() {
+    public ConnectionEntry[] getConnections() {
         if ( this.dataSources.isEmpty() ) {
             return ConnectionEntry.NO_DATA_SOURCES;
         }
@@ -169,7 +174,7 @@ public class DataServiceManifest implements VdbEntryContainer {
     }
 
     /**
-     * @return the last time the manifest was modified (can be <code>null</code> or empty)
+     * @return the last time the manifest was modified (can be <code>null</code>)
      */
     public LocalDateTime getLastModified() {
         return this.lastModified;

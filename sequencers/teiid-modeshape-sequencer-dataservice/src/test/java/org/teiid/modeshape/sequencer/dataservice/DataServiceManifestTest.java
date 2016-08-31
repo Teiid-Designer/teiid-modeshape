@@ -26,6 +26,7 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import java.io.InputStream;
+import java.net.URL;
 import java.time.LocalDateTime;
 import org.junit.Test;
 import org.xml.sax.SAXParseException;
@@ -58,8 +59,8 @@ public final class DataServiceManifestTest {
 
         assertThat( manifest.getProperties().size(), is( 0 ) );
 
-        assertThat( manifest.getDataSources().length, is( 1 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 1 ) );
+        assertThat( manifest.getConnections().length, is( 1 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 1 ) );
         assertThat( manifest.getDrivers().length, is( 0 ) );
         assertThat( manifest.getDriverPaths().length, is( 0 ) );
         assertThat( manifest.getMetadata().length, is( 0 ) );
@@ -71,9 +72,9 @@ public final class DataServiceManifestTest {
         assertThat( manifest.getVdbs().length, is( 0 ) );
         assertThat( manifest.getVdbPaths().length, is( 0 ) );
 
-        final ConnectionEntry ds = manifest.getDataSources()[ 0 ];
+        final ConnectionEntry ds = manifest.getConnections()[ 0 ];
         assertThat( ds.getPath(), is( "products-connection.xml" ) );
-        assertThat( manifest.getDataSourcePaths()[ 0 ], is( ds.getPath() ) );
+        assertThat( manifest.getConnectionPaths()[ 0 ], is( ds.getPath() ) );
         assertThat( ds.getPublishPolicy(), is( DataServiceEntry.PublishPolicy.IF_MISSING ) );
         assertThat( ds.getJndiName(), is( "productsConnection" ) );
     }
@@ -90,8 +91,8 @@ public final class DataServiceManifestTest {
         assertThat( manifest.getProperties().size(), is( 1 ) );
         assertThat( manifest.getPropertyValue( "propA" ), is( "Value A" ) );
 
-        assertThat( manifest.getDataSources().length, is( 2 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 2 ) );
+        assertThat( manifest.getConnections().length, is( 2 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 2 ) );
         assertThat( manifest.getDrivers().length, is( 2 ) );
         assertThat( manifest.getDriverPaths().length, is( 2 ) );
         assertThat( manifest.getMetadata().length, is( 2 ) );
@@ -116,8 +117,8 @@ public final class DataServiceManifestTest {
         assertThat( manifest.getProperties().size(), is( 1 ) );
         assertThat( manifest.getPropertyValue( "foo" ), is( "bar" ) );
 
-        assertThat( manifest.getDataSources().length, is( 0 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 0 ) );
+        assertThat( manifest.getConnections().length, is( 0 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 0 ) );
         assertThat( manifest.getDrivers().length, is( 1 ) );
         assertThat( manifest.getDriverPaths().length, is( 1 ) );
         assertThat( manifest.getMetadata().length, is( 0 ) );
@@ -141,8 +142,8 @@ public final class DataServiceManifestTest {
 
         assertThat( manifest.getProperties().size(), is( 0 ) );
 
-        assertThat( manifest.getDataSources().length, is( 0 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 0 ) );
+        assertThat( manifest.getConnections().length, is( 0 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 0 ) );
         assertThat( manifest.getDrivers().length, is( 0 ) );
         assertThat( manifest.getDriverPaths().length, is( 0 ) );
         assertThat( manifest.getMetadata().length, is( 1 ) );
@@ -166,8 +167,8 @@ public final class DataServiceManifestTest {
 
         assertThat( manifest.getProperties().size(), is( 0 ) );
 
-        assertThat( manifest.getDataSources().length, is( 0 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 0 ) );
+        assertThat( manifest.getConnections().length, is( 0 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 0 ) );
         assertThat( manifest.getDrivers().length, is( 0 ) );
         assertThat( manifest.getDriverPaths().length, is( 0 ) );
         assertThat( manifest.getMetadata().length, is( 0 ) );
@@ -194,8 +195,8 @@ public final class DataServiceManifestTest {
         assertThat( manifest.getPropertyValue( "propB" ), is( "Value B" ) );
         assertThat( manifest.getPropertyValue( "propC" ), is( "Value C" ) );
 
-        assertThat( manifest.getDataSources().length, is( 0 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 0 ) );
+        assertThat( manifest.getConnections().length, is( 0 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 0 ) );
         assertThat( manifest.getDrivers().length, is( 0 ) );
         assertThat( manifest.getDriverPaths().length, is( 0 ) );
         assertThat( manifest.getMetadata().length, is( 0 ) );
@@ -219,8 +220,8 @@ public final class DataServiceManifestTest {
 
         assertThat( manifest.getProperties().size(), is( 0 ) );
 
-        assertThat( manifest.getDataSources().length, is( 0 ) );
-        assertThat( manifest.getDataSourcePaths().length, is( 0 ) );
+        assertThat( manifest.getConnections().length, is( 0 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 0 ) );
         assertThat( manifest.getDrivers().length, is( 0 ) );
         assertThat( manifest.getDriverPaths().length, is( 0 ) );
         assertThat( manifest.getMetadata().length, is( 0 ) );
@@ -234,30 +235,33 @@ public final class DataServiceManifestTest {
     }
 
     private InputStream streamFor( final String resourcePath ) throws Exception {
-        final InputStream istream = getClass().getResourceAsStream( resourcePath );
+        final URL resourceUrl = getClass().getResource( resourcePath );
+        final InputStream istream = resourceUrl.openStream();
         assertThat( istream, is( notNullValue() ) );
         return istream;
     }
-    //
-    // @Test( expected = Exception.class )
-    // public void shouldNotAllowSettingServiceVdbMoreThanOnce() throws Exception {
-    // final DataServiceManifest manifest = new DataServiceManifest();
-    // manifest.setServiceVdb( new DataserviceServiceVdb( manifest ) );
-    // manifest.setServiceVdb( new DataserviceServiceVdb( manifest ) );
-    // }
-    //
-    // @Test
-    // public void shouldAddImportVdb() throws Exception {
-    // final DataServiceManifest manifest = new DataServiceManifest();
-    // manifest.addImportVdb( new DataserviceImportVdb( manifest ) );
-    // assertThat( manifest.getImportVdbs().size(), is( 1 ) );
-    // }
-    //
-    // @Test
-    // public void shouldHaveExpectedInitialState() throws Exception {
-    // final DataServiceManifest manifest = new DataServiceManifest();
-    // assertThat( manifest.getServiceVdb(), is( nullValue() ) );
-    // assertThat( manifest.getImportVdbs().isEmpty(), is( true ) );
-    // }
+
+    @Test
+    public void shouldHaveExpectedInitialState() throws Exception {
+        final DataServiceManifest manifest = new DataServiceManifest();
+        assertThat( manifest.getDescription(), is( nullValue() ) );
+        assertThat( manifest.getLastModified(), is( nullValue() ) );
+        assertThat( manifest.getModifiedBy(), is( nullValue() ) );
+        assertThat( manifest.getServiceVdb(), is( nullValue() ) );
+        assertThat( manifest.getServiceVdbPath(), is( nullValue() ) );
+        assertThat( manifest.getProperties().size(), is( 0 ) );
+        assertThat( manifest.getConnectionPaths().length, is( 0 ) );
+        assertThat( manifest.getConnections().length, is( 0 ) );
+        assertThat( manifest.getDriverPaths().length, is( 0 ) );
+        assertThat( manifest.getDrivers().length, is( 0 ) );
+        assertThat( manifest.getMetadataPaths().length, is( 0 ) );
+        assertThat( manifest.getMetadata().length, is( 0 ) );
+        assertThat( manifest.getResourcePaths().length, is( 0 ) );
+        assertThat( manifest.getResources().length, is( 0 ) );
+        assertThat( manifest.getUdfPaths().length, is( 0 ) );
+        assertThat( manifest.getUdfs().length, is( 0 ) );
+        assertThat( manifest.getVdbPaths().length, is( 0 ) );
+        assertThat( manifest.getVdbs().length, is( 0 ) );
+    }
 
 }
