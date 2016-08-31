@@ -273,9 +273,7 @@ public class VdbSequencer extends Sequencer {
     public void initialize( final NamespaceRegistry registry,
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
         LOGGER.debug("enter initialize");
-//        registry.registerNamespace(VdbLexicon.Namespace.PREFIX, VdbLexicon.Namespace.URI);
-//        registry.registerNamespace(XmiLexicon.Namespace.PREFIX, XmiLexicon.Namespace.URI);
-//        registry.registerNamespace(CoreLexicon.Namespace.PREFIX, CoreLexicon.Namespace.URI);
+        
         registerNodeTypes("xmi.cnd", nodeTypeManager, true);
         LOGGER.debug("xmi.cnd loaded");
 

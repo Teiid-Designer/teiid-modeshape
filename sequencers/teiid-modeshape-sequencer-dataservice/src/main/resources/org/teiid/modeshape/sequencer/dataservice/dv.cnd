@@ -32,20 +32,23 @@
 //------------------------------------------------------------------------------
 
 /*
- * A driver file.
- */
-[dv:driverFile] > nt:file, mix:referenceable
-
-/*
- * A metadata file (DDL).
- */
-[dv:metadataFile] > nt:file, mix:referenceable abstract
-[dv:ddlFile] > dv:metadataFile
-
-/*
- * A resource file (UDF).
+ * A resource file (like a UDF, driver, and DDL).
  */
 [dv:resourceFile] > nt:file, mix:referenceable
+
+/*
+ * A driver file.
+ */
+[dv:driverFile] > dv:resourceFile
+
+/*
+ * A DDL file.
+ */
+[dv:ddlFile] > dv:resourceFile
+
+/*
+ * A UDF file.
+ */
 [dv:udfFile] > dv:resourceFile
    
 /*
@@ -62,6 +65,7 @@
  */
 [dv:dataServiceEntry] > nt:unstructured abstract
   - dv:path (string)
+  - dv:publishPolicy (string) = 'IF_MISSING' autocreated < 'ALWAYS', 'IF_MISSING', 'NEVER' 
   - dv:sourceResource (reference) // reference to resource being put in the archive
 
 /*

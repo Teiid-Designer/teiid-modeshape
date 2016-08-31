@@ -42,7 +42,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
     private void assertConnection( final Node dataServiceNode,
                                    final String dsEntryName,
-                                   final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
+                                   final DataServiceEntry.PublishPolicy publishPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( dsEntryName ), is( true ) );
 
         final Node dsEntryNode = dataServiceNode.getNode( dsEntryName );
@@ -50,50 +50,59 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
         assertThat( dsEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PATH ), is( true ) );
         assertThat( dsEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PATH ).getString(),
                     is( "connections/" + dsEntryName ) );
+        assertThat( dsEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ), is( true ) );
+        assertThat( dsEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ).getString(),
+                    is( publishPolicy.name() ) );
 
         // check reference
         assertReferencedResource( dsEntryNode,
                                   DataVirtLexicon.ConnectionEntry.CONNECTION_REF,
                                   DataVirtLexicon.Connection.NODE_TYPE,
-                                  deployPolicy,
+                                  publishPolicy,
                                   false );
     }
 
     private void assertDdl( final Node dataServiceNode,
                             final String ddlEntryName,
-                            final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
+                            final DataServiceEntry.PublishPolicy publishPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( ddlEntryName ), is( true ) );
 
         final Node ddlEntryNode = dataServiceNode.getNode( ddlEntryName );
-        assertThat( ddlEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.MetadataEntry.DDL_FILE_NODE_TYPE ) );
-        assertThat( ddlEntryNode.hasProperty( DataVirtLexicon.MetadataEntry.PATH ), is( true ) );
-        assertThat( ddlEntryNode.getProperty( DataVirtLexicon.MetadataEntry.PATH ).getString(),
+        assertThat( ddlEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.ResourceEntry.DDL_ENTRY_NODE_TYPE ) );
+        assertThat( ddlEntryNode.hasProperty( DataVirtLexicon.ResourceEntry.PATH ), is( true ) );
+        assertThat( ddlEntryNode.getProperty( DataVirtLexicon.ResourceEntry.PATH ).getString(),
                     is( "metadata/" + ddlEntryName ) );
+        assertThat( ddlEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ), is( true ) );
+        assertThat( ddlEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ).getString(),
+                    is( publishPolicy.name() ) );
 
         // check reference
         assertReferencedResource( ddlEntryNode,
-                                  DataVirtLexicon.MetadataEntry.METADATA_REF,
-                                  DataVirtLexicon.MetadaFile.DDL_FILE_NODE_TYPE,
-                                  deployPolicy,
+                                  DataVirtLexicon.ResourceEntry.RESOURCE_REF,
+                                  DataVirtLexicon.ResourceFile.DDL_FILE_NODE_TYPE,
+                                  publishPolicy,
                                   true );
     }
 
     private void assertDriver( final Node dataServiceNode,
                                final String driverEntryName,
-                               final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
+                               final DataServiceEntry.PublishPolicy publishPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( driverEntryName ), is( true ) );
 
         final Node driverEntryNode = dataServiceNode.getNode( driverEntryName );
-        assertThat( driverEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DriverEntry.NODE_TYPE ) );
-        assertThat( driverEntryNode.hasProperty( DataVirtLexicon.DriverEntry.PATH ), is( true ) );
-        assertThat( driverEntryNode.getProperty( DataVirtLexicon.DriverEntry.PATH ).getString(),
+        assertThat( driverEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.ResourceEntry.DRIVER_ENTRY_NODE_TYPE ) );
+        assertThat( driverEntryNode.hasProperty( DataVirtLexicon.ResourceEntry.PATH ), is( true ) );
+        assertThat( driverEntryNode.getProperty( DataVirtLexicon.ResourceEntry.PATH ).getString(),
                     is( "drivers/" + driverEntryName ) );
+        assertThat( driverEntryNode.hasProperty( DataVirtLexicon.ResourceEntry.PUBLISH_POLICY ), is( true ) );
+        assertThat( driverEntryNode.getProperty( DataVirtLexicon.ResourceEntry.PUBLISH_POLICY ).getString(),
+                    is( publishPolicy.name() ) );
 
         // check reference
         assertReferencedResource( driverEntryNode,
-                                  DataVirtLexicon.DriverEntry.DRIVER_REF,
-                                  DataVirtLexicon.DriverFile.NODE_TYPE,
-                                  deployPolicy,
+                                  DataVirtLexicon.ResourceEntry.RESOURCE_REF,
+                                  DataVirtLexicon.ResourceFile.DRIVER_FILE_NODE_TYPE,
+                                  publishPolicy,
                                   true );
     }
 
@@ -122,7 +131,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
     private void assertResource( final Node dataServiceNode,
                                  final String resourceEntryName,
-                                 final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
+                                 final DataServiceEntry.PublishPolicy publishPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( resourceEntryName ), is( true ) );
 
         final Node resourceEntryNode = dataServiceNode.getNode( resourceEntryName );
@@ -130,48 +139,57 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
         assertThat( resourceEntryNode.hasProperty( DataVirtLexicon.ResourceEntry.PATH ), is( true ) );
         assertThat( resourceEntryNode.getProperty( DataVirtLexicon.ResourceEntry.PATH ).getString(),
                     is( "resources/" + resourceEntryName ) );
+        assertThat( resourceEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ), is( true ) );
+        assertThat( resourceEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ).getString(),
+                    is( publishPolicy.name() ) );
 
         // check reference
         assertReferencedResource( resourceEntryNode,
                                   DataVirtLexicon.ResourceEntry.RESOURCE_REF,
                                   DataVirtLexicon.ResourceFile.NODE_TYPE,
-                                  deployPolicy,
+                                  publishPolicy,
                                   true );
     }
 
     private void assertUdf( final Node dataServiceNode,
                             final String udfEntryName,
-                            final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
+                            final DataServiceEntry.PublishPolicy publishPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( udfEntryName ), is( true ) );
 
         final Node udfEntryNode = dataServiceNode.getNode( udfEntryName );
-        assertThat( udfEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.ResourceEntry.UDF_FILE_NODE_TYPE ) );
+        assertThat( udfEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.ResourceEntry.UDF_ENTRY_NODE_TYPE ) );
         assertThat( udfEntryNode.hasProperty( DataVirtLexicon.ResourceEntry.PATH ), is( true ) );
         assertThat( udfEntryNode.getProperty( DataVirtLexicon.ResourceEntry.PATH ).getString(), is( "udfs/" + udfEntryName ) );
+        assertThat( udfEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ), is( true ) );
+        assertThat( udfEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ).getString(),
+                    is( publishPolicy.name() ) );
 
         // check reference
         assertReferencedResource( udfEntryNode,
                                   DataVirtLexicon.ResourceEntry.RESOURCE_REF,
                                   DataVirtLexicon.ResourceFile.UDF_FILE_NODE_TYPE,
-                                  deployPolicy,
+                                  publishPolicy,
                                   true );
     }
 
     private void assertVdb( final Node dataServiceNode,
                             final String vdbEntryName,
-                            final DataServiceEntry.PublishPolicy deployPolicy ) throws Exception {
+                            final DataServiceEntry.PublishPolicy publishPolicy ) throws Exception {
         assertThat( dataServiceNode.hasNode( vdbEntryName ), is( true ) );
 
         final Node vdbEntryNode = dataServiceNode.getNode( vdbEntryName );
         assertThat( vdbEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.VdbEntry.NODE_TYPE ) );
         assertThat( vdbEntryNode.hasProperty( DataVirtLexicon.VdbEntry.PATH ), is( true ) );
         assertThat( vdbEntryNode.getProperty( DataVirtLexicon.VdbEntry.PATH ).getString(), is( "vdbs/" + vdbEntryName ) );
+        assertThat( vdbEntryNode.hasProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ), is( true ) );
+        assertThat( vdbEntryNode.getProperty( DataVirtLexicon.ConnectionEntry.PUBLISH_POLICY ).getString(),
+                    is( publishPolicy.name() ) );
 
         // check reference
         assertReferencedResource( vdbEntryNode,
                                   DataVirtLexicon.VdbEntry.VDB_REF,
                                   VdbLexicon.Vdb.VIRTUAL_DATABASE,
-                                  deployPolicy,
+                                  publishPolicy,
                                   false );
     }
 
@@ -235,8 +253,13 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
 
             final Node serviceVdbEntryNode = outputNode.getNode( serviceVdbPath );
             assertThat( serviceVdbEntryNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.ServiceVdbEntry.NODE_TYPE ) );
-            assertThat( serviceVdbEntryNode.hasProperty( DataVirtLexicon.DriverEntry.PATH ), is( true ) );
-            assertThat( serviceVdbEntryNode.getProperty( DataVirtLexicon.DriverEntry.PATH ).getString(), is( serviceVdbPath ) );
+            assertThat( serviceVdbEntryNode.hasProperty( DataVirtLexicon.ResourceEntry.PATH ), is( true ) );
+            assertThat( serviceVdbEntryNode.getProperty( DataVirtLexicon.ResourceEntry.PATH ).getString(), is( serviceVdbPath ) );
+            assertThat( serviceVdbEntryNode.hasProperty( DataVirtLexicon.ServiceVdbEntry.VDB_NAME ), is( true ) );
+            assertThat( serviceVdbEntryNode.getProperty( DataVirtLexicon.ServiceVdbEntry.VDB_NAME ).getString(),
+                        is( "ServiceVdb" ) ); // name from manifest
+            assertThat( serviceVdbEntryNode.hasProperty( DataVirtLexicon.ServiceVdbEntry.VDB_VERSION ), is( true ) );
+            assertThat( serviceVdbEntryNode.getProperty( DataVirtLexicon.ServiceVdbEntry.VDB_VERSION ).getString(), is( "1" ) );
 
             // check reference
             assertReferencedResource( serviceVdbEntryNode,

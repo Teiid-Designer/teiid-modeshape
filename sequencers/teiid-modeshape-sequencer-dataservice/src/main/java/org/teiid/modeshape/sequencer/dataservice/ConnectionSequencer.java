@@ -58,13 +58,7 @@ public class ConnectionSequencer extends Sequencer {
         CheckArg.isNotNull( binaryValue, "binary" );
 
         try ( final InputStream connectionStream = binaryValue.getStream() ) {
-            final Connection connection = readConnection( connectionStream, outputNode, context );
-
-            if ( connection == null ) {
-                throw new Exception( TeiidI18n.noDatasourceFound.text( inputProperty.getPath() ) );
-            }
-        } catch ( final Exception e ) {
-            throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( inputProperty.getPath(), e.getMessage() ), e );
+            sequenceConnection( connectionStream, outputNode );
         }
 
         return true;
@@ -131,20 +125,20 @@ public class ConnectionSequencer extends Sequencer {
     /**
      * @param connectionStream the stream being processed (cannot be <code>null</code>)
      * @param connectionOutputNode the repository output node (cannot be <code>null</code>)
-     * @return <code>true</code> if the connection was sequenced successfully
-     * @throws Exception
+     * @return the connection that was sequenced successfully (never <code>null</code>)
+     * @throws Exception if an error occurs
      */
-    public boolean sequenceConnection( final InputStream connectionStream,
-                                       final Node connectionOutputNode ) throws Exception {
+    public Connection sequenceConnection( final InputStream connectionStream,
+                                          final Node connectionOutputNode ) throws Exception {
         final Connection ds = readConnection( Objects.requireNonNull( connectionStream, "connectionStream" ),
                                               Objects.requireNonNull( connectionOutputNode, "connectionOutputNode" ),
                                               null );
 
         if ( ds == null ) {
-            throw new RuntimeException( TeiidI18n.errorReadingDatasourceFile.text( connectionOutputNode.getPath() ) );
+            throw new Exception( TeiidI18n.errorReadingDatasourceFile.text( connectionOutputNode.getPath() ) );
         }
 
-        return true;
+        return ds;
     }
 
 }

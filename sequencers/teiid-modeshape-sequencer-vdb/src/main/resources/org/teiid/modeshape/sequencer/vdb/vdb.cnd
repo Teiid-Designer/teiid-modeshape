@@ -34,13 +34,14 @@
 // N O D E T Y P E S
 //------------------------------------------------------------------------------
 
-[vdb:virtualDatabase] > nt:unstructured, mode:hashed
+[vdb:virtualDatabase] > nt:unstructured, mode:hashed, mix:referenceable
  - vdb:name (string)
  - vdb:description (string) 
  - vdb:version (long) = '1' autocreated
  - vdb:preview (boolean) = 'false' autocreated
  - vdb:connectionType (string)
  - vdb:originalFile (string)
+ + * (vdb:abstractModel) copy
  + vdb:translators (vdb:translators) copy
  + vdb:dataRoles (vdb:dataRoles) copy
  + vdb:entries (vdb:entries) copy

@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
@@ -61,7 +62,7 @@ public final class DataServiceManifestReader extends DefaultHandler {
 
     }
 
-    private static final String DATA_SERVICE_SCHEMA_FILE = "org/teiid/modeshape/sequencer/dataService/dataService.xsd"; //$NON-NLS-1$
+    private static final String DATA_SERVICE_SCHEMA_FILE = "dataService.xsd"; //$NON-NLS-1$
     private static final Logger LOGGER = Logger.getLogger( DataServiceManifestReader.class );
 
     private ConnectionEntry dataSource;
@@ -293,11 +294,11 @@ public final class DataServiceManifestReader extends DefaultHandler {
     }
 
     private void initParser() throws Exception {
-        final InputStream schemaStream = getClass().getClassLoader().getResourceAsStream( DATA_SERVICE_SCHEMA_FILE );
+        final URL schemaUrl = getClass().getResource( DATA_SERVICE_SCHEMA_FILE );
 
         try {
             this.schemaFile = File.createTempFile( "dataServiceSchemaFile", ".xsd" ); //$NON-NLS-1$ //$NON-NLS-2$
-            Files.copy( schemaStream, this.schemaFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+            Files.copy( schemaUrl.openStream(), this.schemaFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
             this.schemaFile.deleteOnExit();
             LOGGER.debug( "Data Service schema file loaded" ); //$NON-NLS-1$
         } catch ( final IOException e ) {

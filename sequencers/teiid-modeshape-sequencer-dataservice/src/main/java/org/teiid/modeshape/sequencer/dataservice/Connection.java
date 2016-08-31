@@ -23,7 +23,6 @@ package org.teiid.modeshape.sequencer.dataservice;
 
 import java.util.Objects;
 import java.util.Properties;
-import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.StringUtil;
 
 /**
@@ -31,10 +30,7 @@ import org.modeshape.common.util.StringUtil;
  */
 public class Connection {
 
-    static final Logger LOGGER = Logger.getLogger( Connection.class );
-
     private String className;
-
     private String description;
     private String driverName;
     private String jndiName;

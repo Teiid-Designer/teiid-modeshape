@@ -32,7 +32,6 @@ public final class TeiidI18n {
     public static I18n errorReadingDatasourceFile;
     public static I18n fileSequencingError;
     public static I18n missingDataServiceManifestFile;
-    public static I18n noDatasourceFound;
     public static I18n unexpectedDeployPolicy;
     public static I18n vdbSequencingError;
 
