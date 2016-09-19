@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="MyDataService">
+
+    <description>This is my data service description</description>
+    <lastModified>2002-05-30T09:30:10</lastModified>
+    <modifiedBy>elvis</modifiedBy>
+
+    <property name="propA">Value A</property>
+
+    <service-vdb-file
+        path="product-view-vdb.xml"
+        publish="ifMissing"
+        vdbName="ServiceVdb"
+        vdbVersion="1" />
+
+</dataservice>

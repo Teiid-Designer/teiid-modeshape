@@ -23,6 +23,7 @@ package org.teiid.modeshape.sequencer.vdb.model;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
@@ -102,33 +103,30 @@ public class ModelSequencer extends Sequencer {
     @Override
     public void initialize( final NamespaceRegistry registry,
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
-        LOGGER.debug("enter initialize");
+        LOGGER.debug( "enter initialize" );
+        final Class< ? > vdbSeqClass = VdbSequencer.class;
 
-        Class<?> vdbSeqClass = VdbSequencer.class;
-        super.registerNodeTypes(vdbSeqClass.getResourceAsStream("xmi.cnd"), nodeTypeManager, true);
-        LOGGER.debug("xmi.cnd loaded");
-
-        super.registerNodeTypes(vdbSeqClass.getResourceAsStream("med.cnd"), nodeTypeManager, true);
-        LOGGER.debug("med.cnd loaded");
-
-        super.registerNodeTypes(vdbSeqClass.getResourceAsStream("mmcore.cnd"), nodeTypeManager, true);
-        LOGGER.debug("mmcore.cnd loaded");
-
-        super.registerNodeTypes(vdbSeqClass.getResourceAsStream("jdbc.cnd"), nodeTypeManager, true);
-        LOGGER.debug("jdbc.cnd loaded");
-
-        super.registerNodeTypes(vdbSeqClass.getResourceAsStream("relational.cnd"), nodeTypeManager, true);
-        LOGGER.debug("relational.cnd loaded");
-
-        super.registerNodeTypes(vdbSeqClass.getResourceAsStream("transformation.cnd"), nodeTypeManager, true);
-        LOGGER.debug("transformation.cnd loaded");
+        registerNodeTypes( vdbSeqClass, "xmi", nodeTypeManager );
+        registerNodeTypes( vdbSeqClass, "med", nodeTypeManager );
+        registerNodeTypes( vdbSeqClass, "mmcore", nodeTypeManager );
+        registerNodeTypes( vdbSeqClass, "jdbc", nodeTypeManager );
+        registerNodeTypes( vdbSeqClass, "relational", nodeTypeManager );
+        registerNodeTypes( vdbSeqClass, "transformation", nodeTypeManager );
 
         // Register some of the namespaces we'll need ...
-        registerNamespace(DiagramLexicon.Namespace.PREFIX, DiagramLexicon.Namespace.URI, registry);
+        registerNamespace( DiagramLexicon.Namespace.PREFIX, DiagramLexicon.Namespace.URI, registry );
 
-        LOGGER.debug("exit initialize");
+        LOGGER.debug( "exit initialize" );
     }
 
+    private void registerNodeTypes( final Class< ? > vdbSeqClass,
+                                    final String cndFileName,
+                                    final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
+        final URL url = vdbSeqClass.getResource( "/org/teiid/modeshape/sequencer/vdb/" + cndFileName + ".cnd" );
+        registerNodeTypes( url.openStream(), nodeTypeManager, true );
+        LOGGER.debug( cndFileName + "CND loaded" );
+    }
+    
     /**
      * The method that performs the sequencing.
      *

@@ -21,17 +21,33 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import org.junit.Test;
+import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.xml.sax.SAXParseException;
 
 public final class DataServiceManifestTest {
+
+    private DataServiceEntry findEntry( final DataServiceEntry[] entries,
+                                        final String path ) {
+        for ( final DataServiceEntry entry : entries ) {
+            if ( entry.getPath().equals( path ) ) {
+                return entry;
+            }
+        }
+
+        fail( "Entry with path " + path + " could not be found" );
+        return null;
+    }
 
     @Test( expected = SAXParseException.class )
     public void shouldFailReadingManifestWithDuplicateConnectionJndiNames() throws Exception {
@@ -91,18 +107,84 @@ public final class DataServiceManifestTest {
         assertThat( manifest.getProperties().size(), is( 1 ) );
         assertThat( manifest.getPropertyValue( "propA" ), is( "Value A" ) );
 
-        assertThat( manifest.getConnections().length, is( 2 ) );
-        assertThat( manifest.getConnectionPaths().length, is( 2 ) );
-        assertThat( manifest.getDrivers().length, is( 2 ) );
-        assertThat( manifest.getDriverPaths().length, is( 2 ) );
-        assertThat( manifest.getMetadata().length, is( 2 ) );
-        assertThat( manifest.getMetadataPaths().length, is( 2 ) );
-        assertThat( manifest.getResources().length, is( 2 ) );
-        assertThat( manifest.getResourcePaths().length, is( 2 ) );
-        assertThat( manifest.getUdfs().length, is( 2 ) );
-        assertThat( manifest.getUdfPaths().length, is( 2 ) );
-        assertThat( manifest.getVdbs().length, is( 2 ) );
-        assertThat( manifest.getVdbPaths().length, is( 2 ) );
+        { // connections
+            assertThat( manifest.getConnections().length, is( 2 ) );
+            assertThat( manifest.getConnectionPaths().length, is( 2 ) );
+            assertThat( Arrays.asList( manifest.getConnectionPaths() ),
+                        hasItems( "first-connection.xml", "second-connection.xml" ) );
+
+            final ConnectionEntry first = ( ConnectionEntry )findEntry( manifest.getConnections(), "first-connection.xml" );
+            assertThat( first.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+            assertThat( first.getJndiName(), is( "firstConnection" ) );
+
+            final ConnectionEntry second = ( ConnectionEntry )findEntry( manifest.getConnections(), "second-connection.xml" );
+            assertThat( second.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+            assertThat( second.getJndiName(), is( "secondConnection" ) );
+        }
+
+        { // drivers
+            assertThat( manifest.getDrivers().length, is( 2 ) );
+            assertThat( manifest.getDriverPaths().length, is( 2 ) );
+            assertThat( Arrays.asList( manifest.getDriverPaths() ), hasItems( "firstDriver.jar", "secondDriver.jar" ) );
+
+            final DataServiceEntry first = findEntry( manifest.getDrivers(), "firstDriver.jar" );
+            assertThat( first.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+
+            final DataServiceEntry second = findEntry( manifest.getDrivers(), "secondDriver.jar" );
+            assertThat( second.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+        }
+
+        { // metadata
+            assertThat( manifest.getMetadata().length, is( 2 ) );
+            assertThat( manifest.getMetadataPaths().length, is( 2 ) );
+            assertThat( Arrays.asList( manifest.getMetadataPaths() ), hasItems( "firstDdl.ddl", "secondDdl.ddl" ) );
+
+            final DataServiceEntry first = findEntry( manifest.getMetadata(), "firstDdl.ddl" );
+            assertThat( first.getPublishPolicy(), is( PublishPolicy.ALWAYS ) );
+
+            final DataServiceEntry second = findEntry( manifest.getMetadata(), "secondDdl.ddl" );
+            assertThat( second.getPublishPolicy(), is( PublishPolicy.ALWAYS ) );
+        }
+
+        { // resources
+            assertThat( manifest.getResources().length, is( 2 ) );
+            assertThat( manifest.getResourcePaths().length, is( 2 ) );
+            assertThat( Arrays.asList( manifest.getResourcePaths() ), hasItems( "firstResource.xml", "secondResource.xml" ) );
+
+            final DataServiceEntry first = findEntry( manifest.getResources(), "firstResource.xml" );
+            assertThat( first.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+
+            final DataServiceEntry second = findEntry( manifest.getResources(), "secondResource.xml" );
+            assertThat( second.getPublishPolicy(), is( PublishPolicy.ALWAYS ) );
+        }
+
+        { // udfs
+            assertThat( manifest.getUdfs().length, is( 2 ) );
+            assertThat( manifest.getUdfPaths().length, is( 2 ) );
+            assertThat( Arrays.asList( manifest.getUdfPaths() ), hasItems( "firstUdf.jar", "secondUdf.jar" ) );
+
+            final DataServiceEntry first = findEntry( manifest.getUdfs(), "firstUdf.jar" );
+            assertThat( first.getPublishPolicy(), is( PublishPolicy.NEVER ) );
+
+            final DataServiceEntry second = findEntry( manifest.getUdfs(), "secondUdf.jar" );
+            assertThat( second.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+        }
+
+        { // vdbs
+            assertThat( manifest.getVdbs().length, is( 2 ) );
+            assertThat( manifest.getVdbPaths().length, is( 2 ) );
+            assertThat( Arrays.asList( manifest.getVdbPaths() ), hasItems( "first-vdb.xml", "second-vdb.xml" ) );
+
+            final VdbEntry first = ( VdbEntry )findEntry( manifest.getVdbs(), "first-vdb.xml" );
+            assertThat( first.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+            assertThat( first.getVdbName(), is( "FirstVdb" ) );
+            assertThat( first.getVdbVersion(), is( "1" ) );
+
+            final VdbEntry second = ( VdbEntry )findEntry( manifest.getVdbs(), "second-vdb.xml" );
+            assertThat( second.getPublishPolicy(), is( PublishPolicy.IF_MISSING ) );
+            assertThat( second.getVdbName(), is( "SecondVdb" ) );
+            assertThat( second.getVdbVersion(), is( "1" ) );
+        }
     }
 
     @Test

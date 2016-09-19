@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -51,6 +52,7 @@ import org.modeshape.common.util.StringUtil;
 import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.modeshape.jcr.api.sequencer.Sequencer;
+import org.teiid.modeshape.sequencer.ddl.TeiidDdlSequencer;
 import org.teiid.modeshape.sequencer.vdb.VdbDataRole.Condition;
 import org.teiid.modeshape.sequencer.vdb.VdbDataRole.Mask;
 import org.teiid.modeshape.sequencer.vdb.VdbDataRole.Permission;
@@ -94,6 +96,7 @@ public class VdbSequencer extends Sequencer {
     }
 
     private ModelSequencer modelSequencer; // constructed during initialize method
+    private TeiidDdlSequencer ddlSequencer; // constructed during initialize method
 
     /**
      * @see org.modeshape.jcr.api.sequencer.Sequencer#execute(javax.jcr.Property, javax.jcr.Node,
@@ -274,20 +277,15 @@ public class VdbSequencer extends Sequencer {
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
         LOGGER.debug("enter initialize");
         
-        registerNodeTypes("xmi.cnd", nodeTypeManager, true);
-        LOGGER.debug("xmi.cnd loaded");
-
-        registerNodeTypes("med.cnd", nodeTypeManager, true);
-        LOGGER.debug("med.cnd loaded");
-
-        registerNodeTypes("mmcore.cnd", nodeTypeManager, true);
-        LOGGER.debug("mmcore.cnd loaded");
-
-        registerNodeTypes("vdb.cnd", nodeTypeManager, true);
-        LOGGER.debug("vdb.cnd loaded");
-
         this.modelSequencer = new ModelSequencer();
         this.modelSequencer.initialize(registry, nodeTypeManager);
+        
+        this.ddlSequencer = new TeiidDdlSequencer();
+        this.ddlSequencer.initialize(registry, nodeTypeManager);
+
+        final URL vdbCndUrl = getClass().getResource( "/org/teiid/modeshape/sequencer/vdb/vdb.cnd" );
+        registerNodeTypes( vdbCndUrl.openStream(), nodeTypeManager, true );
+        LOGGER.debug("vdb.cnd loaded");
 
         LOGGER.debug("exit initialize");
     }
@@ -353,7 +351,7 @@ public class VdbSequencer extends Sequencer {
                             }
                         }
 
-                        // add add permission's masks
+                        // add permission's masks
                         List<Mask> masks = permission.getMasks();
                         if (! masks.isEmpty()) {
                             final Node masksGroupNode = permissionNode.addNode(VdbLexicon.DataRole.Permission.MASKS,
@@ -453,6 +451,11 @@ public class VdbSequencer extends Sequencer {
                 
                 if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( model.getMetadataType() ) ) {
                     setProperty( modelNode, VdbLexicon.Model.DDL_FILE_ENTRY_PATH, model.getDdlFileEntryPath() );
+                }
+                
+                // sequence DDL here
+                if ( !StringUtil.isBlank( model.getModelDefinition() ) ) {
+                    this.ddlSequencer.sequenceDdl( model.getModelDefinition(), modelNode );
                 }
 
                 // set model sources

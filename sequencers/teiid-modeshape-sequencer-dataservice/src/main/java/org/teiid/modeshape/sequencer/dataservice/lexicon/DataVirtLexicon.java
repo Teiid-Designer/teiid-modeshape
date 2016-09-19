@@ -232,6 +232,11 @@ public interface DataVirtLexicon {
         String CLASS_NAME = PREFIX + ":className";
 
         /**
+         * The name of the property whose value contains a description of the connection. Value is {@value}.
+         */
+        String DESCRIPTION = PREFIX + ":description";
+
+        /**
          * The name of the property whose value is the name of the file where the driver class is found. Value is {@value}.
          */
         String DRIVER_NAME = PREFIX + ":driverName";

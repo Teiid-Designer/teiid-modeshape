@@ -52,6 +52,7 @@ public final class VdbSequencerTest extends AbstractSequencerTest {
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/xmi.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/jdbc.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/mmcore.cnd");
+        registerNodeTypes("org/teiid/modeshape/sequencer/vdb/med.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/relational.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/transformation.cnd");
         registerNodeTypes("org/teiid/modeshape/sequencer/vdb/vdb.cnd");

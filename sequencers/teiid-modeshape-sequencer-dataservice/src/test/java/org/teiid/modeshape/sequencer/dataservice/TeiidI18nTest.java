@@ -22,11 +22,7 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 import org.teiid.modeshape.i18n.AbstractI18nTest;
-import org.teiid.modeshape.sequencer.dataservice.TeiidI18n;
 
-/**
- * @author John Verhaeg
- */
 public class TeiidI18nTest extends AbstractI18nTest {
 
     public TeiidI18nTest() {

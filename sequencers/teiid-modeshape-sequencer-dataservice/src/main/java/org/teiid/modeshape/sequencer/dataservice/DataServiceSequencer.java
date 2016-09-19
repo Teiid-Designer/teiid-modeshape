@@ -74,7 +74,10 @@ public class DataServiceSequencer extends Sequencer {
 
     private static final Logger LOGGER = Logger.getLogger( DataServiceSequencer.class );
 
-    private static final String MANIFEST_FILE = "META-INF/dataservice.xml";
+    /**
+     * The entry path of the data service manifest.
+     */
+    public static final String MANIFEST_FILE = "META-INF/dataservice.xml";
 
     /**
      * A system property for storing the absolute root path where metadata files, like DDL, should be sequenced. If no value is
@@ -102,7 +105,7 @@ public class DataServiceSequencer extends Sequencer {
 
     private String connectionPath;
 
-    private ConnectionSequencer datasourceSequencer; // constructed during initialize method
+    private ConnectionSequencer connectionSequencer; // constructed during initialize method
 
     private String driverPath;
 
@@ -415,14 +418,12 @@ public class DataServiceSequencer extends Sequencer {
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
         LOGGER.debug( "enter initialize" );
 
-        registerNodeTypes( "dv.cnd", nodeTypeManager, true );
-        LOGGER.debug( "dv.cnd loaded" );
-
         this.vdbSequencer = new VdbDynamicSequencer();
         this.vdbSequencer.initialize( registry, nodeTypeManager );
 
-        this.datasourceSequencer = new ConnectionSequencer();
-        this.datasourceSequencer.initialize( registry, nodeTypeManager );
+        // dv.cnd is loaded by the connection sequencer
+        this.connectionSequencer = new ConnectionSequencer();
+        this.connectionSequencer.initialize( registry, nodeTypeManager );
 
         LOGGER.debug( "exit initialize" );
     }
@@ -511,7 +512,7 @@ public class DataServiceSequencer extends Sequencer {
             final Node connectionNode = parent.addNode( connectionEntry.getEntryName(), DataVirtLexicon.Connection.NODE_TYPE );
 
             try {
-                this.datasourceSequencer.sequenceConnection( stream, connectionNode );
+                this.connectionSequencer.sequenceConnection( stream, connectionNode );
 
                 // reference sequenced node from the connection entry
                 final Value ref = dataServiceNode.getSession().getValueFactory().createValue( connectionNode );

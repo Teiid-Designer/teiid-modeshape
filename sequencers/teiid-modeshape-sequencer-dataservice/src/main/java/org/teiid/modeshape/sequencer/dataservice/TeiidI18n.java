@@ -34,6 +34,21 @@ public final class TeiidI18n {
     public static I18n missingDataServiceManifestFile;
     public static I18n unexpectedDeployPolicy;
     public static I18n vdbSequencingError;
+    
+    public static I18n dataServiceUnknownChildType;
+    public static I18n missingConnectionClassNameProperty;
+    public static I18n missingConnectionDriverNameProperty;
+    public static I18n missingConnectionEntryJndiName;
+    public static I18n missingConnectionJndiNameProperty;
+    public static I18n missingConnectionTypeProperty;
+    public static I18n missingDataServiceEntries;
+    public static I18n missingDataServiceEntryReference;
+    public static I18n missingDataServiceEntryReferenceProperty;
+    public static I18n missingDataServiceReferenceContent;
+    public static I18n missingDataServiceReferenceDataProperty;
+    public static I18n serviceVdbEntryUnknownChildType;
+    public static I18n unhandledConnectionType;
+    public static I18n unhandledDataServiceExportArtifactType;
 
     public static I18n dataServiceSchemaError;
     public static I18n dataserviceVdbAlreadySet;

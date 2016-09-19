@@ -125,6 +125,11 @@ public class VdbManifest implements Comparable<VdbManifest> {
 
     static final Logger LOGGER = Logger.getLogger(VdbManifest.class);
 
+    /**
+     * The default VDB version. Value is {@value}.
+     */
+    public static final String DEFAULT_VERSION = "1";
+
     public static VdbManifest read( final InputStream stream,
                                     final Context context ) throws Exception {
 
@@ -133,9 +138,9 @@ public class VdbManifest implements Comparable<VdbManifest> {
 
     private final String name;
     private String description;
-    private String connectionType = "BY_VERSION";
+    private String connectionType;
     private final Map<String, String> properties = new HashMap<String, String>();
-    private int version = 1;
+    private int version = Integer.parseInt( DEFAULT_VERSION );
 
     private final List<VdbDataRole> dataRoles = new ArrayList<VdbDataRole>();
     private final List<VdbEntry> entries = new ArrayList<VdbEntry>();
@@ -667,6 +672,9 @@ public class VdbManifest implements Comparable<VdbManifest> {
                     if (VdbLexicon.ManifestIds.DESCRIPTION.equals(elementName)) {
                         final String description = streamReader.getElementText();
                         manifest.setDescription(description);
+                    } else if (VdbLexicon.ManifestIds.CONNECTION_TYPE.equals(elementName)) {
+                        final String connectionType = streamReader.getElementText();
+                        manifest.setConnectionType(connectionType);
                     } else if (VdbLexicon.ManifestIds.MODEL.equals(elementName)) {
                         final VdbModel model = parseModel(streamReader);
                         assert (model != null) : "model is null";

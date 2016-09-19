@@ -35,8 +35,8 @@ import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 /**
  * A simple POJO that is used to represent the information for a model read in from a VDB manifest ("vdb.xml").
  */
-public class VdbModel implements Comparable<VdbModel> {
-    
+public class VdbModel implements Comparable< VdbModel > {
+
     /**
      * The model definition metadata type whose model definition is DDL. Value is {@value}.
      */
@@ -46,24 +46,34 @@ public class VdbModel implements Comparable<VdbModel> {
      * The model definition metadata type whose model definition is a VDB entry path to a DDL file. Value is {@value}.
      */
     public static final String DDL_FILE_METADATA_TYPE = "DDL-FILE";
-    
+
     /**
      * The default model definition metadata type. Value is {@value}.
      */
     public static final String DEFAULT_METADATA_TYPE = DDL_METADATA_TYPE;
+
+    /**
+     * The default model type. Value is {@value}.
+     */
+    public static final String DEFAULT_MODEL_TYPE = CoreLexicon.ModelType.PHYSICAL;
+
+    /**
+     * The default model visibility. Value is {@value}.
+     */
+    public static final boolean DEFAULT_VISIBLE = true;
 
     private String ddlFileEntryPath;
     private String description;
     private String name;
     private String type;
     private String pathInVdb;
-    private List<Source> sources = new ArrayList<Source>();
-    private boolean visible = true;
+    private List< Source > sources = new ArrayList< Source >();
+    private boolean visible = DEFAULT_VISIBLE;
     private boolean builtIn = false;
     private long checksum;
-    private final Set<String> imports = new HashSet<String>();
-    private List<ValidationMarker> problems = new ArrayList<ValidationMarker>();
-    private final Map<String, String> properties = new HashMap<String, String>();
+    private final Set< String > imports = new HashSet< String >();
+    private List< ValidationMarker > problems = new ArrayList< ValidationMarker >();
+    private final Map< String, String > properties = new HashMap< String, String >();
     private String metadata; // model definition written in DDL
     private String metadataType;
 
@@ -75,15 +85,15 @@ public class VdbModel implements Comparable<VdbModel> {
     public VdbModel( String name,
                      String type,
                      String pathInVdb ) {
-        CheckArg.isNotEmpty(name, "name");
+        CheckArg.isNotEmpty( name, "name" );
 
         this.name = name;
         this.pathInVdb = pathInVdb;
-        this.type = (StringUtil.isBlank(type) ? CoreLexicon.ModelType.PHYSICAL : type);
+        this.type = ( StringUtil.isBlank( type ) ? DEFAULT_MODEL_TYPE : type );
     }
 
     /**
-     * @return the DDL file entry path used when metadata type is {@link #DDL_FILE_METADATA_TYPE} (never <code>null</code> but
+     * @return the DDL file entry path used when metadata type is {@link #DDL_FILE_METADATA_TYPE} (never <code>null</code> but 
      *         can be empty)
      */
     public String getDdlFileEntryPath() {
@@ -101,7 +111,7 @@ public class VdbModel implements Comparable<VdbModel> {
      * @return the description (never <code>null</code> but can be empty)
      */
     public String getDescription() {
-        return ((this.description == null) ? "" : this.description);
+        return ( ( this.description == null ) ? "" : this.description );
     }
 
     /**
@@ -149,12 +159,12 @@ public class VdbModel implements Comparable<VdbModel> {
     /**
      * @return the overridden properties (never <code>null</code>)
      */
-    public Map<String, String> getProperties() {
+    public Map< String, String > getProperties() {
         return this.properties;
     }
 
     /**
-     * @return the type (never <code>null</code> or empty)
+     * @return the type (can be <code>null</code> or empty)
      */
     public String getType() {
         return type;
@@ -185,7 +195,7 @@ public class VdbModel implements Comparable<VdbModel> {
      * @return <code>true</code> if model definition is declared in the VDB manifest and not by an XMI file
      */
     public boolean isDeclarative() {
-        return !getProperties().containsKey(VdbLexicon.ManifestIds.INDEX_NAME);
+        return !getProperties().containsKey( VdbLexicon.ManifestIds.INDEX_NAME );
     }
 
     /**
@@ -209,7 +219,6 @@ public class VdbModel implements Comparable<VdbModel> {
         this.checksum = checksum;
     }
 
-
     /**
      * @return the path in the VDB (can be <code>null</code> or empty)
      */
@@ -220,7 +229,7 @@ public class VdbModel implements Comparable<VdbModel> {
     /**
      * @return the paths of the imported models (never <code>null</code> but can be empty)
      */
-    public Set<String> getImports() {
+    public Set< String > getImports() {
         return imports;
     }
 
@@ -228,45 +237,45 @@ public class VdbModel implements Comparable<VdbModel> {
      * @param newImport the model import path being added as an import (cannot be <code>null</code> or empty)
      */
     public void addImport( final String newImport ) {
-        CheckArg.isNotEmpty(newImport, "newImport");
-        this.imports.add(newImport);
+        CheckArg.isNotEmpty( newImport, "newImport" );
+        this.imports.add( newImport );
     }
 
     /**
      * @return the sources of this models
      */
-    public List<Source> getSources() {
+    public List< Source > getSources() {
         return this.sources;
     }
 
     /**
      * @param source a source of this model
      */
-    public void addSource(Source source) {
-        CheckArg.isNotNull(source, "source");
-        this.sources.add(source);
+    public void addSource( Source source ) {
+        CheckArg.isNotNull( source, "source" );
+        this.sources.add( source );
     }
 
     /**
      * @return the validation markers (never <code>null</code>)
      */
-    public List<ValidationMarker> getProblems() {
+    public List< ValidationMarker > getProblems() {
         return problems;
     }
 
     public void addProblem( Severity severity,
                             String path,
                             String message ) {
-        problems.add(new ValidationMarker(severity, path, message));
+        problems.add( new ValidationMarker( severity, path, message ) );
     }
 
     public void addProblem( String severity,
                             String path,
                             String message ) {
-        if (severity != null) {
+        if ( severity != null ) {
             try {
-                addProblem(Severity.valueOf(severity.trim().toUpperCase()), path, message);
-            } catch (IllegalArgumentException e) {
+                addProblem( Severity.valueOf( severity.trim().toUpperCase() ), path, message );
+            } catch ( IllegalArgumentException e ) {
                 // Unknown severity, so ignore
             }
         }
@@ -280,13 +289,13 @@ public class VdbModel implements Comparable<VdbModel> {
      */
     @Override
     public int compareTo( VdbModel that ) {
-        if (that == null) return 1;
-        if (that == this) return 0;
-        if (this.getImports().contains(that.getPathInVdb())) {
+        if ( that == null ) return 1;
+        if ( that == this ) return 0;
+        if ( this.getImports().contains( that.getPathInVdb() ) ) {
             // this model imports that, so this model is greater than that ...
             return 1;
         }
-        if (that.getImports().contains(this.getPathInVdb())) {
+        if ( that.getImports().contains( this.getPathInVdb() ) ) {
             // that model imports this, so this model is less than that ...
             return -1;
         }
@@ -310,8 +319,8 @@ public class VdbModel implements Comparable<VdbModel> {
          * @param translator the source translator (can be <code>null</code>)
          */
         public Source(String name, String translator) {
-            CheckArg.isNotEmpty(name, "name");
-            CheckArg.isNotNull(translator, "translator");
+            CheckArg.isNotEmpty( name, "name" );
+            CheckArg.isNotNull( translator, "translator" );
 
             this.name = name;
             this.translator = translator;
@@ -341,7 +350,7 @@ public class VdbModel implements Comparable<VdbModel> {
         /**
          * @param jndiName the jndiName to set
          */
-        public void setJndiName(String jndiName) {
+        public void setJndiName( String jndiName ) {
             this.jndiName = jndiName;
         }
     }

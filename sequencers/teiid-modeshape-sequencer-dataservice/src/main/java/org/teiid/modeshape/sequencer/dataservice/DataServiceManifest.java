@@ -59,7 +59,7 @@ public class DataServiceManifest implements VdbEntryContainer {
         return new DataServiceManifestReader().read( stream );
     }
 
-    private final Collection< ConnectionEntry > dataSources = new ArrayList<>();
+    private final Collection< ConnectionEntry > connections = new ArrayList<>();
     private String description;
     private final Collection< DataServiceEntry > drivers = new ArrayList<>();
     private LocalDateTime lastModified;
@@ -73,10 +73,10 @@ public class DataServiceManifest implements VdbEntryContainer {
     private final Collection< VdbEntry > vdbs = new ArrayList<>();
 
     /**
-     * @param dataSourceEntry a connection entry (cannot be <code>null</code>)
+     * @param connectionEntry a connection entry (cannot be <code>null</code>)
      */
-    public void addDataSource( final ConnectionEntry dataSourceEntry ) {
-        this.dataSources.add( Objects.requireNonNull( dataSourceEntry, "dataSourceEntry" ) );
+    public void addConnection( final ConnectionEntry connectionEntry ) {
+        this.connections.add( Objects.requireNonNull( connectionEntry, "dataSourceEntry" ) );
     }
 
     /**
@@ -135,11 +135,11 @@ public class DataServiceManifest implements VdbEntryContainer {
      * @return the connection entries (never <code>null</code> but can be empty)
      */
     public ConnectionEntry[] getConnections() {
-        if ( this.dataSources.isEmpty() ) {
+        if ( this.connections.isEmpty() ) {
             return ConnectionEntry.NO_DATA_SOURCES;
         }
 
-        return this.dataSources.toArray( new ConnectionEntry[ this.dataSources.size() ] );
+        return this.connections.toArray( new ConnectionEntry[ this.connections.size() ] );
     }
 
     /**

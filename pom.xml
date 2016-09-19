@@ -74,6 +74,12 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-sequencer-dataservice</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- ModeShape -->
             <dependency>
                 <groupId>org.modeshape</groupId>

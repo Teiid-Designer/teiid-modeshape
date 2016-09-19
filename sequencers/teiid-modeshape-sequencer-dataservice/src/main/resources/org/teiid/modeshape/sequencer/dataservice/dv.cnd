@@ -56,6 +56,7 @@
  */
 [dv:connection] > nt:unstructured, mix:referenceable
   - dv:type (string) < 'JDBC','RESOURCE'
+  - dv:description (string)
   - dv:jndiName (string)
   - dv:className (string) // driver class name
   - dv:driverName (string) // file name of where driver is located

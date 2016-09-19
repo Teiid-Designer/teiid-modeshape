@@ -209,7 +209,7 @@ public final class DataServiceManifestReader extends DefaultHandler {
             this.manifest.addDriver( this.driver );
             this.driver = null;
         } else if ( DataVirtLexicon.DataServiceManifestId.CONNECTION_FILE.equals( localName ) ) {
-            this.manifest.addDataSource( this.dataSource );
+            this.manifest.addConnection( this.dataSource );
             this.dataSource = null;
         } else if ( DataVirtLexicon.DataServiceManifestId.UDF_FILE.equals( localName ) ) {
             this.manifest.addUdf( this.udf );
