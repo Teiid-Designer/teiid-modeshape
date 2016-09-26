@@ -22,13 +22,10 @@
 
 package org.teiid.modeshape.sequencer.vdb;
 
-import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Property;
@@ -38,18 +35,13 @@ import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.StringUtil;
+import org.teiid.modeshape.sequencer.Options;
+import org.teiid.modeshape.sequencer.internal.AbstractExporter;
 import org.teiid.modeshape.sequencer.vdb.VdbDataRole.Condition;
 import org.teiid.modeshape.sequencer.vdb.VdbDataRole.Mask;
 import org.teiid.modeshape.sequencer.vdb.VdbDataRole.Permission;
@@ -58,46 +50,11 @@ import org.teiid.modeshape.sequencer.vdb.VdbModel.ValidationMarker;
 import org.teiid.modeshape.sequencer.vdb.lexicon.CoreLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon.DataRole;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 /**
  * An exporter for VDBs.
  */
-public class VdbExporter {
-
-    private static final int DEFAULT_INDENT_AMOUNT = 4;
-    private static final boolean DEFAULT_PRETTY_PRINT = true;
-    /**
-     * A default property filter that filters out properties of these namespaces:
-     * <p>
-     * <ul>
-     * <li>jcr</li>
-     * <li>jdbc</li>
-     * <li>med</li>
-     * <li>mix</li>
-     * <li>mmcore</li>
-     * <li>mode</li>
-     * <li>nt</li>
-     * <li>relational</li>
-     * <li>transformation</li>
-     * <li>vdb</li>
-     * <li>xmi</li>
-     * </ul>
-     *
-     * @see PropertyFilter
-     */
-    public static PropertyFilter DEFAULT_PROPERTY_FILTER = propertyName -> !propertyName.startsWith( "jcr:" )
-                                                                           && !propertyName.startsWith( "jdbc:" )
-                                                                           && !propertyName.startsWith( "med:" )
-                                                                           && !propertyName.startsWith( "mix:" )
-                                                                           && !propertyName.startsWith( "mmcore:" )
-                                                                           && !propertyName.startsWith( "mode:" )
-                                                                           && !propertyName.startsWith( "nt:" )
-                                                                           && !propertyName.startsWith( "relational:" )
-                                                                           && !propertyName.startsWith( "transformation:" )
-                                                                           && !propertyName.startsWith( "vdb:" )
-                                                                           && !propertyName.startsWith( "xmi:" );
+public class VdbExporter extends AbstractExporter {
 
     /**
      * First param is child node type. Second param is the parent node path. Third param is child node name.
@@ -111,21 +68,8 @@ public class VdbExporter {
 
     private static final Logger LOGGER = Logger.getLogger( VdbExporter.class );
 
-    private static final Node[] NO_NODES = new Node[ 0 ];
-
-    /**
-     * @return the default exporter options (never <code>null</code>)
-     */
-    public static Map< String, Object > getDefaultOptions() {
-        final Map< String, Object > options = new HashMap<>();
-        options.put( OptionName.INDENT_AMOUNT, DEFAULT_INDENT_AMOUNT );
-        options.put( OptionName.PRETTY_PRINT_XML, DEFAULT_PRETTY_PRINT );
-        options.put( OptionName.PROPERTY_FILTER, DEFAULT_PROPERTY_FILTER );
-        return options;
-    }
-
     private VdbManifest constructManifest( final Node vdb,
-                                           final Map< String, Object > options ) throws Exception {
+                                           final Options options ) throws Exception {
 
         VdbManifest manifest = null;
 
@@ -158,14 +102,27 @@ public class VdbExporter {
 
         { // properties
             final Map< String, String > props = manifest.getProperties();
-            final PropertyFilter filter = getPropertyFilter( options );
+            final Options.PropertyFilter filter = getPropertyFilter( options );
             final PropertyIterator itr = vdb.getProperties();
 
             while ( itr.hasNext() ) {
                 final Property property = itr.nextProperty();
+                final String propName = property.getName();
 
-                if ( filter.accept( property.getName() ) ) {
-                    props.put( property.getName(), property.getValue().getString() );
+                if ( filter.accept( propName ) ) {
+                    String name = propName;
+                    final int index = name.indexOf( ':' );
+
+                    if ( index != -1 ) {
+                        final String uri = vdb.getSession().getNamespaceURI( name.substring( 0, index ) );
+                        name = '{'
+                               + uri
+                               + '}'
+                               + name.substring( index
+                                                 + 1 );
+                    }
+
+                    props.put( name, property.getValue().getString() );
                 }
             }
         }
@@ -198,7 +155,7 @@ public class VdbExporter {
 
                     { // properties
                         final Map< String, String > props = model.getProperties();
-                        final PropertyFilter filter = getPropertyFilter( options );
+                        final Options.PropertyFilter filter = getPropertyFilter( options );
                         final PropertyIterator itr = modelNode.getProperties();
 
                         while ( itr.hasNext() ) {
@@ -278,7 +235,7 @@ public class VdbExporter {
 
                         { // properties
                             final Map< String, String > props = translator.getProperties();
-                            final PropertyFilter filter = getPropertyFilter( options );
+                            final Options.PropertyFilter filter = getPropertyFilter( options );
                             final PropertyIterator itr = translatorNode.getProperties();
 
                             while ( itr.hasNext() ) {
@@ -424,7 +381,7 @@ public class VdbExporter {
 
                         { // properties
                             final Map< String, String > props = entry.getProperties();
-                            final PropertyFilter filter = getPropertyFilter( options );
+                            final Options.PropertyFilter filter = getPropertyFilter( options );
                             final PropertyIterator itr = entryNode.getProperties();
 
                             while ( itr.hasNext() ) {
@@ -471,20 +428,21 @@ public class VdbExporter {
         return manifest;
     }
 
-    public Object execute( final Node vdbNode,
-                           Map< String, Object > options ) throws Exception {
-        Objects.requireNonNull( vdbNode, "vdbNode" );
-
-        if ( ( options == null ) || options.isEmpty() ) {
-            options = getDefaultOptions();
-        }
-
-        final VdbManifest manifest = constructManifest( vdbNode, options );
-
-        final StringWriter stringWriter = new StringWriter();
+    /**
+     * {@inheritDoc}
+     *
+     * @see org.teiid.modeshape.sequencer.internal.AbstractExporter#doExport(javax.jcr.Node,
+     *      org.teiid.modeshape.sequencer.Options, org.teiid.modeshape.sequencer.internal.AbstractExporter.ResultImpl)
+     */
+    @Override
+    protected void doExport( final Node vdbNode,
+                             final Options options,
+                             final ResultImpl result ) {
         XMLStreamWriter xmlWriter = null;
 
         try {
+            final VdbManifest manifest = constructManifest( vdbNode, options );
+            final StringWriter stringWriter = new StringWriter();
             final XMLOutputFactory xof = XMLOutputFactory.newInstance();
             xmlWriter = xof.createXMLStreamWriter( stringWriter );
             xmlWriter.writeStartDocument( "UTF-8", "1.0" );
@@ -544,7 +502,8 @@ public class VdbExporter {
                         xmlWriter.writeAttribute( VdbLexicon.ManifestIds.NAME, model.getName() );
 
                         // model type attribute
-                        if ( ( model.getType() != null ) && !model.getType().equals( VdbModel.DEFAULT_MODEL_TYPE ) ) {
+                        if ( ( model.getType() != null )
+                             && !model.getType().equals( VdbModel.DEFAULT_MODEL_TYPE ) ) {
                             xmlWriter.writeAttribute( VdbLexicon.ManifestIds.TYPE, model.getType() );
                         }
 
@@ -813,7 +772,11 @@ public class VdbExporter {
 
             final String xml = stringWriter.toString().trim();
             LOGGER.debug( "VDB {0} manifest: \n{1}", vdbNode.getPath(), prettyPrint( xml, options ) );
-            return ( isPrettyPrint( options ) ? prettyPrint( xml, options ) : xml );
+
+            final String pretty = ( isPrettyPrint( options ) ? prettyPrint( xml, options ) : xml );
+            result.setOutcome( pretty, String.class );
+        } catch ( final Exception e ) {
+            result.setError( null, e );
         } finally {
             if ( xmlWriter != null ) {
                 try {
@@ -868,61 +831,6 @@ public class VdbExporter {
         return itr.nextNode();
     }
 
-    private String getIndentAmount( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.INDENT_AMOUNT );
-
-        if ( ( temp == null ) || !( temp instanceof Integer ) ) {
-            return Integer.toString( DEFAULT_INDENT_AMOUNT );
-        }
-
-        return Integer.toString( ( Integer )temp );
-    }
-
-    private PropertyFilter getPropertyFilter( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.PROPERTY_FILTER );
-
-        if ( ( temp == null ) || !( temp instanceof PropertyFilter ) ) {
-            return DEFAULT_PROPERTY_FILTER;
-        }
-
-        return ( PropertyFilter )temp;
-    }
-
-    private boolean isPrettyPrint( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.PRETTY_PRINT_XML );
-
-        if ( ( temp == null ) || !( temp instanceof Boolean ) ) {
-            return DEFAULT_PRETTY_PRINT;
-        }
-
-        return ( Boolean )temp;
-    }
-
-    private Document parseXmlFile( final String xml ) throws Exception {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final DocumentBuilder db = dbf.newDocumentBuilder();
-        final InputSource is = new InputSource( new StringReader( xml ) );
-        return db.parse( is );
-    }
-
-    private String prettyPrint( final String xml,
-                                final Map< String, Object > options ) throws Exception {
-        final Document document = parseXmlFile( xml );
-        final TransformerFactory factory = TransformerFactory.newInstance();
-
-        final Transformer transformer = factory.newTransformer();
-        transformer.setOutputProperty( OutputKeys.ENCODING, "UTF-8" );
-        transformer.setOutputProperty( OutputKeys.STANDALONE, "yes" );
-        transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-        transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", getIndentAmount( options ) );
-
-        final DOMSource source = new DOMSource( document );
-        final StringWriter output = new StringWriter();
-        final StreamResult result = new StreamResult( output );
-        transformer.transform( source, result );
-        return output.toString();
-    }
-
     private void writePropertyElement( final XMLStreamWriter writer,
                                        final String propName,
                                        final String propValue ) throws XMLStreamException {
@@ -930,44 +838,6 @@ public class VdbExporter {
         writer.writeAttribute( VdbLexicon.ManifestIds.NAME, propName );
         writer.writeAttribute( VdbLexicon.ManifestIds.VALUE, propValue );
         writer.writeEndElement();
-    }
-
-    /**
-     * The names of the known options.
-     */
-    public interface OptionName {
-
-        /**
-         * The number of spaces for each indent level. Default value is <code>4</code>.
-         */
-        public String INDENT_AMOUNT = "export.indent_amount";
-
-        /**
-         * Indicates if pretty printing of the XML manifest should be done. Default value is <code>true</code>.
-         */
-        public String PRETTY_PRINT_XML = "export.pretty_print_xml";
-
-        /**
-         * The {@link PropertyFilter} to use for filtering data service properties.
-         *
-         * @see VdbExporter#DEFAULT_PROPERTY_FILTER
-         */
-        public String PROPERTY_FILTER = "export.property_filter";
-
-    }
-
-    /**
-     * Filters the properties that will be exported.
-     */
-    @FunctionalInterface
-    public interface PropertyFilter {
-
-        /**
-         * @param propertyName the name of the property being checked (cannot be <code>null</code> or empty)
-         * @return <code>true</code> if the property should be exported
-         */
-        boolean accept( final String propertyName );
-
     }
 
 }

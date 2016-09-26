@@ -28,6 +28,15 @@ import org.modeshape.common.i18n.I18n;
  */
 public final class TeiidI18n {
 
+    public static I18n errorConstructingDataServiceManifest;
+    public static I18n errorExportingConnection;
+    public static I18n errorExportingDataServiceFiles;
+    public static I18n errorExportingDataServiceManifest;
+    public static I18n errorExportingDataServiceServiceVdb;
+    public static I18n errorExportingDataServiceZip;
+    public static I18n noServiceVdbToExport;
+    public static I18n unhandledErrorDuringDataServiceExport;
+
     public static I18n errorReadingDataserviceFile;
     public static I18n errorReadingDatasourceFile;
     public static I18n fileSequencingError;

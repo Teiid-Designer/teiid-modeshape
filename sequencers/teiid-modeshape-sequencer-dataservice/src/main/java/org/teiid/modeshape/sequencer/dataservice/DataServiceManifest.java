@@ -47,6 +47,16 @@ public class DataServiceManifest implements VdbEntryContainer {
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern( DATE_PATTERN );
 
     /**
+     * The file name of the data service manifest. Value is {@value}.
+     */
+    public static final String MANIFEST_FILE = "dataservice.xml";
+
+    /**
+     * The entry path of the data service manifest.
+     */
+    public static final String MANIFEST_ZIP_PATH = ( "META-INF/" + MANIFEST_FILE );
+
+    /**
      * @param lastModifiedDate the string representation of the date being parsed (cannot be <code>null</code>)
      * @return the date (never <code>null</code>)
      * @throws DateTimeParseException if the input cannot be parsed

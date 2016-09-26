@@ -32,6 +32,7 @@ import java.io.InputStream;
 import javax.jcr.Node;
 import org.junit.Test;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
+import org.teiid.modeshape.sequencer.Result;
 
 public final class ConnectionExporterTest extends AbstractSequencerTest {
 
@@ -47,12 +48,14 @@ public final class ConnectionExporterTest extends AbstractSequencerTest {
         assertThat( connectionNode, is( notNullValue() ) );
 
         final ConnectionExporter exporter = new ConnectionExporter();
-        final Object temp = exporter.execute( connectionNode, null );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
+        final Result result = exporter.execute( connectionNode, null );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
 
         // round trip
-        final String xml = ( String )temp;
+        final String xml = ( String )result.getOutcome();
         final ConnectionReader reader = new ConnectionReader();
         final Connection connection = reader.read( new ByteArrayInputStream( xml.getBytes() ) );
         assertThat( connection, is( notNullValue() ) );
@@ -74,12 +77,14 @@ public final class ConnectionExporterTest extends AbstractSequencerTest {
         assertThat( connectionNode, is( notNullValue() ) );
 
         final ConnectionExporter exporter = new ConnectionExporter();
-        final Object temp = exporter.execute( connectionNode, null );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
+        final Result result = exporter.execute( connectionNode, null );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
 
         // round trip
-        final String xml = ( String )temp;
+        final String xml = ( String )result.getOutcome();
         final ConnectionReader reader = new ConnectionReader();
         final Connection connection = reader.read( new ByteArrayInputStream( xml.getBytes() ) );
         assertThat( connection, is( notNullValue() ) );

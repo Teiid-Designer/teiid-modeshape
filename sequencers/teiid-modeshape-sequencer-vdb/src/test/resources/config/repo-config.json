@@ -16,10 +16,6 @@
             "Teiid Model Sequencer in different location" : {
                 "classname" : "org.teiid.modeshape.sequencer.vdb.model.ModelSequencer",
                 "pathExpressions" : [ "default://(*.xmi)/jcr:content[@jcr:data] => /models" ]
-            },
-            "Teiid DDL sequencer test" : {
-                "classname" : "org.teiid.modeshape.sequencer.ddl.TeiidDdlSequencer",
-                "pathExpressions" : [ "default://(*.ddl)/jcr:content[@jcr:data] => default:/ddl" ]
             }
         }
     }

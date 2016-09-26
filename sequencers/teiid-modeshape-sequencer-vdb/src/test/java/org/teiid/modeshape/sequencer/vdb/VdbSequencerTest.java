@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.Value;
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.modeshape.jcr.api.JcrConstants;
 import org.modeshape.jcr.api.observation.Event;
@@ -60,6 +61,7 @@ public final class VdbSequencerTest extends AbstractSequencerTest {
 
     @Test
     public void shouldFailToSequenceVdbWhenDdlFileIsMissing() throws Exception {
+        Logger.getLogger( VdbSequencerTest.class ).info( "\n*** Below exception is expected ***\n" );
         createNodeWithContentFromFile( "missing-ddl-file.vdb", "vdb/missing-ddl-file.vdb" );
         final Node outputNode = getOutputNode( this.rootNode, "vdbs/missing-ddl-file.vdb", 5 );
         assertNull( outputNode );
@@ -697,7 +699,7 @@ public final class VdbSequencerTest extends AbstractSequencerTest {
     @Test
     public void shouldSequenceDynamicTwitterVdb() throws Exception {
         createNodeWithContentFromFile("vdb/declarativeModels-vdb.xml", "vdb/declarativeModels-vdb.xml");
-        Node outputNode = getOutputNode(this.rootNode, "vdbs/declarativeModels-vdb.xml", 100);
+        Node outputNode = getOutputNode(this.rootNode, "vdbs/declarativeModels-vdb.xml");
         assertNotNull(outputNode);
         assertThat(outputNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.VIRTUAL_DATABASE));
         assertThat(outputNode.getNodes().getSize(), is(3L)); // 2 models and 1 translator
@@ -742,6 +744,63 @@ public final class VdbSequencerTest extends AbstractSequencerTest {
                                     + " to_user string PATH 'to_user'," + " profile_image_url string PATH 'profile_image_url',"
                                     + " source string PATH 'source'," + " text string PATH 'text') tweet;"
                                     + " CREATE VIEW Tweet AS select * FROM twitterview.getTweets;";
+            assertThat(declarativeModelNode.getProperty(VdbLexicon.Model.MODEL_DEFINITION).getString(), is(metadata));
+        }
+    }
+
+    @Test
+    public void shouldSequenceDynamicPatientsVdb() throws Exception {
+        createNodeWithContentFromFile("vdb/patients-vdb.xml", "vdb/patients-vdb.xml");
+        Node outputNode = getOutputNode(this.rootNode, "vdbs/patients-vdb.xml");
+        assertNotNull(outputNode);
+        assertThat(outputNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.VIRTUAL_DATABASE));
+        assertThat(outputNode.hasProperty(VdbLexicon.Vdb.DESCRIPTION), is(true));
+        assertThat(outputNode.getProperty(VdbLexicon.Vdb.DESCRIPTION).getString(), is("Sample Dataservice for patient records"));
+        assertThat(outputNode.hasProperty(VdbLexicon.Vdb.CONNECTION_TYPE), is(true));
+        assertThat(outputNode.getProperty(VdbLexicon.Vdb.CONNECTION_TYPE).getString(), is("BY_VERSION"));
+        assertThat(outputNode.getNodes().getSize(), is(2L)); // 2 models
+
+        { // Patients model
+            final Node declarativeModelNode = outputNode.getNode("PatientSource");
+            assertNotNull(declarativeModelNode);
+            assertThat(declarativeModelNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.DECLARATIVE_MODEL));
+
+            Node sourcesNode = declarativeModelNode.getNode(VdbLexicon.Vdb.SOURCES);
+            assertNotNull(sourcesNode);
+            assertThat(sourcesNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.SOURCES));
+
+            Node sourceNode = sourcesNode.getNode("PatientSource");
+            assertNotNull(sourceNode);
+            assertThat(sourceNode.getPrimaryNodeType().getName(), is(VdbLexicon.Source.SOURCE));
+            assertThat(sourceNode.getProperty(VdbLexicon.Source.TRANSLATOR).getString(), is("mysql5"));
+            assertThat(sourceNode.getProperty(VdbLexicon.Source.JNDI_NAME).getString(), is("java:/MySqlPatients"));
+
+            assertThat(declarativeModelNode.getProperty(CoreLexicon.JcrId.MODEL_TYPE).getString(),
+                       is(CoreLexicon.ModelType.PHYSICAL));
+        }
+
+        { // declarative virtual model
+            final Node declarativeModelNode = outputNode.getNode("Patients");
+            assertNotNull(declarativeModelNode);
+            assertThat(declarativeModelNode.getPrimaryNodeType().getName(), is(VdbLexicon.Vdb.DECLARATIVE_MODEL));
+            assertThat(declarativeModelNode.getProperty(VdbLexicon.Model.VISIBLE).getBoolean(), is(true));
+            assertThat(declarativeModelNode.getProperty(VdbLexicon.Model.METADATA_TYPE).getString(),
+                       is(VdbModel.DDL_METADATA_TYPE));
+            assertThat(declarativeModelNode.getProperty(CoreLexicon.JcrId.MODEL_TYPE).getString(),
+                       is(CoreLexicon.ModelType.VIRTUAL));
+
+            final String metadata = "CREATE VIEW TheServiceView ("
+                                    + " id long,"
+                                    + " firstName clob,"
+                                    + " lastName clob,"
+                                    + " gender clob,"
+                                    + " age long,"
+                                    + " currentSmoker boolean,"
+                                    + " lastPrimaryCareVisit timestamp,"
+                                    + " PRIMARY KEY(id)\n"
+                                    + ")\n"
+                                    + "AS\n"
+                                    + "SELECT id, firstName, lastName, gender, age, currentSmoker, lastPrimaryCareVisit FROM vdbwebtest.PATIENT;";
             assertThat(declarativeModelNode.getProperty(VdbLexicon.Model.MODEL_DEFINITION).getString(), is(metadata));
         }
     }

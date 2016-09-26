@@ -24,23 +24,25 @@ package org.teiid.modeshape.sequencer.dataservice;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import javax.jcr.Node;
 import org.junit.Test;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
+import org.teiid.modeshape.sequencer.Options;
+import org.teiid.modeshape.sequencer.Result;
 import org.teiid.modeshape.sequencer.dataservice.DataServiceExporter.ExportArtifact;
 import org.teiid.modeshape.sequencer.dataservice.DataServiceExporter.OptionName;
 import org.teiid.modeshape.sequencer.vdb.VdbManifest;
@@ -56,7 +58,9 @@ public final class DataServiceExporterTest extends AbstractSequencerTest {
             }
         }
 
-        fail( "Model " + modelName + " not found" );
+        fail( "Model "
+              + modelName
+              + " not found" );
         return null;
     }
 
@@ -66,20 +70,132 @@ public final class DataServiceExporterTest extends AbstractSequencerTest {
     }
 
     @Test
-    public void shouldExportDataServiceManifestAsXml() throws Exception {
+    public void shouldExportDataServiceAsFiles() throws Exception {
         createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
         final Node dataServiceNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip", 120 );
         assertThat( dataServiceNode, is( notNullValue() ) );
 
         final DataServiceExporter exporter = new DataServiceExporter();
-        final Map< String, Object > options = DataServiceExporter.getDefaultOptions();
-        options.put( OptionName.EXPORT_ARTIFACT, ExportArtifact.MANIFEST_AS_XML );
-        final Object temp = exporter.execute( dataServiceNode, options );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
+        final Options options = new Options();
+        options.set( OptionName.EXPORT_ARTIFACT, ExportArtifact.DATA_SERVICE_AS_FILES );
+        final Result result = exporter.execute( dataServiceNode, options );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
+
+        final byte[][] exportContents = ( byte[][] )result.getOutcome();
+        final String[] entryPaths = ( String[] )result.getData( DataServiceExporter.RESULT_ENTRY_PATHS );
+        final int numFiles = 15;
+        assertThat( exportContents.length, is( numFiles ) );
+        assertThat( entryPaths.length, is( numFiles ) );
+
+        final Path dir = Files.createTempDirectory( "ds-" );
+        final List< String > paths = new ArrayList<>( Arrays.asList( new String[] { "connections/books-connection.xml",
+                                                                                    "connections/portfolio-connection.xml",
+                                                                                    "drivers/books-driver-1.jar",
+                                                                                    "drivers/books-driver-2.jar",
+                                                                                    "drivers/portfolio-driver.jar",
+                                                                                    "META-INF/dataservice.xml",
+                                                                                    "metadata/firstDdl.ddl",
+                                                                                    "metadata/secondDdl.ddl",
+                                                                                    "resources/firstResource.xml",
+                                                                                    "resources/secondResource.xml",
+                                                                                    "udfs/secondUdf.jar",
+                                                                                    "vdbs/books-vdb.xml",
+                                                                                    "vdbs/Portfolio-vdb.xml",
+                                                                                    "vdbs/twitter-vdb.xml",
+                                                                                    ( dir.getFileName().toString()
+                                                                                      + '/'
+                                                                                      + "product-view-vdb.xml" ) } ) );
+
+        // make sure files can be created
+        for ( int i = 0; i < numFiles; ++i ) {
+            final byte[] content = exportContents[ i ];
+            assertThat( content, is( notNullValue() ) );
+            assertThat( content.length, is( not( 0 ) ) );
+
+            final Path file = dir.resolve( entryPaths[ i ] );
+            Files.createDirectories( file.getParent() );
+
+            final Path path = Files.createFile( file );
+            Files.write( path, content );
+        }
+
+        // make sure all files were created
+        Files.walk( dir ).filter( Files::isRegularFile ).forEach( path -> paths.remove( path.getParent().getFileName().toString()
+                                                                                        + '/'
+                                                                                        + path.getFileName().toString() ) );
+        assertThat( paths.toString(), paths.isEmpty(), is( true ) );
+    }
+
+    @Test
+    public void shouldExportDataServiceAsZip() throws Exception {
+        createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
+        final Node dataServiceNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip" );
+        assertThat( dataServiceNode, is( notNullValue() ) );
+
+        final DataServiceExporter exporter = new DataServiceExporter();
+        final Result result = exporter.execute( dataServiceNode, null );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
+
+        final byte[] zipBytes = ( byte[] )result.getOutcome();
+        final List< String > paths = new ArrayList<>( Arrays.asList( new String[] { "connections/books-connection.xml",
+                                                                                    "connections/portfolio-connection.xml",
+                                                                                    "drivers/books-driver-1.jar",
+                                                                                    "drivers/books-driver-2.jar",
+                                                                                    "drivers/portfolio-driver.jar",
+                                                                                    "META-INF/dataservice.xml",
+                                                                                    "metadata/firstDdl.ddl",
+                                                                                    "metadata/secondDdl.ddl",
+                                                                                    "resources/firstResource.xml",
+                                                                                    "resources/secondResource.xml",
+                                                                                    "udfs/secondUdf.jar",
+                                                                                    "vdbs/books-vdb.xml",
+                                                                                    "vdbs/Portfolio-vdb.xml",
+                                                                                    "vdbs/twitter-vdb.xml",
+                                                                                    "product-view-vdb.xml" } ) );
+
+        try ( final ZipInputStream zis = new ZipInputStream( new ByteArrayInputStream( zipBytes ) ) ) {
+            ZipEntry entry = null;
+
+            while ( ( entry = zis.getNextEntry() ) != null ) {
+                assertThat( "Entry "
+                            + entry.getName()
+                            + " not found to remove",
+                            paths.remove( entry.getName() ),
+                            is( true ) );
+            }
+
+            assertThat( "Paths not found: "
+                        + paths.toString(),
+                        paths.isEmpty(),
+                        is( true ) );
+        }
+    }
+
+    @Test
+    public void shouldExportDataServiceManifestAsXml() throws Exception {
+        createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
+        final Node dataServiceNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip" );
+        assertThat( dataServiceNode, is( notNullValue() ) );
+
+        final DataServiceExporter exporter = new DataServiceExporter();
+        final Options options = new Options();
+        options.set( OptionName.EXPORT_ARTIFACT, ExportArtifact.MANIFEST_AS_XML );
+        final Result result = exporter.execute( dataServiceNode, options );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.wasSuccessful(), is( true ) );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
 
         // round trip
-        final String xml = ( String )temp;
+        final String xml = ( String )result.getOutcome();
         final DataServiceManifestReader reader = new DataServiceManifestReader();
         final DataServiceManifest manifest = reader.read( new ByteArrayInputStream( xml.getBytes() ) );
         assertThat( manifest, is( notNullValue() ) );
@@ -105,50 +221,24 @@ public final class DataServiceExporterTest extends AbstractSequencerTest {
     }
 
     @Test
-    public void shouldExportDataServiceAsZip() throws Exception {
-        createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
-        final Node dataServiceNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip" );
-        assertThat( dataServiceNode, is( notNullValue() ) );
-
-        final DataServiceExporter exporter = new DataServiceExporter();
-        final Object temp = exporter.execute( dataServiceNode, null );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( byte[].class ) ) );
-
-        final byte[] zipBytes = ( byte[] )temp;
-        final List< String > paths = new ArrayList<>( Arrays.asList( new String[] { "connections/books-connection.xml",
-            "connections/portfolio-connection.xml", "drivers/books-driver-1.jar", "drivers/books-driver-2.jar",
-            "drivers/portfolio-driver.jar", "META-INF/dataservice.xml", "metadata/firstDdl.ddl", "metadata/secondDdl.ddl",
-            "resources/firstResource.xml", "resources/secondResource.xml", "udfs/secondUdf.jar", "vdbs/books-vdb.xml",
-            "vdbs/Portfolio-vdb.xml", "vdbs/twitter-vdb.xml", "product-view-vdb.xml" } ) );
-        
-        try ( final ZipInputStream zis = new ZipInputStream( new ByteArrayInputStream( zipBytes ) ) ) {
-            ZipEntry entry = null;
-
-            while ( ( entry = zis.getNextEntry() ) != null ) {
-                assertThat( "Entry " + entry.getName() + " not found to remove", paths.remove( entry.getName() ), is( true ) );
-            }
-
-            assertThat( "Paths not found: " + paths.toString(), paths.isEmpty(), is( true ) );
-        }
-    }
-
-    @Test
     public void shouldExportDataServiceVdbAsXml() throws Exception {
         createNodeWithContentFromFile( "serviceVdbOnly.zip", "dataservice/serviceVdbOnly-ds.zip" );
-        final Node dataServiceNode = getOutputNode( this.rootNode, "dataservices/serviceVdbOnly.zip", 120 );
+        final Node dataServiceNode = getOutputNode( this.rootNode, "dataservices/serviceVdbOnly.zip" );
         assertThat( dataServiceNode, is( notNullValue() ) );
 
         final DataServiceExporter exporter = new DataServiceExporter();
-        final Map< String, Object > options = DataServiceExporter.getDefaultOptions();
-        options.put( OptionName.EXPORT_ARTIFACT, ExportArtifact.SERVICE_VDB_AS_XML );
+        final Options options = new Options();
+        options.set( OptionName.EXPORT_ARTIFACT, ExportArtifact.SERVICE_VDB_AS_XML );
 
-        final Object temp = exporter.execute( dataServiceNode, options );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
+        final Result result = exporter.execute( dataServiceNode, options );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.wasSuccessful(), is( true ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
 
         // round trip
-        final String xml = ( String )temp;
+        final String xml = ( String )result.getOutcome();
         final VdbManifest manifest = VdbManifest.read( new ByteArrayInputStream( xml.getBytes() ), null );
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "DynamicProducts" ) );

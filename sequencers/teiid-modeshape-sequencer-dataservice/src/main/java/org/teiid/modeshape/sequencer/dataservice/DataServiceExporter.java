@@ -21,8 +21,8 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
+import static org.teiid.modeshape.sequencer.dataservice.DataServiceManifest.MANIFEST_ZIP_PATH;
 import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -49,77 +48,54 @@ import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.StringUtil;
 import org.modeshape.jcr.api.JcrConstants;
+import org.teiid.modeshape.sequencer.Options;
+import org.teiid.modeshape.sequencer.Result;
 import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
+import org.teiid.modeshape.sequencer.internal.AbstractExporter;
 import org.teiid.modeshape.sequencer.vdb.VdbExporter;
 import org.teiid.modeshape.sequencer.vdb.VdbManifest;
 import org.teiid.modeshape.sequencer.vdb.lexicon.VdbLexicon;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 /**
  * An exporter for data services.
  */
-public class DataServiceExporter {
-
-    private static final SimpleDateFormat DEFAULT_DATE_FORMATTER = new SimpleDateFormat( DataServiceManifest.DATE_PATTERN );
-    private static final int DEFAULT_INDENT_AMOUNT = 4;
+public class DataServiceExporter extends AbstractExporter {
 
     /**
-     * A default property filter that filters out <code>jcr</code>, <code>mix</code>, <code>nt</code>, <code>dv</code>, and
-     * <code>mode</code> prefixed properties.
-     *
-     * @see PropertyFilter
+     * The result data key whose value is a <code>String[]</code> of the file entry paths of the result outcome. Used only when
+     * exporting file contents of the data service.
+     * 
+     * @see Result#getData(String)
+     * @see Result#getOutcome()
      */
-    public static PropertyFilter DEFAULT_PROPERTY_FILTER = propertyName -> !propertyName.startsWith( "jcr:" )
-                                                                           && !propertyName.startsWith( "mix:" )
-                                                                           && !propertyName.startsWith( "nt:" )
-                                                                           && !propertyName.startsWith( "dv:" )
-                                                                           && !propertyName.startsWith( "mode:" );
+    public static final String RESULT_ENTRY_PATHS = "data-service-exporter.result-entry-paths";
+
+    private static final String DEFAULT_CONNECTIONS_FOLDER = "connections/";
+    private static final SimpleDateFormat DEFAULT_DATE_FORMATTER = new SimpleDateFormat( DataServiceManifest.DATE_PATTERN );
+    private static final String DEFAULT_DRIVERS_EXPORT_FOLDER = "drivers/";
+    private static final String DEFAULT_METADATA_FOLDER = "metadata/";
+    private static final String DEFAULT_RESOURCES_FOLDER = "resources/";
+    private static final String DEFAULT_UDFS_FOLDER = "udfs/";
+    private static final String DEFAULT_VDBS_FOLDER = "vdbs/";
 
     /**
      * Pass in the data service node path.
      */
-    private static final String FIND_SERVICE_VDB_PATTERN = "SELECT [jcr:path] FROM [" + DataVirtLexicon.ServiceVdbEntry.NODE_TYPE
+    private static final String FIND_SERVICE_VDB_PATTERN = "SELECT [jcr:path] FROM ["
+                                                           + DataVirtLexicon.ServiceVdbEntry.NODE_TYPE
                                                            + "] WHERE ISDESCENDANTNODE('%s')";
 
     private static final Logger LOGGER = Logger.getLogger( DataServiceExporter.class );
-    private static final boolean DEFAULT_PRETTY_PRINT = true;
-
-    /**
-     * @return the default exporter options (never <code>null</code>)
-     */
-    public static Map< String, Object > getDefaultOptions() {
-        final Map< String, Object > options = new HashMap<>();
-        options.put( OptionName.DATE_FORMATTER, DEFAULT_DATE_FORMATTER );
-        options.put( OptionName.EXPORT_ARTIFACT, ExportArtifact.DEFAULT );
-        options.put( OptionName.PROPERTY_FILTER, DEFAULT_PROPERTY_FILTER );
-        options.put( OptionName.CONNECTIONS_FOLDER, "connections/" );
-        options.put( OptionName.DRIVERS_EXPORT_FOLDER, "drivers/" );
-        options.put( OptionName.INDENT_AMOUNT, DEFAULT_INDENT_AMOUNT );
-        options.put( OptionName.METADATA_FOLDER, "metadata/" );
-        options.put( OptionName.PRETTY_PRINT_XML, DEFAULT_PRETTY_PRINT );
-        options.put( OptionName.RESOURCES_FOLDER, "resources/" );
-        options.put( OptionName.UDFS_FOLDER, "udfs/" );
-        options.put( OptionName.VDBS_FOLDER, "vdbs/" );
-        return options;
-    }
 
     private DataServiceManifest constructManifest( final Node dataService,
-                                                   final Map< String, Object > options,
+                                                   final Options options,
                                                    final Map< DataServiceEntry, Node > entryNodeMap ) throws Exception {
         final DataServiceManifest manifest = new DataServiceManifest();
 
@@ -158,7 +134,7 @@ public class DataServiceExporter {
             final PropertyIterator itr = dataService.getProperties();
 
             if ( itr.hasNext() ) {
-                final PropertyFilter filter = getPropertyFilter( options );
+                final Options.PropertyFilter filter = getPropertyFilter( options );
 
                 while ( itr.hasNext() ) {
                     final Property property = itr.nextProperty();
@@ -208,7 +184,9 @@ public class DataServiceExporter {
                             final Node vdb = findReference( dependency );
 
                             entryNodeMap.put( dependencyEntry, vdb );
-                            setEntryProperties( dependency, dependencyEntry, ( String )options.get( OptionName.VDBS_FOLDER ) );
+                            setEntryProperties( dependency,
+                                                dependencyEntry,
+                                                ( String )options.get( OptionName.VDBS_FOLDER, DEFAULT_VDBS_FOLDER ) );
                             setVdbProperties( dependency, dependencyEntry, vdb );
                             entry.addVdb( dependencyEntry );
                         } else {
@@ -228,7 +206,9 @@ public class DataServiceExporter {
                     final Node reference = findReference( node );
                     entryNodeMap.put( entry, reference );
 
-                    setEntryProperties( node, entry, ( String )options.get( OptionName.RESOURCES_FOLDER ) );
+                    setEntryProperties( node,
+                                        entry,
+                                        ( String )options.get( OptionName.RESOURCES_FOLDER, DEFAULT_RESOURCES_FOLDER ) );
                     manifest.addResource( entry );
                     LOGGER.debug( "Added resource {0} to manifest", node.getPath() );
                     break;
@@ -238,7 +218,9 @@ public class DataServiceExporter {
                     final Node reference = findReference( node );
                     entryNodeMap.put( entry, reference );
 
-                    setEntryProperties( node, entry, ( String )options.get( OptionName.METADATA_FOLDER ) );
+                    setEntryProperties( node,
+                                        entry,
+                                        ( String )options.get( OptionName.METADATA_FOLDER, DEFAULT_METADATA_FOLDER ) );
                     manifest.addMetadata( entry );
                     LOGGER.debug( "Added metadata {0} to manifest", node.getPath() );
                     break;
@@ -248,7 +230,7 @@ public class DataServiceExporter {
                     final Node reference = findReference( node );
                     entryNodeMap.put( entry, reference );
 
-                    setEntryProperties( node, entry, ( String )options.get( OptionName.UDFS_FOLDER ) );
+                    setEntryProperties( node, entry, ( String )options.get( OptionName.UDFS_FOLDER, DEFAULT_UDFS_FOLDER ) );
                     manifest.addUdf( entry );
                     LOGGER.debug( "Added UDF {0} to manifest", node.getPath() );
                     break;
@@ -258,7 +240,10 @@ public class DataServiceExporter {
                     final Node reference = findReference( node );
                     entryNodeMap.put( entry, reference );
 
-                    setEntryProperties( node, entry, ( String )options.get( OptionName.DRIVERS_EXPORT_FOLDER ) );
+                    setEntryProperties( node,
+                                        entry,
+                                        ( String )options.get( OptionName.DRIVERS_EXPORT_FOLDER,
+                                                               DEFAULT_DRIVERS_EXPORT_FOLDER ) );
                     manifest.addDriver( entry );
                     LOGGER.debug( "Added driver {0} to manifest", node.getPath() );
                     break;
@@ -277,7 +262,9 @@ public class DataServiceExporter {
 
                     final Node reference = findReference( node );
                     entryNodeMap.put( entry, reference );
-                    setEntryProperties( node, entry, ( String )options.get( OptionName.CONNECTIONS_FOLDER ) );
+                    setEntryProperties( node,
+                                        entry,
+                                        ( String )options.get( OptionName.CONNECTIONS_FOLDER, DEFAULT_CONNECTIONS_FOLDER ) );
                     manifest.addConnection( entry );
                     LOGGER.debug( "Added connection {0} to manifest", node.getPath() );
                     break;
@@ -287,7 +274,7 @@ public class DataServiceExporter {
                     final Node reference = findReference( node );
                     entryNodeMap.put( entry, reference );
 
-                    setEntryProperties( node, entry, ( String )options.get( OptionName.VDBS_FOLDER ) );
+                    setEntryProperties( node, entry, ( String )options.get( OptionName.VDBS_FOLDER, DEFAULT_VDBS_FOLDER ) );
                     setVdbProperties( node, entry, reference );
                     manifest.addVdb( entry );
                     LOGGER.debug( "Added VDB {0} to manifest", node.getPath() );
@@ -304,52 +291,207 @@ public class DataServiceExporter {
     }
 
     /**
-     * @param dataServiceNode the data service node being exported (cannot be <code>null</code>)
-     * @param options the exporter options (can be <code>null</code> or empty if default options should be used)
-     * @return the exported artifact (never <code>null</code>)
-     * @throws Exception if an error occurs
-     * @see #getDefaultOptions()
+     * {@inheritDoc}
+     *
+     * @see org.teiid.modeshape.sequencer.internal.AbstractExporter#doExport(javax.jcr.Node,
+     *      org.teiid.modeshape.sequencer.Options, org.teiid.modeshape.sequencer.internal.AbstractExporter.ResultImpl)
      */
-    public Object execute( final Node dataServiceNode,
-                           Map< String, Object > options ) throws Exception {
-        Objects.requireNonNull( dataServiceNode, "dataServiceNode" );
-
-        if ( ( options == null ) || options.isEmpty() ) {
-            options = getDefaultOptions();
-        }
-
+    @Override
+    protected void doExport( final Node dataServiceNode,
+                             final Options options,
+                             final ResultImpl result ) {
         final Map< DataServiceEntry, Node > entryNodeMap = new HashMap<>();
 
-        switch ( getExportArtifact( options ) ) {
-            case DATA_SERVICE_AS_ZIP:
-                return exportAsZip( dataServiceNode, options, entryNodeMap );
-            case MANIFEST_AS_XML:
-                return exportManifest( dataServiceNode, options, entryNodeMap );
-            case SERVICE_VDB_AS_XML:
-                return exportServiceVdb( dataServiceNode, options, entryNodeMap );
-            default:
-                break;
+        try {
+            switch ( getExportArtifact( options ) ) {
+                case DATA_SERVICE_AS_ZIP: {
+                    LOGGER.debug( "Exporting data service {0} as zip", dataServiceNode.getPath() );
+                    exportAsZip( dataServiceNode, options, entryNodeMap, result );
+                    break;
+                }
+                case MANIFEST_AS_XML: {
+                    LOGGER.debug( "Exporting data service {0} manifest as XML", dataServiceNode.getPath() );
+                    exportManifest( dataServiceNode, options, entryNodeMap, result );
+                    break;
+                }
+                case SERVICE_VDB_AS_XML: {
+                    LOGGER.debug( "Exporting data service {0} service VDB manifest as XML", dataServiceNode.getPath() );
+                    exportServiceVdb( dataServiceNode, result );
+                    break;
+                }
+                case DATA_SERVICE_AS_FILES: {
+                    LOGGER.debug( "Exporting data service {0} as a collection of files", dataServiceNode.getPath() );
+                    exportAsFiles( dataServiceNode, options, entryNodeMap, result );
+                    break;
+                }
+                default:
+                    result.setError( TeiidI18n.unhandledDataServiceExportArtifactType.text( dataServiceNode.getPath() ), null );
+                    break;
+            }
+        } catch ( final Exception e ) {
+            result.setError( TeiidI18n.unhandledErrorDuringDataServiceExport.text(), e );
         }
-
-        // should not happen
-        throw new Exception( TeiidI18n.unhandledDataServiceExportArtifactType.text( dataServiceNode.getPath() ) );
     }
 
-    private byte[] exportAsZip( final Node dataService,
-                                final Map< String, Object > options,
-                                final Map< DataServiceEntry, Node > entryNodeMap ) throws Exception {
+    private void exportAsFiles( final Node dataService,
+                                final Options options,
+                                final Map< DataServiceEntry, Node > entryNodeMap,
+                                final ResultImpl result ) throws Exception {
+        final List< String > entryPaths = new ArrayList<>();
+        final List< byte[] > contents = new ArrayList<>();
+
+        try {
+            final NodeIterator itr = dataService.getNodes();
+
+            if ( !itr.hasNext() ) {
+                result.setError( TeiidI18n.missingDataServiceEntries.text( dataService.getPath() ), null );
+                return;
+            }
+
+            // export the data service manifest
+            final DataServiceManifest manifest = constructManifest( dataService, options, entryNodeMap );
+            exportManifest( dataService, options, manifest, result );
+
+            final byte[] manifestBytes = ( ( String )result.getOutcome() ).getBytes();
+            entryPaths.add( MANIFEST_ZIP_PATH );
+            contents.add( manifestBytes );
+            LOGGER.debug( "Added {0} to exported data service files", MANIFEST_ZIP_PATH );
+
+            if ( !result.wasSuccessful() ) {
+                return;
+            }
+
+            { // export VDBs
+                final List< VdbEntry > entries = new ArrayList<>();
+
+                if ( manifest.getServiceVdb() != null ) {
+                    entries.add( manifest.getServiceVdb() );
+
+                    if ( manifest.getServiceVdb().getVdbs().length != 0 ) {
+                        entries.addAll( Arrays.asList( manifest.getServiceVdb().getVdbs() ) );
+                    }
+                }
+
+                entries.addAll( Arrays.asList( manifest.getVdbs() ) );
+
+                if ( !entries.isEmpty() ) {
+                    for ( final VdbEntry entry : entries ) {
+                        final VdbExporter exporter = new VdbExporter();
+                        final Node vdb = entryNodeMap.get( entry );
+                        final Result vdbResult = exporter.execute( vdb, options );
+
+                        if ( vdbResult.wasSuccessful() ) {
+                            final String xml = ( String )vdbResult.getOutcome();
+                            final byte[] data = xml.getBytes();
+                            entryPaths.add( entry.getPath() );
+                            contents.add( data );
+                            LOGGER.debug( "Added {0} VDB to exported data service files", entry.getPath() );
+                        } else {
+                            result.setError( vdbResult.getErrorMessage(), vdbResult.getError() );
+                            return;
+                        }
+                    }
+                } else {
+                    LOGGER.debug( "No VDBs found to export" );
+                }
+            }
+
+            { // export connections
+                final ConnectionEntry[] connections = manifest.getConnections();
+
+                if ( connections.length != 0 ) {
+                    for ( final ConnectionEntry entry : connections ) {
+                        final ConnectionExporter exporter = new ConnectionExporter();
+                        final Node connection = entryNodeMap.get( entry );
+                        final Result connectionResult = exporter.execute( connection, options );
+
+                        if ( connectionResult.wasSuccessful() ) {
+                            final String xml = ( String )connectionResult.getOutcome();
+                            final byte[] data = xml.getBytes();
+                            entryPaths.add( entry.getPath() );
+                            contents.add( data );
+                            LOGGER.debug( "Added {0} connection to exported data service files", entry.getPath() );
+                        } else {
+                            result.setError( connectionResult.getErrorMessage(), connectionResult.getError() );
+                            return;
+                        }
+                    }
+                } else {
+                    LOGGER.debug( "No connections found to export" );
+                }
+            }
+
+            { // export drivers, DDLs, UDFs, and resources
+                final List< DataServiceEntry > entries = new ArrayList<>();
+                entries.addAll( Arrays.asList( manifest.getMetadata() ) );
+                entries.addAll( Arrays.asList( manifest.getDrivers() ) );
+                entries.addAll( Arrays.asList( manifest.getUdfs() ) );
+                entries.addAll( Arrays.asList( manifest.getResources() ) );
+
+                if ( !entries.isEmpty() ) {
+                    for ( final DataServiceEntry entry : entries ) {
+                        final Node reference = entryNodeMap.get( entry );
+
+                        if ( reference.hasNode( JcrConstants.JCR_CONTENT ) ) {
+                            final Node content = reference.getNode( JcrConstants.JCR_CONTENT );
+
+                            if ( content.hasProperty( JcrConstants.JCR_DATA ) ) {
+                                final Binary value = content.getProperty( JcrConstants.JCR_DATA ).getBinary();
+                                final byte[] data = new byte[ ( int )value.getSize() ];
+                                value.read( data, 0 );
+                                entryPaths.add( entry.getPath() );
+                                contents.add( data );
+                                LOGGER.debug( "Added {0} resource to exported data service files", entry.getPath() );
+                            } else {
+                                LOGGER.info( TeiidI18n.missingDataServiceReferenceDataProperty,
+                                             dataService.getPath(),
+                                             entry.getEntryName(),
+                                             reference.getPath() );
+                            }
+                        } else {
+                            LOGGER.info( TeiidI18n.missingDataServiceReferenceContent,
+                                         dataService.getPath(),
+                                         entry.getEntryName(),
+                                         reference.getPath() );
+                        }
+                    }
+                } else {
+                    LOGGER.debug( "No drivers, metadata files, UDFs, or resource files found to export" );
+                }
+            }
+
+            final String[] pathsArray = entryPaths.toArray( new String[ entryPaths.size() ] );
+            result.setData( RESULT_ENTRY_PATHS, pathsArray );
+
+            final byte[][] contentsArray = contents.toArray( new byte[ contents.size() ][] );
+            result.setOutcome( contentsArray, byte[][].class );
+        } catch ( final Exception e ) {
+            result.setError( TeiidI18n.errorExportingDataServiceFiles.text(), e );
+        }
+    }
+
+    private void exportAsZip( final Node dataService,
+                              final Options options,
+                              final Map< DataServiceEntry, Node > entryNodeMap,
+                              final ResultImpl result ) {
         try ( final ByteArrayOutputStream bos = new ByteArrayOutputStream();
               final ZipOutputStream zipStream = new ZipOutputStream( bos ); ) {
             final NodeIterator itr = dataService.getNodes();
 
             if ( !itr.hasNext() ) {
-                LOGGER.info( TeiidI18n.missingDataServiceEntries, dataService.getPath() );
-                return bos.toByteArray();
+                result.setError( TeiidI18n.missingDataServiceEntries.text( dataService.getPath() ), null );
+                return;
             }
 
             // export the data service manifest
-            final String manifestXml = exportManifest( dataService, options, entryNodeMap );
-            final ZipEntry manZipEntry = new ZipEntry( DataServiceSequencer.MANIFEST_FILE );
+            exportManifest( dataService, options, entryNodeMap, result );
+
+            if ( !result.wasSuccessful() ) {
+                return;
+            }
+
+            final String manifestXml = ( String )result.getOutcome();
+            final ZipEntry manZipEntry = new ZipEntry( MANIFEST_ZIP_PATH );
             zipStream.putNextEntry( manZipEntry );
             zipStream.write( manifestXml.getBytes() );
             zipStream.closeEntry();
@@ -376,15 +518,22 @@ public class DataServiceExporter {
                     for ( final VdbEntry entry : entries ) {
                         final VdbExporter exporter = new VdbExporter();
                         final Node vdb = entryNodeMap.get( entry );
-                        final String xml = exporter.execute( vdb, options ).toString();
-                        final byte[] data = xml.getBytes();
+                        final Result vdbResult = exporter.execute( vdb, options );
 
-                        final ZipEntry zipEntry = new ZipEntry( entry.getPath() );
-                        zipStream.putNextEntry( zipEntry );
-                        zipStream.write( data );
-                        zipStream.flush();
-                        zipStream.closeEntry();
-                        LOGGER.debug( "Added VDB zip entry: {0}", entry.getPath() );
+                        if ( vdbResult.wasSuccessful() ) {
+                            final String xml = ( String )vdbResult.getOutcome();
+                            final byte[] data = xml.getBytes();
+
+                            final ZipEntry zipEntry = new ZipEntry( entry.getPath() );
+                            zipStream.putNextEntry( zipEntry );
+                            zipStream.write( data );
+                            zipStream.flush();
+                            zipStream.closeEntry();
+                            LOGGER.debug( "Added VDB zip entry: {0}", entry.getPath() );
+                        } else {
+                            result.setError( vdbResult.getErrorMessage(), vdbResult.getError() );
+                            return;
+                        }
                     }
                 } else {
                     LOGGER.debug( "No VDBs found to export" );
@@ -398,15 +547,22 @@ public class DataServiceExporter {
                     for ( final ConnectionEntry entry : connections ) {
                         final ConnectionExporter exporter = new ConnectionExporter();
                         final Node connection = entryNodeMap.get( entry );
-                        final String xml = exporter.execute( connection, options );
-                        final byte[] data = xml.getBytes();
+                        final Result connectionResult = exporter.execute( connection, options );
 
-                        final ZipEntry zipEntry = new ZipEntry( entry.getPath() );
-                        zipStream.putNextEntry( zipEntry );
-                        zipStream.write( data );
-                        zipStream.flush();
-                        zipStream.closeEntry();
-                        LOGGER.debug( "Added connection zip entry: {0}", entry.getPath() );
+                        if ( connectionResult.wasSuccessful() ) {
+                            final String xml = ( String )connectionResult.getOutcome();
+                            final byte[] data = xml.getBytes();
+
+                            final ZipEntry zipEntry = new ZipEntry( entry.getPath() );
+                            zipStream.putNextEntry( zipEntry );
+                            zipStream.write( data );
+                            zipStream.flush();
+                            zipStream.closeEntry();
+                            LOGGER.debug( "Added connection zip entry: {0}", entry.getPath() );
+                        } else {
+                            result.setError( connectionResult.getErrorMessage(), connectionResult.getError() );
+                            return;
+                        }
                     }
                 } else {
                     LOGGER.debug( "No connections found to export" );
@@ -456,23 +612,32 @@ public class DataServiceExporter {
                 }
             }
 
-            // close output stream
-            zipStream.flush();
-            zipStream.finish();
-            zipStream.close();
-
-            return bos.toByteArray();
+            result.setOutcome( bos.toByteArray(), byte[].class );
+        } catch ( final Exception e ) {
+            result.setError( TeiidI18n.errorExportingDataServiceZip.text(), e );
         }
     }
 
-    private String exportManifest( final Node dataService,
-                                   final Map< String, Object > options,
-                                   final Map< DataServiceEntry, Node > entryNodeMap ) throws Exception {
-        final DataServiceManifest manifest = constructManifest( dataService, options, entryNodeMap );
-        final StringWriter stringWriter = new StringWriter();
+    private void exportManifest( final Node dataService,
+                                 final Options options,
+                                 final Map< DataServiceEntry, Node > entryNodeMap,
+                                 final ResultImpl result ) {
+        try {
+            final DataServiceManifest manifest = constructManifest( dataService, options, entryNodeMap );
+            exportManifest( dataService, options, manifest, result );
+        } catch ( final Exception e ) {
+            result.setError( TeiidI18n.errorConstructingDataServiceManifest.text(), e );
+        }
+    }
+
+    private void exportManifest( final Node dataService,
+                                 final Options options,
+                                 final DataServiceManifest manifest,
+                                 final ResultImpl result ) {
         XMLStreamWriter xmlWriter = null;
 
         try {
+            final StringWriter stringWriter = new StringWriter();
             final XMLOutputFactory xof = XMLOutputFactory.newInstance();
             xmlWriter = xof.createXMLStreamWriter( stringWriter );
             xmlWriter.writeStartDocument( "UTF-8", "1.0" );
@@ -679,7 +844,11 @@ public class DataServiceExporter {
 
             final String xml = stringWriter.toString().trim();
             LOGGER.debug( "Data service {0} manifest: \n{1}", dataService.getPath(), prettyPrint( xml, options ) );
-            return ( isPrettyPrint( options ) ? prettyPrint( xml, options ) : xml );
+
+            final String pretty = ( isPrettyPrint( options ) ? prettyPrint( xml, options ) : xml );
+            result.setOutcome( pretty, String.class );
+        } catch ( final Exception e ) {
+            result.setError( TeiidI18n.errorExportingDataServiceManifest.text(), e );
         } finally {
             if ( xmlWriter != null ) {
                 try {
@@ -691,24 +860,34 @@ public class DataServiceExporter {
         }
     }
 
-    private String exportServiceVdb( final Node dataService,
-                                     final Map< String, Object > options,
-                                     final Map< DataServiceEntry, Node > entryNodeMap ) throws Exception {
-        final String queryText = String.format( FIND_SERVICE_VDB_PATTERN, dataService.getPath() );
-        final Session session = dataService.getSession();
-        final QueryManager queryMgr = session.getWorkspace().getQueryManager();
-        final Query query = queryMgr.createQuery( queryText, Query.JCR_SQL2 );
-        final QueryResult result = query.execute();
-        final NodeIterator itr = result.getNodes();
+    private void exportServiceVdb( final Node dataService,
+                                   final ResultImpl result ) {
+        try {
+            final String queryText = String.format( FIND_SERVICE_VDB_PATTERN, dataService.getPath() );
+            final Session session = dataService.getSession();
+            final QueryManager queryMgr = session.getWorkspace().getQueryManager();
+            final Query query = queryMgr.createQuery( queryText, Query.JCR_SQL2 );
+            final QueryResult queryResult = query.execute();
+            final NodeIterator itr = queryResult.getNodes();
 
-        if ( itr.getSize() == 0 ) {
-            return null;
+            // make sure there is a service VDB to export
+            if ( itr.getSize() == 0 ) {
+                result.setError( TeiidI18n.noServiceVdbToExport.text(), null );
+            } else {
+                final Node serviceVdbEntry = itr.nextNode(); // should only be one
+                final Node vdb = findReference( serviceVdbEntry );
+                final VdbExporter exporter = new VdbExporter();
+                final Result vdbExportResult = exporter.execute( vdb, result.getOptions() );
+
+                if ( vdbExportResult.wasSuccessful() ) {
+                    result.setOutcome( vdbExportResult.getOutcome(), vdbExportResult.getType() );
+                } else {
+                    result.setError( vdbExportResult.getErrorMessage(), vdbExportResult.getError() );
+                }
+            }
+        } catch ( final Exception e ) {
+            result.setError( TeiidI18n.errorExportingDataServiceServiceVdb.text(), e );
         }
-
-        final Node serviceVdbEntry = itr.nextNode();
-        final Node vdb = findReference( serviceVdbEntry );
-        final VdbExporter exporter = new VdbExporter();
-        return exporter.execute( vdb, options ).toString();
     }
 
     private Node findReference( final Node node ) throws Exception {
@@ -726,79 +905,26 @@ public class DataServiceExporter {
         return reference;
     }
 
-    private DateFormat getDateFormatter( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.DATE_FORMATTER );
+    private DateFormat getDateFormatter( final Options options ) {
+        assert ( options != null );
+        final Object temp = options.get( OptionName.DATE_FORMATTER, DEFAULT_DATE_FORMATTER );
 
-        if ( ( temp == null ) || !( temp instanceof DateFormat ) ) {
+        if ( !( temp instanceof DateFormat ) ) {
             return DEFAULT_DATE_FORMATTER;
         }
 
         return ( DateFormat )temp;
     }
 
-    private ExportArtifact getExportArtifact( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.EXPORT_ARTIFACT );
+    private ExportArtifact getExportArtifact( final Options options ) {
+        assert ( options != null );
+        final Object temp = options.get( OptionName.EXPORT_ARTIFACT, ExportArtifact.DEFAULT );
 
-        if ( ( temp == null ) || !( temp instanceof ExportArtifact ) ) {
+        if ( !( temp instanceof ExportArtifact ) ) {
             return ExportArtifact.DEFAULT;
         }
 
         return ( ExportArtifact )temp;
-    }
-
-    private String getIndentAmount( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.INDENT_AMOUNT );
-
-        if ( ( temp == null ) || !( temp instanceof Integer ) ) {
-            return Integer.toString( DEFAULT_INDENT_AMOUNT );
-        }
-
-        return Integer.toString( ( Integer )temp );
-    }
-
-    private PropertyFilter getPropertyFilter( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.PROPERTY_FILTER );
-
-        if ( ( temp == null ) || !( temp instanceof PropertyFilter ) ) {
-            return DEFAULT_PROPERTY_FILTER;
-        }
-
-        return ( PropertyFilter )temp;
-    }
-
-    private boolean isPrettyPrint( final Map< String, Object > options ) {
-        final Object temp = options.get( OptionName.PRETTY_PRINT_XML );
-
-        if ( ( temp == null ) || !( temp instanceof Boolean ) ) {
-            return DEFAULT_PRETTY_PRINT;
-        }
-
-        return ( Boolean )temp;
-    }
-
-    private Document parseXmlFile( final String xml ) throws Exception {
-        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        final DocumentBuilder db = dbf.newDocumentBuilder();
-        final InputSource is = new InputSource( new StringReader( xml ) );
-        return db.parse( is );
-    }
-
-    private String prettyPrint( final String xml,
-                                final Map< String, Object > options ) throws Exception {
-        final Document document = parseXmlFile( xml );
-        final TransformerFactory factory = TransformerFactory.newInstance();
-
-        final Transformer transformer = factory.newTransformer();
-        transformer.setOutputProperty( OutputKeys.ENCODING, "UTF-8" );
-        transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
-        transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-        transformer.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount", getIndentAmount( options ) );
-
-        final DOMSource source = new DOMSource( document );
-        final StringWriter output = new StringWriter();
-        final StreamResult result = new StreamResult( output );
-        transformer.transform( source, result );
-        return output.toString();
     }
 
     private void setEntryProperties( final Node node,
@@ -812,7 +938,8 @@ public class DataServiceExporter {
             } else if ( StringUtil.isBlank( entryFolder ) ) {
                 path = node.getName();
             } else {
-                path = ( entryFolder + node.getName() );
+                path = ( entryFolder
+                         + node.getName() );
             }
 
             entry.setPath( path );
@@ -871,6 +998,11 @@ public class DataServiceExporter {
     public enum ExportArtifact {
 
         /**
+         * Export data service as a collection of <code>byte</code> arrays of files.
+         */
+        DATA_SERVICE_AS_FILES,
+
+        /**
          * Export data service as the <code>byte</code> array of a zip file.
          */
         DATA_SERVICE_AS_ZIP,
@@ -923,26 +1055,9 @@ public class DataServiceExporter {
         public String EXPORT_ARTIFACT = "export.artifact";
 
         /**
-         * The number of spaces for each indent level. Default value is <code>4</code>.
-         */
-        public String INDENT_AMOUNT = "export.indent_amount";
-
-        /**
          * Property whose value is the zip entry folder path for metadata files (*.ddl). Default value is <code>metadata/</code>.
          */
         public String METADATA_FOLDER = "export.metadata_folder";
-
-        /**
-         * Indicates if pretty printing of the XML manifest should be done. Default value is <code>true</code>.
-         */
-        public String PRETTY_PRINT_XML = "export.pretty_print_xml";
-
-        /**
-         * The {@link PropertyFilter} to use for filtering data service properties.
-         *
-         * @see DataServiceExporter#DEFAULT_PROPERTY_FILTER
-         */
-        public String PROPERTY_FILTER = "export.property_filter";
 
         /**
          * Property whose value is the zip entry folder path for resource files. Default value is <code>resources/</code>.
@@ -958,20 +1073,6 @@ public class DataServiceExporter {
          * Property whose value is the zip entry folder path for VDB files (*-vdb.xml). Default value is <code>vdbs/</code>.
          */
         public String VDBS_FOLDER = "export.vdbs_folder";
-
-    }
-
-    /**
-     * Filters the properties that will be exported.
-     */
-    @FunctionalInterface
-    public interface PropertyFilter {
-
-        /**
-         * @param propertyName the name of the property being checked (cannot be <code>null</code> or empty)
-         * @return <code>true</code> if the property should be exported
-         */
-        boolean accept( final String propertyName );
 
     }
 

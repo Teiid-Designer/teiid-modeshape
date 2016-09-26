@@ -25,17 +25,17 @@ package org.teiid.modeshape.sequencer.vdb;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import javax.jcr.Node;
 import org.junit.Test;
-import org.modeshape.jcr.api.JcrTools;
 import org.teiid.modeshape.sequencer.AbstractSequencerTest;
+import org.teiid.modeshape.sequencer.Result;
 import org.teiid.modeshape.sequencer.vdb.VdbModel.Source;
 import org.teiid.modeshape.sequencer.vdb.lexicon.CoreLexicon;
 
@@ -59,18 +59,127 @@ public final class VdbExporterTest extends AbstractSequencerTest {
     }
 
     @Test
+    public void shouldExportDynamicAzureVdb() throws Exception {
+        createNodeWithContentFromFile( "vdb/AzureService-vdb.xml", "vdb/AzureService-vdb.xml" );
+        final Node vdbNode = getOutputNode( this.rootNode, "vdbs/AzureService-vdb.xml" );
+        assertNotNull( vdbNode );
+
+        final VdbExporter exporter = new VdbExporter();
+        final Result result = exporter.execute( vdbNode, null );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( notNullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
+
+        // round trip
+        final String xml = ( String )result.getOutcome();
+        final VdbManifest manifest = VdbManifest.read( new ByteArrayInputStream( xml.getBytes() ), null );
+        assertThat( manifest, is( notNullValue() ) );
+        assertThat( manifest.getName(), is( "AzureService" ) );
+        assertThat( manifest.getVersion(), is( 1 ) );
+        assertThat( manifest.getDescription(), is( "VDB for: AzureService, Version: 1" ) );
+        assertThat( manifest.getConnectionType(), is( "BY_VERSION" ) );
+        assertThat( manifest.getProperties().size(), is( 2 ) );
+        assertThat( manifest.getProperties().get( "{http://teiid.org/rest}auto-generate" ), is( "true" ) );
+        assertThat( manifest.getProperties().get( "data-service-view" ), is( "SvcView" ) );
+        assertThat( manifest.getImportVdbs().size(), is( 1 ) );
+        assertThat( manifest.getModels().size(), is( 1 ) );
+
+        // import VDB
+        final ImportVdb importVdb = manifest.getImportVdbs().get( 0 );
+        assertThat( importVdb.getName(), is( "SvcSourceVdb_AzurePricesDS" ) );
+        assertThat( importVdb.getVersion(), is( 1 ) );
+        assertThat( importVdb.isImportDataPolicies(), is( true ) );
+
+        // AzureService model
+        final VdbModel azureService = findModel( manifest.getModels(), "AzureService" );
+        assertThat( azureService.getType(), is( CoreLexicon.ModelType.VIRTUAL ) );
+        assertThat( azureService.isVisible(), is( true ) );
+        assertThat( azureService.getDescription(), is( "The Azure Service model" ) );
+        assertThat( azureService.getMetadataType(), is( "DDL" ) );
+        final String metadata = "CREATE VIEW SvcView (RowId integer PRIMARY KEY, ProdCode string,SalePrice bigdecimal) AS"
+                                + " SELECT ROW_NUMBER() OVER (ORDER BY ProdCode) , ProdCode,SalePrice"
+                                + " FROM \"Prices.dbo.PricesTable\";" + " SET NAMESPACE 'http://teiid.org/rest' AS REST;\n"
+                                + "CREATE VIRTUAL PROCEDURE RestProc () RETURNS (result XML) OPTIONS (\"REST:METHOD\" 'GET', \"REST:URI\" 'rest') AS"
+                                + " BEGIN SELECT XMLELEMENT(NAME Elems, XMLAGG(XMLELEMENT(NAME Elem, XMLFOREST(RowId,ProdCode,SalePrice)))) AS result"
+                                + " FROM SvcView;" + " END;";
+        assertThat( azureService.getModelDefinition(), is( metadata ) );
+    }
+
+    @Test
+    public void shouldExportDynamicProductVdb() throws Exception {
+        createNodeWithContentFromFile( "vdb/product-view-vdb.xml", "vdb/product-view-vdb.xml" );
+        final Node vdbNode = getOutputNode( this.rootNode, "vdbs/product-view-vdb.xml" );
+        assertNotNull( vdbNode );
+
+        final VdbExporter exporter = new VdbExporter();
+        final Result result = exporter.execute( vdbNode, null );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( notNullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
+
+        // round trip
+        final String xml = ( String )result.getOutcome();
+        final VdbManifest manifest = VdbManifest.read( new ByteArrayInputStream( xml.getBytes() ), null );
+        assertThat( manifest, is( notNullValue() ) );
+        assertThat( manifest.getName(), is( "DynamicProducts" ) );
+        assertThat( manifest.getVersion(), is( 2 ) );
+        assertThat( manifest.getDescription(), is( "Product Dynamic VDB" ) );
+        assertThat( manifest.getProperties().size(), is( 1 ) );
+        assertThat( manifest.getProperties().get( "UseConnectorMetadata" ), is( "true" ) );
+        assertThat( manifest.getModels().size(), is( 3 ) );
+
+        { // products model
+            final VdbModel products = findModel( manifest.getModels(), "ProductsMySQL_Dynamic" );
+            assertThat( products.getType(), is( CoreLexicon.ModelType.PHYSICAL ) );
+            assertThat( products.getSources().size(), is( 1 ) );
+
+            final Source source = products.getSources().get( 0 );
+            assertThat( source.getName(), is( "jdbc" ) );
+            assertThat( source.getTranslator(), is( "mysql" ) );
+            assertThat( source.getJndiName(), is( "java:/ProductsMySQL" ) );
+        }
+
+        { // productView model
+            final VdbModel productView = findModel( manifest.getModels(), "ProductViews" );
+            assertThat( productView.getType(), is( CoreLexicon.ModelType.VIRTUAL ) );
+            assertThat( productView.getMetadataType(), is( "DDL" ) );
+            final String metadata = "CREATE VIEW PRODUCT_VIEW ( ID string, name string, type string"
+                                    + " ) AS SELECT INSTR_ID AS ID, NAME, TYPE"
+                                    + " FROM ProductsMySQL_Dynamic.PRODUCTS.PRODUCTDATA;";
+            assertThat( productView.getModelDefinition(), is( metadata ) );
+        }
+
+        { // productSummary model
+            final VdbModel productSummary = findModel( manifest.getModels(), "ProductSummary" );
+            assertThat( productSummary.getType(), is( CoreLexicon.ModelType.VIRTUAL ) );
+            assertThat( productSummary.getMetadataType(), is( "DDL" ) );
+            final String metadata = "CREATE VIEW PRODUCT_SUMMARY ( ID string, name string, type string"
+                                    + " ) AS SELECT INSTR_ID AS ID, NAME, TYPE"
+                                    + " FROM ProductsMySQL_Dynamic.PRODUCTS.PRODUCTDATA;";
+            assertThat( productSummary.getModelDefinition(), is( metadata ) );
+        }
+    }
+
+    @Test
     public void shouldExportDynamicTwitterVdb() throws Exception {
         createNodeWithContentFromFile( "vdb/declarativeModels-vdb.xml", "vdb/declarativeModels-vdb.xml" );
         final Node vdbNode = getOutputNode( this.rootNode, "vdbs/declarativeModels-vdb.xml" );
         assertNotNull( vdbNode );
 
         final VdbExporter exporter = new VdbExporter();
-        final Object temp = exporter.execute( vdbNode, null );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
+        final Result result = exporter.execute( vdbNode, null );
+        assertThat( result, is( notNullValue() ) );
+        assertThat( result.getError(), is( nullValue() ) );
+        assertThat( result.getErrorMessage(), is( nullValue() ) );
+        assertThat( result.getOutcome(), is( notNullValue() ) );
+        assertThat( result.getOutcome(), is( instanceOf( result.getType() ) ) );
 
         // round trip
-        final String xml = ( String )temp;
+        final String xml = ( String )result.getOutcome();
         final VdbManifest manifest = VdbManifest.read( new ByteArrayInputStream( xml.getBytes() ), null );
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "twitter" ) );
@@ -116,110 +225,6 @@ public final class VdbExporterTest extends AbstractSequencerTest {
         assertThat( translator.getProperties().size(), is( 2 ) );
         assertThat( translator.getProperties().get( "DefaultBinding" ), is( "HTTP" ) );
         assertThat( translator.getProperties().get( "DefaultServiceMode" ), is( "MESSAGE" ) );
-    }
-
-    @Test
-    public void shouldExportDynamicAzureVdb() throws Exception {
-        createNodeWithContentFromFile( "vdb/AzureService-vdb.xml", "vdb/AzureService-vdb.xml" );
-        final Node vdbNode = getOutputNode( this.rootNode, "vdbs/AzureService-vdb.xml" );
-        assertNotNull( vdbNode );
-
-        final VdbExporter exporter = new VdbExporter();
-        final Object temp = exporter.execute( vdbNode, null );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
-
-        new JcrTools( true ).printSubgraph( vdbNode );
-        Arrays.stream( vdbNode.getSession().getNamespacePrefixes() ).forEach( prefix -> System.err.println( prefix ) );
-        
-        // round trip
-        final String xml = ( String )temp;
-        final VdbManifest manifest = VdbManifest.read( new ByteArrayInputStream( xml.getBytes() ), null );
-        assertThat( manifest, is( notNullValue() ) );
-        assertThat( manifest.getName(), is( "AzureService" ) );
-        assertThat( manifest.getVersion(), is( 1 ) );
-        assertThat( manifest.getDescription(), is( "VDB for: AzureService, Version: 1" ) );
-        assertThat( manifest.getConnectionType(), is( "BY_VERSION" ) );
-        assertThat( manifest.getProperties().size(), is( 2 ) );
-        assertThat( manifest.getProperties().get( "REST:auto-generate" ), is( "true" ) );
-        assertThat( manifest.getProperties().get( "data-service-view" ), is( "SvcView" ) );
-        assertThat( manifest.getImportVdbs().size(), is( 1 ) );
-        assertThat( manifest.getModels().size(), is( 1 ) );
-
-        // import VDB
-        final ImportVdb importVdb = manifest.getImportVdbs().get( 0 );
-        assertThat( importVdb.getName(), is( "SvcSourceVdb_AzurePricesDS" ) );
-        assertThat( importVdb.getVersion(), is( 1 ) );
-        assertThat( importVdb.isImportDataPolicies(), is( true ) );
-
-        // AzureService model
-        final VdbModel azureService = findModel( manifest.getModels(), "AzureService" );
-        assertThat( azureService.getType(), is( CoreLexicon.ModelType.VIRTUAL ) );
-        assertThat( azureService.isVisible(), is( true ) );
-        assertThat( azureService.getDescription(), is( "The Azure Service model" ) );
-        assertThat( azureService.getMetadataType(), is( "DDL" ) );
-        final String metadata = "CREATE VIEW SvcView (RowId integer PRIMARY KEY, ProdCode string,SalePrice bigdecimal) AS"
-                                + " SELECT ROW_NUMBER() OVER (ORDER BY ProdCode) , ProdCode,SalePrice"
-                                + " FROM \"Prices.dbo.PricesTable\";" + " SET NAMESPACE 'http://teiid.org/rest' AS REST;\n"
-                                + "CREATE VIRTUAL PROCEDURE RestProc () RETURNS (result XML) OPTIONS (\"REST:METHOD\" 'GET', \"REST:URI\" 'rest') AS"
-                                + " BEGIN SELECT XMLELEMENT(NAME Elems, XMLAGG(XMLELEMENT(NAME Elem, XMLFOREST(RowId,ProdCode,SalePrice)))) AS result"
-                                + " FROM SvcView;" + " END;";
-        assertThat( azureService.getModelDefinition(), is( metadata ) );
-    }
-
-    @Test
-    public void shouldExportDynamicProductVdb() throws Exception {
-        createNodeWithContentFromFile( "vdb/product-view-vdb.xml", "vdb/product-view-vdb.xml" );
-        final Node vdbNode = getOutputNode( this.rootNode, "vdbs/product-view-vdb.xml" );
-        assertNotNull( vdbNode );
-
-        final VdbExporter exporter = new VdbExporter();
-        final Object temp = exporter.execute( vdbNode, null );
-        assertThat( temp, is( notNullValue() ) );
-        assertThat( temp, is( instanceOf( String.class ) ) );
-        System.out.println( temp.toString() );
-
-        // round trip
-        final String xml = ( String )temp;
-        final VdbManifest manifest = VdbManifest.read( new ByteArrayInputStream( xml.getBytes() ), null );
-        assertThat( manifest, is( notNullValue() ) );
-        assertThat( manifest.getName(), is( "DynamicProducts" ) );
-        assertThat( manifest.getVersion(), is( 2 ) );
-        assertThat( manifest.getDescription(), is( "Product Dynamic VDB" ) );
-        assertThat( manifest.getProperties().size(), is( 1 ) );
-        assertThat( manifest.getProperties().get( "UseConnectorMetadata" ), is( "true" ) );
-        assertThat( manifest.getModels().size(), is( 3 ) );
-
-        { // products model
-            final VdbModel products = findModel( manifest.getModels(), "ProductsMySQL_Dynamic" );
-            assertThat( products.getType(), is( CoreLexicon.ModelType.PHYSICAL ) );
-            assertThat( products.getSources().size(), is( 1 ) );
-
-            final Source source = products.getSources().get( 0 );
-            assertThat( source.getName(), is( "jdbc" ) );
-            assertThat( source.getTranslator(), is( "mysql" ) );
-            assertThat( source.getJndiName(), is( "java:/ProductsMySQL" ) );
-        }
-
-        { // productView model
-            final VdbModel productView = findModel( manifest.getModels(), "ProductViews" );
-            assertThat( productView.getType(), is( CoreLexicon.ModelType.VIRTUAL ) );
-            assertThat( productView.getMetadataType(), is( "DDL" ) );
-            final String metadata = "CREATE VIEW PRODUCT_VIEW ( ID string, name string, type string"
-                                    + " ) AS SELECT INSTR_ID AS ID, NAME, TYPE"
-                                    + " FROM ProductsMySQL_Dynamic.PRODUCTS.PRODUCTDATA;";
-            assertThat( productView.getModelDefinition(), is( metadata ) );
-        }
-
-        { // productSummary model
-            final VdbModel productSummary = findModel( manifest.getModels(), "ProductSummary" );
-            assertThat( productSummary.getType(), is( CoreLexicon.ModelType.VIRTUAL ) );
-            assertThat( productSummary.getMetadataType(), is( "DDL" ) );
-            final String metadata = "CREATE VIEW PRODUCT_SUMMARY ( ID string, name string, type string"
-                                    + " ) AS SELECT INSTR_ID AS ID, NAME, TYPE"
-                                    + " FROM ProductsMySQL_Dynamic.PRODUCTS.PRODUCTDATA;";
-            assertThat( productSummary.getModelDefinition(), is( metadata ) );
-        }
     }
 
 }
