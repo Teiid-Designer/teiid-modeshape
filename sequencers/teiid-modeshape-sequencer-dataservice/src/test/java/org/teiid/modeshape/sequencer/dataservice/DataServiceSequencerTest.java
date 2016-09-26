@@ -267,7 +267,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
                                       VdbLexicon.Vdb.VIRTUAL_DATABASE,
                                       PublishPolicy.IF_MISSING,
                                       false );
-            final Node vdbNode = outputNode.getParent().getNode( "product-view-vdb.xml" );
+            final Node vdbNode = outputNode.getParent().getNode( "ServiceVdb" );
             assertThat( vdbNode.getProperty( VdbLexicon.Vdb.NAME ).getString(), is( "DynamicProducts" ) );
 
             // dependencies
@@ -279,7 +279,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
                                       VdbLexicon.Vdb.VIRTUAL_DATABASE,
                                       PublishPolicy.IF_MISSING,
                                       false );
-            final Node importVdbNode = outputNode.getParent().getNode( "twitter-vdb.xml" );
+            final Node importVdbNode = outputNode.getParent().getNode( "twitter" );
             assertThat( importVdbNode.getProperty( VdbLexicon.Vdb.NAME ).getString(), is( "twitter" ) );
         }
 
@@ -356,10 +356,10 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
         assertNotNull( outputNode );
         assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataService.NODE_TYPE ) );
 
-        assertThat( vdbsNode.hasNode( "product-view-vdb.xml" ), is( true ) );
-        assertThat( vdbsNode.hasNode( "twitter-vdb.xml" ), is( true ) );
-        assertThat( vdbsNode.hasNode( "books-vdb.xml" ), is( true ) );
-        assertThat( vdbsNode.hasNode( "Portfolio-vdb.xml" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "ServiceVdb" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "twitter" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "BooksExample" ), is( true ) );
+        assertThat( vdbsNode.hasNode( "Portfolio" ), is( true ) );
         assertThat( driversNode.hasNode( "books-driver-1.jar" ), is( true ) );
         assertThat( driversNode.hasNode( "books-driver-2.jar" ), is( true ) );
         assertThat( driversNode.hasNode( "portfolio-driver.jar" ), is( true ) );

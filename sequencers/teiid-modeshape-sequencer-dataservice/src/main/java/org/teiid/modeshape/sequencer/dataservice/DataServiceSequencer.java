@@ -723,7 +723,7 @@ public class DataServiceSequencer extends Sequencer {
 
         if ( shouldSequence ) {
             final Node parent = getVdbRoot( dataServiceNode );
-            final Node vdbNode = parent.addNode( vdbEntry.getEntryName(), VdbLexicon.Vdb.VIRTUAL_DATABASE );
+            final Node vdbNode = parent.addNode( vdbEntry.getVdbName(), VdbLexicon.Vdb.VIRTUAL_DATABASE );
             final boolean success = this.vdbSequencer.sequenceVdb( stream, vdbNode );
 
             if ( success ) {
@@ -796,7 +796,7 @@ public class DataServiceSequencer extends Sequencer {
 
         if ( shouldSequence ) {
             final Node parent = getVdbRoot( dataServiceNode );
-            final Node vdbNode = parent.addNode( vdbEntry.getEntryName(), VdbLexicon.Vdb.VIRTUAL_DATABASE );
+            final Node vdbNode = parent.addNode( vdbEntry.getVdbName(), VdbLexicon.Vdb.VIRTUAL_DATABASE );
             final boolean success = this.vdbSequencer.sequenceVdb( stream, vdbNode );
 
             if ( success ) {
