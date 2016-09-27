@@ -43,6 +43,7 @@
     <!-- Modules -->
     <!-- ================================================================== -->
     <modules>
+        <module>teiid-modeshape-core</module>
         <module>teiid-modeshape-utils</module>
         <module>sequencers</module>
         <module>build</module>
@@ -54,6 +55,12 @@
     <dependencyManagement>
         <dependencies>
             <!-- Sub-projects -->
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.jboss.teiid.modeshape</groupId>
                 <artifactId>teiid-modeshape-utils</artifactId>
@@ -71,6 +78,12 @@
             <dependency>
                 <groupId>org.jboss.teiid.modeshape</groupId>
                 <artifactId>teiid-modeshape-sequencer-vdb</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.teiid.modeshape</groupId>
+                <artifactId>teiid-modeshape-sequencer-dataservice</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

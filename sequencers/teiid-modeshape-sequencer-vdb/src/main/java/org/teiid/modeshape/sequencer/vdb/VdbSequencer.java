@@ -27,7 +27,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
@@ -68,9 +70,9 @@ public class VdbSequencer extends Sequencer {
 
     private static final String DDL_FILE_EXT = ".ddl";
     private static final String LIB_FOLDER = "lib/";
-    protected static final Logger LOGGER = Logger.getLogger(VdbSequencer.class);
+    protected static final Logger LOGGER = Logger.getLogger( VdbSequencer.class );
     private static final String MANIFEST_FILE = "META-INF/vdb.xml";
-    private static final Pattern VERSION_REGEX = Pattern.compile("(.*)[.]\\s*[+-]?([0-9]+)\\s*$");
+    private static final Pattern VERSION_REGEX = Pattern.compile( "(.*)[.]\\s*[+-]?([0-9]+)\\s*$" );
 
     /**
      * Utility method to extract the version information from a VDB filename.
@@ -81,16 +83,16 @@ public class VdbSequencer extends Sequencer {
      */
     public static String extractVersionInformation( String fileNameWithoutExtension,
                                                     final AtomicInteger version ) {
-        final Matcher matcher = VERSION_REGEX.matcher(fileNameWithoutExtension);
+        final Matcher matcher = VERSION_REGEX.matcher( fileNameWithoutExtension );
 
-        if (matcher.matches()) {
+        if ( matcher.matches() ) {
             // Extract the version number from the name ...
-            fileNameWithoutExtension = matcher.group(1);
-            version.set(Integer.parseInt(matcher.group(2)));
+            fileNameWithoutExtension = matcher.group( 1 );
+            version.set( Integer.parseInt( matcher.group( 2 ) ) );
         }
 
         // Remove all trailing '.' characters
-        return fileNameWithoutExtension.replaceAll("[.]*$", "");
+        return fileNameWithoutExtension.replaceAll( "[.]*$", "" );
     }
 
     private ModelSequencer modelSequencer; // constructed during initialize method
@@ -103,54 +105,60 @@ public class VdbSequencer extends Sequencer {
     public boolean execute( final Property inputProperty,
                             final Node outputNode,
                             final Context context ) throws Exception {
-        LOGGER.debug("VdbSequencer.execute called:outputNode name='{0}', path='{1}'", outputNode.getName(), outputNode.getPath());
+        LOGGER.debug( "VdbSequencer.execute called:outputNode name='{0}', path='{1}'",
+                      outputNode.getName(),
+                      outputNode.getPath() );
 
         final Binary binaryValue = inputProperty.getBinary();
-        CheckArg.isNotNull(binaryValue, "binary");
-        
+        CheckArg.isNotNull( binaryValue, "binary" );
+
         VdbManifest manifest = null;
         boolean processDdlFiles = false;
         boolean processLibFiles = false;
         final Collection< String > ddlFileModelsFound = new ArrayList<>();
 
-        try (final ZipInputStream vdbStream = new ZipInputStream(binaryValue.getStream())) {
+        try ( final ZipInputStream vdbStream = new ZipInputStream( binaryValue.getStream() ) ) {
             ZipEntry entry = null;
             ReferenceResolver resolver = new ReferenceResolver();
-            
-            while ((entry = vdbStream.getNextEntry()) != null) {
+
+            while ( ( entry = vdbStream.getNextEntry() ) != null ) {
                 String entryName = entry.getName();
 
-                if (entryName.endsWith(MANIFEST_FILE)) {
-                    manifest = readManifest(binaryValue, vdbStream, outputNode, context);
-                } else if (!entry.isDirectory() && this.modelSequencer.hasModelFileExtension(entryName)) {
-                    LOGGER.debug("before reading model '{0}'", entryName);
+                if ( entryName.endsWith( MANIFEST_FILE ) ) {
+                    manifest = readManifest( binaryValue, vdbStream, outputNode, context );
+                } else if ( !entry.isDirectory() && this.modelSequencer.hasModelFileExtension( entryName ) ) {
+                    LOGGER.debug( "before reading model '{0}'", entryName );
 
                     // vdb.xml file should be read first in stream so manifest model should be available
-                    if (manifest == null) {
+                    if ( manifest == null ) {
                         throw new Exception( TeiidI18n.missingVdbManifest.text( outputNode.getPath() ) );
                     }
 
-                    final VdbModel vdbModel = manifest.getModel(entryName);
+                    final VdbModel vdbModel = manifest.getModel( entryName );
 
-                    if (vdbModel == null) {
+                    if ( vdbModel == null ) {
                         throw new Exception( TeiidI18n.missingVdbModel.text( entryName, outputNode.getPath() ) );
                     }
 
                     // call sequencer here after creating node for last part of entry name
-                    final int index = entryName.lastIndexOf('/') + 1;
+                    final int index = entryName.lastIndexOf( '/' ) + 1;
 
-                    if ((index != -1) && (index < entryName.length())) {
-                        entryName = entryName.substring(index);
+                    if ( ( index != -1 ) && ( index < entryName.length() ) ) {
+                        entryName = entryName.substring( index );
                     }
 
-                    final Node modelNode = outputNode.addNode(entryName, VdbLexicon.Vdb.MODEL);
-                    final boolean sequenced = this.modelSequencer.sequenceVdbModel(vdbStream, modelNode, vdbModel, resolver, context);
+                    final Node modelNode = outputNode.addNode( entryName, VdbLexicon.Vdb.MODEL );
+                    final boolean sequenced = this.modelSequencer.sequenceVdbModel( vdbStream,
+                                                                                    modelNode,
+                                                                                    vdbModel,
+                                                                                    resolver,
+                                                                                    context );
 
-                    if (!sequenced) {
+                    if ( !sequenced ) {
                         modelNode.remove();
-                        LOGGER.debug(">>>>model NOT sequenced '{0}'\n\n", entryName);
+                        LOGGER.debug( ">>>>model NOT sequenced '{0}'\n\n", entryName );
                     } else {
-                        LOGGER.debug(">>>>done sequencing model '{0}'\n\n", entryName);
+                        LOGGER.debug( ">>>>done sequencing model '{0}'\n\n", entryName );
                     }
                 } else if ( isDdlFile( entryName ) ) {
                     if ( manifest == null ) {
@@ -172,15 +180,15 @@ public class VdbSequencer extends Sequencer {
                     LOGGER.debug( "ignoring resource '{0}'", entryName );
                 }
             }
-        } catch (final Exception e) {
-            throw new RuntimeException(TeiidI18n.errorReadingVdbFile.text(inputProperty.getPath(), e.getMessage()), e);
+        } catch ( final Exception e ) {
+            throw new RuntimeException( TeiidI18n.errorReadingVdbFile.text( inputProperty.getPath(), e.getMessage() ), e );
         }
-        
+
         // make sure there was a manifest
         if ( manifest == null ) {
             throw new Exception( TeiidI18n.missingVdbManifest.text( outputNode.getPath() ) );
         }
-        
+
         // open zip again to process lib resources and DDL files if necessary
         if ( processLibFiles || processDdlFiles ) {
             LOGGER.debug( "second pass: /lib resources = {0}, DDL files = {1}", processLibFiles, processDdlFiles );
@@ -196,7 +204,7 @@ public class VdbSequencer extends Sequencer {
                             sequenceLibResource( zis, entryName, outputNode );
                         } else if ( processDdlFiles && isDdlFile( entryName ) ) {
                             final String modelName = sequenceDdlFile( zis, entryName, manifest, outputNode );
-                            
+
                             if ( !StringUtil.isBlank( modelName ) ) {
                                 ddlFileModelsFound.add( modelName );
                             }
@@ -216,51 +224,54 @@ public class VdbSequencer extends Sequencer {
 
         return true;
     }
-    
+
     private boolean isDdlFile( final String fileName ) {
         return fileName.endsWith( DDL_FILE_EXT );
     }
 
-    protected VdbManifest readManifest(Binary binaryValue, InputStream inputStream, Node outputNode, Context context) throws Exception {
+    protected VdbManifest readManifest( Binary binaryValue,
+                                        InputStream inputStream,
+                                        Node outputNode,
+                                        Context context ) throws Exception {
         VdbManifest manifest;
-        LOGGER.debug("----before reading vdb.xml");
+        LOGGER.debug( "----before reading vdb.xml" );
 
-        manifest = VdbManifest.read(inputStream, context);
-        assert (manifest != null) : "manifest is null";
+        manifest = VdbManifest.read( inputStream, context );
+        assert ( manifest != null ) : "manifest is null";
 
         // Create the output node for the VDB ...
-        outputNode.setPrimaryType(VdbLexicon.Vdb.VIRTUAL_DATABASE);
-        outputNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
-        outputNode.setProperty(VdbLexicon.Vdb.VERSION, manifest.getVersion());
-        outputNode.setProperty(VdbLexicon.Vdb.ORIGINAL_FILE, outputNode.getPath());
-        
+        outputNode.setPrimaryType( VdbLexicon.Vdb.VIRTUAL_DATABASE );
+        outputNode.addMixin( JcrConstants.MIX_REFERENCEABLE );
+        outputNode.setProperty( VdbLexicon.Vdb.VERSION, manifest.getVersion() );
+        outputNode.setProperty( VdbLexicon.Vdb.ORIGINAL_FILE, outputNode.getPath() );
+
         if ( binaryValue != null ) {
             outputNode.setProperty( JcrConstants.MODE_SHA1, ( ( org.modeshape.jcr.api.Binary )binaryValue ).getHexHash() );
         }
-        
-        setProperty(outputNode, VdbLexicon.Vdb.NAME, manifest.getName());
-        setProperty(outputNode, VdbLexicon.Vdb.DESCRIPTION, manifest.getDescription());
-        setProperty(outputNode, VdbLexicon.Vdb.CONNECTION_TYPE, manifest.getConnectionType());
+
+        setProperty( outputNode, VdbLexicon.Vdb.NAME, manifest.getName() );
+        setProperty( outputNode, VdbLexicon.Vdb.DESCRIPTION, manifest.getDescription() );
+        setProperty( outputNode, VdbLexicon.Vdb.CONNECTION_TYPE, manifest.getConnectionType() );
 
         // create imported VDBs child nodes
-        sequenceImportVdbs(manifest, outputNode);
+        sequenceImportVdbs( manifest, outputNode );
 
         // create translator child nodes
-        sequenceTranslators(manifest, outputNode);
+        sequenceTranslators( manifest, outputNode );
 
         // create data role child nodes
-        sequenceDataRoles(manifest, outputNode);
+        sequenceDataRoles( manifest, outputNode );
 
         // create entry child nodes
-        sequenceEntries(manifest, outputNode);
+        sequenceEntries( manifest, outputNode );
 
         // create properties child nodes
-        sequenceProperties(manifest, outputNode);
+        sequenceProperties( manifest, outputNode );
 
         // create child nodes for declarative models
-        sequenceDeclarativeModels(manifest, outputNode);
+        sequenceDeclarativeModels( manifest, outputNode );
 
-        LOGGER.debug(">>>>done reading vdb.xml\n\n");
+        LOGGER.debug( ">>>>done reading vdb.xml\n\n" );
         return manifest;
     }
 
@@ -272,24 +283,16 @@ public class VdbSequencer extends Sequencer {
     @Override
     public void initialize( final NamespaceRegistry registry,
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
-        LOGGER.debug("enter initialize");
-        
-        registerNodeTypes("xmi.cnd", nodeTypeManager, true);
-        LOGGER.debug("xmi.cnd loaded");
-
-        registerNodeTypes("med.cnd", nodeTypeManager, true);
-        LOGGER.debug("med.cnd loaded");
-
-        registerNodeTypes("mmcore.cnd", nodeTypeManager, true);
-        LOGGER.debug("mmcore.cnd loaded");
-
-        registerNodeTypes("vdb.cnd", nodeTypeManager, true);
-        LOGGER.debug("vdb.cnd loaded");
+        LOGGER.debug( "enter initialize" );
 
         this.modelSequencer = new ModelSequencer();
-        this.modelSequencer.initialize(registry, nodeTypeManager);
+        this.modelSequencer.initialize( registry, nodeTypeManager );
 
-        LOGGER.debug("exit initialize");
+        final URL vdbCndUrl = getClass().getResource( "/org/teiid/modeshape/sequencer/vdb/vdb.cnd" );
+        registerNodeTypes( vdbCndUrl.openStream(), nodeTypeManager, true );
+        LOGGER.debug( "vdb.cnd loaded" );
+
+        LOGGER.debug( "exit initialize" );
     }
 
     /**
@@ -299,70 +302,71 @@ public class VdbSequencer extends Sequencer {
      */
     private void sequenceDataRoles( final VdbManifest manifest,
                                     final Node outputNode ) throws Exception {
-        assert (manifest != null) : "manifest is null";
-        assert (outputNode != null) : "outputNode is null";
+        assert ( manifest != null ) : "manifest is null";
+        assert ( outputNode != null ) : "outputNode is null";
 
-        final List<VdbDataRole> dataRolesGroup = manifest.getDataRoles();
+        final List< VdbDataRole > dataRolesGroup = manifest.getDataRoles();
 
-        if (!dataRolesGroup.isEmpty()) {
-            final Node dataRolesGroupNode = outputNode.addNode(VdbLexicon.Vdb.DATA_ROLES, VdbLexicon.Vdb.DATA_ROLES);
+        if ( !dataRolesGroup.isEmpty() ) {
+            final Node dataRolesGroupNode = outputNode.addNode( VdbLexicon.Vdb.DATA_ROLES, VdbLexicon.Vdb.DATA_ROLES );
 
-            for (final VdbDataRole dataRole : dataRolesGroup) {
-                final Node dataRoleNode = dataRolesGroupNode.addNode(dataRole.getName(), VdbLexicon.DataRole.DATA_ROLE);
-                setProperty(dataRoleNode, VdbLexicon.DataRole.DESCRIPTION, dataRole.getDescription());
-                dataRoleNode.setProperty(VdbLexicon.DataRole.ANY_AUTHENTICATED, dataRole.isAnyAuthenticated());
-                dataRoleNode.setProperty(VdbLexicon.DataRole.ALLOW_CREATE_TEMP_TABLES, dataRole.isAllowCreateTempTables());
-                dataRoleNode.setProperty(VdbLexicon.DataRole.GRANT_ALL, dataRole.isGrantAll());
+            for ( final VdbDataRole dataRole : dataRolesGroup ) {
+                final Node dataRoleNode = dataRolesGroupNode.addNode( dataRole.getName(), VdbLexicon.DataRole.DATA_ROLE );
+                setProperty( dataRoleNode, VdbLexicon.DataRole.DESCRIPTION, dataRole.getDescription() );
+                dataRoleNode.setProperty( VdbLexicon.DataRole.ANY_AUTHENTICATED, dataRole.isAnyAuthenticated() );
+                dataRoleNode.setProperty( VdbLexicon.DataRole.ALLOW_CREATE_TEMP_TABLES, dataRole.isAllowCreateTempTables() );
+                dataRoleNode.setProperty( VdbLexicon.DataRole.GRANT_ALL, dataRole.isGrantAll() );
 
                 // set role names
-                final List<String> roleNames = dataRole.getMappedRoleNames();
+                final List< String > roleNames = dataRole.getMappedRoleNames();
 
-                if (!roleNames.isEmpty()) {
-                    dataRoleNode.setProperty(VdbLexicon.DataRole.MAPPED_ROLE_NAMES,
-                                             roleNames.toArray(new String[roleNames.size()]));
+                if ( !roleNames.isEmpty() ) {
+                    dataRoleNode.setProperty( VdbLexicon.DataRole.MAPPED_ROLE_NAMES,
+                                              roleNames.toArray( new String[ roleNames.size() ] ) );
                 }
 
                 // add permissions
-                final List<Permission> permissionsGroup = dataRole.getPermissions();
+                final List< Permission > permissionsGroup = dataRole.getPermissions();
 
-                if (!permissionsGroup.isEmpty()) {
-                    final Node permissionsGroupNode = dataRoleNode.addNode(VdbLexicon.DataRole.PERMISSIONS,
-                                                                           VdbLexicon.DataRole.PERMISSIONS);
+                if ( !permissionsGroup.isEmpty() ) {
+                    final Node permissionsGroupNode = dataRoleNode.addNode( VdbLexicon.DataRole.PERMISSIONS,
+                                                                            VdbLexicon.DataRole.PERMISSIONS );
 
-                    for (final Permission permission : permissionsGroup) {
-                        final Node permissionNode = permissionsGroupNode.addNode(permission.getResourceName(),
-                                                                                 VdbLexicon.DataRole.Permission.PERMISSION);
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_ALTER, permission.canAlter());
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_CREATE, permission.canCreate());
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_DELETE, permission.canDelete());
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_EXECUTE, permission.canExecute());
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_READ, permission.canRead());
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_UPDATE, permission.canUpdate());
-                        permissionNode.setProperty(VdbLexicon.DataRole.Permission.ALLOW_LANGUAGE, permission.useLanguage());
+                    for ( final Permission permission : permissionsGroup ) {
+                        final Node permissionNode = permissionsGroupNode.addNode( permission.getResourceName(),
+                                                                                  VdbLexicon.DataRole.Permission.PERMISSION );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_ALTER, permission.canAlter() );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_CREATE, permission.canCreate() );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_DELETE, permission.canDelete() );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_EXECUTE, permission.canExecute() );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_READ, permission.canRead() );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_UPDATE, permission.canUpdate() );
+                        permissionNode.setProperty( VdbLexicon.DataRole.Permission.ALLOW_LANGUAGE, permission.useLanguage() );
 
                         // add permission's conditions
-                        List<Condition> conditions = permission.getConditions();
-                        if (! conditions.isEmpty()) {
-                            final Node conditionsGroupNode = permissionNode.addNode(VdbLexicon.DataRole.Permission.CONDITIONS,
-                                                                                    VdbLexicon.DataRole.Permission.CONDITIONS);
+                        List< Condition > conditions = permission.getConditions();
+                        if ( !conditions.isEmpty() ) {
+                            final Node conditionsGroupNode = permissionNode.addNode( VdbLexicon.DataRole.Permission.CONDITIONS,
+                                                                                     VdbLexicon.DataRole.Permission.CONDITIONS );
 
-                            for (final Condition condition : conditions) {
-                                Node conditionNode = conditionsGroupNode.addNode(condition.getRule(),
-                                                                                 VdbLexicon.DataRole.Permission.Condition.CONDITION);
-                                conditionNode.setProperty(VdbLexicon.DataRole.Permission.Condition.CONSTRAINT, condition.isConstraint());
+                            for ( final Condition condition : conditions ) {
+                                Node conditionNode = conditionsGroupNode.addNode( condition.getRule(),
+                                                                                  VdbLexicon.DataRole.Permission.Condition.CONDITION );
+                                conditionNode.setProperty( VdbLexicon.DataRole.Permission.Condition.CONSTRAINT,
+                                                           condition.isConstraint() );
                             }
                         }
 
-                        // add add permission's masks
-                        List<Mask> masks = permission.getMasks();
-                        if (! masks.isEmpty()) {
-                            final Node masksGroupNode = permissionNode.addNode(VdbLexicon.DataRole.Permission.MASKS,
-                                                                                    VdbLexicon.DataRole.Permission.MASKS);
+                        // add permission's masks
+                        List< Mask > masks = permission.getMasks();
+                        if ( !masks.isEmpty() ) {
+                            final Node masksGroupNode = permissionNode.addNode( VdbLexicon.DataRole.Permission.MASKS,
+                                                                                VdbLexicon.DataRole.Permission.MASKS );
 
-                            for (final Mask mask : masks) {
-                                Node maskNode = masksGroupNode.addNode(mask.getRule(),
-                                                                                 VdbLexicon.DataRole.Permission.Mask.MASK);
-                                maskNode.setProperty(VdbLexicon.DataRole.Permission.Mask.ORDER, mask.getOrder());
+                            for ( final Mask mask : masks ) {
+                                Node maskNode = masksGroupNode.addNode( mask.getRule(),
+                                                                        VdbLexicon.DataRole.Permission.Mask.MASK );
+                                maskNode.setProperty( VdbLexicon.DataRole.Permission.Mask.ORDER, mask.getOrder() );
                             }
                         }
 
@@ -423,7 +427,7 @@ public class VdbSequencer extends Sequencer {
 
         return null;
     }
-    
+
     /**
      * @param manifest the VDB manifest whose declarative models are being sequenced (cannot be <code>null</code>)
      * @param outputNode the VDB node (cannot be <code>null</code>)
@@ -431,44 +435,44 @@ public class VdbSequencer extends Sequencer {
      */
     private void sequenceDeclarativeModels( final VdbManifest manifest,
                                             final Node outputNode ) throws Exception {
-        assert (manifest != null) : "manifest is null";
-        assert (outputNode != null) : "outputNode is null";
+        assert ( manifest != null ) : "manifest is null";
+        assert ( outputNode != null ) : "outputNode is null";
 
-        for (final VdbModel model : manifest.getModels()) {
+        for ( final VdbModel model : manifest.getModels() ) {
             // if there is metadata then there is no xmi file
-            if (model.isDeclarative()) {
-                LOGGER.debug(">>>>writing declarative model '{0}'", model.getName());
+            if ( model.isDeclarative() ) {
+                LOGGER.debug( ">>>>writing declarative model '{0}'", model.getName() );
 
-                final Node modelNode = outputNode.addNode(model.getName(), VdbLexicon.Vdb.DECLARATIVE_MODEL);
+                final Node modelNode = outputNode.addNode( model.getName(), VdbLexicon.Vdb.DECLARATIVE_MODEL );
 
                 // set vdb:abstractModel properties
-                setProperty(modelNode, VdbLexicon.Model.DESCRIPTION, model.getDescription());
-                modelNode.setProperty(VdbLexicon.Model.VISIBLE, model.isVisible());
-                setProperty(modelNode, VdbLexicon.Model.PATH_IN_VDB, model.getPathInVdb());
+                setProperty( modelNode, VdbLexicon.Model.DESCRIPTION, model.getDescription() );
+                modelNode.setProperty( VdbLexicon.Model.VISIBLE, model.isVisible() );
+                setProperty( modelNode, VdbLexicon.Model.PATH_IN_VDB, model.getPathInVdb() );
 
                 // set vdb:declarativeModel properties
-                setProperty(modelNode, CoreLexicon.JcrId.MODEL_TYPE, model.getType());
-                setProperty(modelNode, VdbLexicon.Model.METADATA_TYPE, model.getMetadataType());
-                setProperty(modelNode, VdbLexicon.Model.MODEL_DEFINITION, model.getModelDefinition());
-                
+                setProperty( modelNode, CoreLexicon.JcrId.MODEL_TYPE, model.getType() );
+                setProperty( modelNode, VdbLexicon.Model.METADATA_TYPE, model.getMetadataType() );
+                setProperty( modelNode, VdbLexicon.Model.MODEL_DEFINITION, model.getModelDefinition() );
+
                 if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( model.getMetadataType() ) ) {
                     setProperty( modelNode, VdbLexicon.Model.DDL_FILE_ENTRY_PATH, model.getDdlFileEntryPath() );
                 }
 
                 // set model sources
-                List<Source> sources = model.getSources();
-                if (! sources.isEmpty()) {
-                    Node modelSourcesGroupNode = modelNode.addNode(VdbLexicon.Vdb.SOURCES, VdbLexicon.Vdb.SOURCES);
+                List< Source > sources = model.getSources();
+                if ( !sources.isEmpty() ) {
+                    Node modelSourcesGroupNode = modelNode.addNode( VdbLexicon.Vdb.SOURCES, VdbLexicon.Vdb.SOURCES );
 
-                    for (final VdbModel.Source source : sources) {
-                        Node sourceNode = modelSourcesGroupNode.addNode(source.getName(), VdbLexicon.Source.SOURCE);
-                        sourceNode.setProperty(VdbLexicon.Source.TRANSLATOR, source.getTranslator());
-                        sourceNode.setProperty(VdbLexicon.Source.JNDI_NAME, source.getJndiName());
+                    for ( final VdbModel.Source source : sources ) {
+                        Node sourceNode = modelSourcesGroupNode.addNode( source.getName(), VdbLexicon.Source.SOURCE );
+                        sourceNode.setProperty( VdbLexicon.Source.TRANSLATOR, source.getTranslator() );
+                        sourceNode.setProperty( VdbLexicon.Source.JNDI_NAME, source.getJndiName() );
                     }
                 }
 
-                for (Map.Entry<String, String> entry : model.getProperties().entrySet()) {
-                    setProperty(modelNode, entry.getKey(), entry.getValue());
+                for ( Map.Entry< String, String > entry : model.getProperties().entrySet() ) {
+                    setProperty( modelNode, entry.getKey(), entry.getValue() );
                 }
             }
         }
@@ -481,25 +485,25 @@ public class VdbSequencer extends Sequencer {
      */
     private void sequenceEntries( final VdbManifest manifest,
                                   final Node outputNode ) throws Exception {
-        assert (manifest != null) : "manifest is null";
-        assert (outputNode != null) : "outputNode is null";
+        assert ( manifest != null ) : "manifest is null";
+        assert ( outputNode != null ) : "outputNode is null";
 
-        final List<VdbEntry> entriesGroup = manifest.getEntries();
+        final List< VdbEntry > entriesGroup = manifest.getEntries();
 
-        if (!entriesGroup.isEmpty()) {
-            final Node entriesGroupNode = outputNode.addNode(VdbLexicon.Vdb.ENTRIES, VdbLexicon.Vdb.ENTRIES);
+        if ( !entriesGroup.isEmpty() ) {
+            final Node entriesGroupNode = outputNode.addNode( VdbLexicon.Vdb.ENTRIES, VdbLexicon.Vdb.ENTRIES );
 
-            for (final VdbEntry entry : entriesGroup) {
-                final Node entryNode = entriesGroupNode.addNode(VdbLexicon.Entry.ENTRY, VdbLexicon.Entry.ENTRY);
-                setProperty(entryNode, VdbLexicon.Entry.PATH, entry.getPath());
-                setProperty(entryNode, VdbLexicon.Entry.DESCRIPTION, entry.getDescription());
+            for ( final VdbEntry entry : entriesGroup ) {
+                final Node entryNode = entriesGroupNode.addNode( VdbLexicon.Entry.ENTRY, VdbLexicon.Entry.ENTRY );
+                setProperty( entryNode, VdbLexicon.Entry.PATH, entry.getPath() );
+                setProperty( entryNode, VdbLexicon.Entry.DESCRIPTION, entry.getDescription() );
 
                 // add properties
-                final Map<String, String> props = entry.getProperties();
+                final Map< String, String > props = entry.getProperties();
 
-                if (!props.isEmpty()) {
-                    for (final Map.Entry<String, String> prop : props.entrySet()) {
-                        setProperty(entryNode, prop.getKey(), prop.getValue());
+                if ( !props.isEmpty() ) {
+                    for ( final Map.Entry< String, String > prop : props.entrySet() ) {
+                        setProperty( entryNode, prop.getKey(), prop.getValue() );
                     }
                 }
             }
@@ -513,22 +517,22 @@ public class VdbSequencer extends Sequencer {
      */
     private void sequenceImportVdbs( final VdbManifest manifest,
                                      final Node outputNode ) throws Exception {
-        assert (manifest != null) : "manifest is null";
-        assert (outputNode != null) : "outputNode is null";
+        assert ( manifest != null ) : "manifest is null";
+        assert ( outputNode != null ) : "outputNode is null";
 
-        final List<ImportVdb> importVdbsGroup = manifest.getImportVdbs();
+        final List< ImportVdb > importVdbsGroup = manifest.getImportVdbs();
 
-        if (!importVdbsGroup.isEmpty()) {
-            final Node importVdbsGroupNode = outputNode.addNode(VdbLexicon.Vdb.IMPORT_VDBS, VdbLexicon.Vdb.IMPORT_VDBS);
+        if ( !importVdbsGroup.isEmpty() ) {
+            final Node importVdbsGroupNode = outputNode.addNode( VdbLexicon.Vdb.IMPORT_VDBS, VdbLexicon.Vdb.IMPORT_VDBS );
 
-            for (final ImportVdb importVdb : importVdbsGroup) {
-                final Node importVdbNode = importVdbsGroupNode.addNode(importVdb.getName(), VdbLexicon.ImportVdb.IMPORT_VDB);
-                importVdbNode.setProperty(VdbLexicon.ImportVdb.VERSION, importVdb.getVersion());
-                importVdbNode.setProperty(VdbLexicon.ImportVdb.IMPORT_DATA_POLICIES, importVdb.isImportDataPolicies());
+            for ( final ImportVdb importVdb : importVdbsGroup ) {
+                final Node importVdbNode = importVdbsGroupNode.addNode( importVdb.getName(), VdbLexicon.ImportVdb.IMPORT_VDB );
+                importVdbNode.setProperty( VdbLexicon.ImportVdb.VERSION, importVdb.getVersion() );
+                importVdbNode.setProperty( VdbLexicon.ImportVdb.IMPORT_DATA_POLICIES, importVdb.isImportDataPolicies() );
             }
         }
     }
-    
+
     private void sequenceLibResource( final ZipInputStream zis,
                                       final String entryPath,
                                       final Node outputNode ) throws Exception {
@@ -571,7 +575,7 @@ public class VdbSequencer extends Sequencer {
         lastModified.setTimeInMillis( file.lastModified() );
         contentNode.setProperty( "jcr:lastModified", lastModified );
     }
-    
+
     /**
      * @param manifest the VDB manifest whose properties are being sequenced (cannot be <code>null</code>)
      * @param outputNode the VDB node where the properties will be added (cannot be <code>null</code>)
@@ -579,17 +583,17 @@ public class VdbSequencer extends Sequencer {
      */
     private void sequenceProperties( final VdbManifest manifest,
                                      final Node outputNode ) throws Exception {
-        assert (manifest != null) : "manifest is null";
-        assert (outputNode != null) : "outputNode is null";
+        assert ( manifest != null ) : "manifest is null";
+        assert ( outputNode != null ) : "outputNode is null";
 
-        final Map<String, String> props = manifest.getProperties();
+        final Map< String, String > props = manifest.getProperties();
 
-        if (!props.isEmpty()) {
-            for (final Map.Entry<String, String> prop : props.entrySet()) {
-                if (VdbLexicon.ManifestIds.PREVIEW.equals(prop.getKey())) {
-                    outputNode.setProperty(VdbLexicon.Vdb.PREVIEW, Boolean.parseBoolean(prop.getValue()));
+        if ( !props.isEmpty() ) {
+            for ( final Map.Entry< String, String > prop : props.entrySet() ) {
+                if ( VdbLexicon.ManifestIds.PREVIEW.equals( prop.getKey() ) ) {
+                    outputNode.setProperty( VdbLexicon.Vdb.PREVIEW, Boolean.parseBoolean( prop.getValue() ) );
                 } else {
-                    setProperty(outputNode, prop.getKey(), prop.getValue());
+                    setProperty( outputNode, prop.getKey(), prop.getValue() );
                 }
             }
         }
@@ -602,26 +606,26 @@ public class VdbSequencer extends Sequencer {
      */
     private void sequenceTranslators( final VdbManifest manifest,
                                       final Node outputNode ) throws Exception {
-        assert (manifest != null) : "manifest is null";
-        assert (outputNode != null) : "outputNode is null";
+        assert ( manifest != null ) : "manifest is null";
+        assert ( outputNode != null ) : "outputNode is null";
 
-        final List<VdbTranslator> translatorsGroup = manifest.getTranslators();
+        final List< VdbTranslator > translatorsGroup = manifest.getTranslators();
 
-        if (!translatorsGroup.isEmpty()) {
-            final Node translatorsGroupNode = outputNode.addNode(VdbLexicon.Vdb.TRANSLATORS, VdbLexicon.Vdb.TRANSLATORS);
+        if ( !translatorsGroup.isEmpty() ) {
+            final Node translatorsGroupNode = outputNode.addNode( VdbLexicon.Vdb.TRANSLATORS, VdbLexicon.Vdb.TRANSLATORS );
 
-            for (final VdbTranslator translator : translatorsGroup) {
-                final Node translatorNode = translatorsGroupNode.addNode(translator.getName(),
-                                                                         VdbLexicon.Translator.TRANSLATOR);
-                setProperty(translatorNode, VdbLexicon.Translator.TYPE, translator.getType());
-                setProperty(translatorNode, VdbLexicon.Translator.DESCRIPTION, translator.getDescription());
+            for ( final VdbTranslator translator : translatorsGroup ) {
+                final Node translatorNode = translatorsGroupNode.addNode( translator.getName(),
+                                                                          VdbLexicon.Translator.TRANSLATOR );
+                setProperty( translatorNode, VdbLexicon.Translator.TYPE, translator.getType() );
+                setProperty( translatorNode, VdbLexicon.Translator.DESCRIPTION, translator.getDescription() );
 
                 // add properties
-                final Map<String, String> props = translator.getProperties();
+                final Map< String, String > props = translator.getProperties();
 
-                if (!props.isEmpty()) {
-                    for (final Map.Entry<String, String> prop : props.entrySet()) {
-                        setProperty(translatorNode, prop.getKey(), prop.getValue());
+                if ( !props.isEmpty() ) {
+                    for ( final Map.Entry< String, String > prop : props.entrySet() ) {
+                        setProperty( translatorNode, prop.getKey(), prop.getValue() );
                     }
                 }
             }
@@ -639,11 +643,50 @@ public class VdbSequencer extends Sequencer {
     private void setProperty( final Node node,
                               final String name,
                               final String value ) throws Exception {
-        assert (node != null);
-        assert (!StringUtil.isBlank(name));
+        assert ( node != null );
+        assert ( !StringUtil.isBlank( name ) );
 
-        if (!StringUtil.isBlank(value)) {
-            node.setProperty(name, value);
+        if ( !StringUtil.isBlank( value ) ) {
+            String propName = name;
+
+            // see if property is prefixed with URI
+            if ( propName.startsWith( "{" ) ) {
+                final int index = propName.indexOf( "}" );
+
+                if ( index == -1 ) {
+                    // TODO
+                } else {
+                    boolean registered = false;
+                    final String uri = propName.substring( 1, index );
+
+                    // if URI is registered then leave name as is
+                    for ( final String registeredUri : node.getSession().getWorkspace().getNamespaceRegistry().getURIs() ) {
+                        if ( registeredUri.equals( uri ) ) {
+                            registered = true;
+                            break;
+                        }
+                    }
+
+                    // if namespace is not registered then register it
+                    if ( !registered ) {
+                        final NamespaceRegistry registry = node.getSession().getWorkspace().getNamespaceRegistry();
+                        final List< String > prefixes = Arrays.asList( registry.getPrefixes() );
+                        
+                        // need a prefix so use last segment of URI
+                        final String[] segments = uri.split( "/" );
+                        String prefix = segments[ segments.length - 1 ];
+                        int i = 1;
+                        
+                        while ( prefixes.contains( prefix ) ) {
+                            prefix += i;
+                        }
+                        
+                        registry.registerNamespace( prefix, uri );
+                    }
+                }
+            }
+
+            node.setProperty( propName, value );
         }
     }
 }

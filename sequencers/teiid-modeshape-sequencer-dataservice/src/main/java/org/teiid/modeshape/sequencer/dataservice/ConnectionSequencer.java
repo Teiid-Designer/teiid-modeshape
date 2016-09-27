@@ -23,6 +23,7 @@ package org.teiid.modeshape.sequencer.dataservice;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Objects;
 import java.util.Properties;
 import javax.jcr.Binary;
@@ -73,7 +74,8 @@ public class ConnectionSequencer extends Sequencer {
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
         LOGGER.debug( "enter initialize" );
 
-        registerNodeTypes( "dv.cnd", nodeTypeManager, true );
+        final URL dvCndUrl = getClass().getResource( "/org/teiid/modeshape/sequencer/dataservice/dv.cnd" );
+        registerNodeTypes( dvCndUrl.openStream(), nodeTypeManager, true );
         LOGGER.debug( "dv.cnd loaded" );
 
         LOGGER.debug( "exit initialize" );

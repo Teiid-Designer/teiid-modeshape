@@ -26,7 +26,7 @@ public class DataServiceEntry {
                                                       "entries" ) ).stream().map( DataServiceEntry::getPath ).toArray( String[]::new );
     }
 
-    private PublishPolicy publishPolicy = PublishPolicy.DEFAULT;
+    private PublishPolicy publishPolicy;
     private String path;
 
     /**
@@ -56,7 +56,7 @@ public class DataServiceEntry {
     }
 
     /**
-     * @return the publish/deploy/upload/save policy or the default value if not set (never <code>null</code>)
+     * @return the publish/deploy/upload/save policy(can be <code>null</code>)
      */
     public PublishPolicy getPublishPolicy() {
         return this.publishPolicy;
@@ -74,7 +74,7 @@ public class DataServiceEntry {
      * @see PublishPolicy#DEFAULT
      */
     public void setPublishPolicy( final PublishPolicy policy ) {
-        this.publishPolicy = ( ( policy == null ) ? PublishPolicy.DEFAULT : policy );
+        this.publishPolicy = policy;
     }
 
     /**
@@ -106,8 +106,7 @@ public class DataServiceEntry {
 
         /**
          * @param xml the XML value whose type is being requested (can be <code>null</code> or empty)
-         * @return the appropriate type or the default value if not found
-         * @see #DEFAULT
+         * @return the appropriate type or <code>null</code> if not found
          */
         public static PublishPolicy fromXml( final String xml ) {
             for ( final PublishPolicy type : values() ) {
@@ -116,7 +115,7 @@ public class DataServiceEntry {
                 }
             }
 
-            return DEFAULT;
+            return null;
         }
 
         private final String xml;

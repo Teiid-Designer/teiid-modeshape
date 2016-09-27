@@ -21,6 +21,7 @@
  */
 package org.teiid.modeshape.sequencer.dataservice;
 
+import static org.teiid.modeshape.sequencer.dataservice.DataServiceManifest.MANIFEST_ZIP_PATH;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -74,8 +75,6 @@ public class DataServiceSequencer extends Sequencer {
 
     private static final Logger LOGGER = Logger.getLogger( DataServiceSequencer.class );
 
-    private static final String MANIFEST_FILE = "META-INF/dataservice.xml";
-
     /**
      * A system property for storing the absolute root path where metadata files, like DDL, should be sequenced. If no value is
      * set, it defaults to the same parent path as the data service node.
@@ -102,7 +101,7 @@ public class DataServiceSequencer extends Sequencer {
 
     private String connectionPath;
 
-    private ConnectionSequencer datasourceSequencer; // constructed during initialize method
+    private ConnectionSequencer connectionSequencer; // constructed during initialize method
 
     private String driverPath;
 
@@ -134,8 +133,8 @@ public class DataServiceSequencer extends Sequencer {
 
         try {
             // read manifest
-            try (
-            final ZipInputStream zis = new ZipInputStream( Objects.requireNonNull( binaryValue, "binaryValue" ).getStream() ) ) {
+            try ( final ZipInputStream zis = new ZipInputStream( Objects.requireNonNull( binaryValue,
+                                                                                         "binaryValue" ).getStream() ) ) {
                 ZipEntry entry = null;
 
                 while ( ( entry = zis.getNextEntry() ) != null ) {
@@ -144,7 +143,7 @@ public class DataServiceSequencer extends Sequencer {
                     if ( entry.isDirectory() ) {
                         LOGGER.debug( "ignoring directory '{0}'", entryName );
                         continue;
-                    } else if ( entryName.endsWith( MANIFEST_FILE ) ) {
+                    } else if ( entryName.endsWith( MANIFEST_ZIP_PATH ) ) {
                         manifest = readManifest( zis, outputNode, context );
                         break;
                     } else {
@@ -177,7 +176,7 @@ public class DataServiceSequencer extends Sequencer {
                         } else if ( entryName.equals( serviceVdbPath ) ) {
                             serviceVdbEntryNode = sequenceServiceVdb( zis, serviceVdb, outputNode );
                             break;
-                        } else if ( entryName.endsWith( MANIFEST_FILE ) ) {
+                        } else if ( entryName.endsWith( MANIFEST_ZIP_PATH ) ) {
                             LOGGER.debug( "already read the manifest" );
                             continue;
                         } else {
@@ -415,14 +414,12 @@ public class DataServiceSequencer extends Sequencer {
                             final NodeTypeManager nodeTypeManager ) throws RepositoryException, IOException {
         LOGGER.debug( "enter initialize" );
 
-        registerNodeTypes( "dv.cnd", nodeTypeManager, true );
-        LOGGER.debug( "dv.cnd loaded" );
-
         this.vdbSequencer = new VdbDynamicSequencer();
         this.vdbSequencer.initialize( registry, nodeTypeManager );
 
-        this.datasourceSequencer = new ConnectionSequencer();
-        this.datasourceSequencer.initialize( registry, nodeTypeManager );
+        // dv.cnd is loaded by the connection sequencer
+        this.connectionSequencer = new ConnectionSequencer();
+        this.connectionSequencer.initialize( registry, nodeTypeManager );
 
         LOGGER.debug( "exit initialize" );
     }
@@ -511,7 +508,7 @@ public class DataServiceSequencer extends Sequencer {
             final Node connectionNode = parent.addNode( connectionEntry.getEntryName(), DataVirtLexicon.Connection.NODE_TYPE );
 
             try {
-                this.datasourceSequencer.sequenceConnection( stream, connectionNode );
+                this.connectionSequencer.sequenceConnection( stream, connectionNode );
 
                 // reference sequenced node from the connection entry
                 final Value ref = dataServiceNode.getSession().getValueFactory().createValue( connectionNode );
@@ -611,24 +608,28 @@ public class DataServiceSequencer extends Sequencer {
             final byte[] buf = new byte[ 1024 ];
             final File file = File.createTempFile( entry.getEntryName(), null );
 
-            try ( final FileOutputStream fos = new FileOutputStream( file ) ) {
-                int numRead = 0;
+            try {
+                try ( final FileOutputStream fos = new FileOutputStream( file ) ) {
+                    int numRead = 0;
 
-                while ( ( numRead = zis.read( buf ) ) > 0 ) {
-                    fos.write( buf, 0, numRead );
+                    while ( ( numRead = zis.read( buf ) ) > 0 ) {
+                        fos.write( buf, 0, numRead );
+                    }
                 }
+
+                // set content and data properties
+                final InputStream fileContent = new BufferedInputStream( new FileInputStream( file ) );
+                final Binary binary = valueFactory.createBinary( fileContent );
+                final Node contentNode = fileNode.addNode( JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE );
+                contentNode.setProperty( JcrConstants.JCR_DATA, binary );
+
+                // set last modified property
+                final Calendar lastModified = Calendar.getInstance();
+                lastModified.setTimeInMillis( file.lastModified() );
+                contentNode.setProperty( "jcr:lastModified", lastModified );
+            } finally {
+                file.delete();
             }
-
-            // set content and data properties
-            final InputStream fileContent = new BufferedInputStream( new FileInputStream( file ) );
-            final Binary binary = valueFactory.createBinary( fileContent );
-            final Node contentNode = fileNode.addNode( JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE );
-            contentNode.setProperty( JcrConstants.JCR_DATA, binary );
-
-            // set last modified property
-            final Calendar lastModified = Calendar.getInstance();
-            lastModified.setTimeInMillis( file.lastModified() );
-            contentNode.setProperty( "jcr:lastModified", lastModified );
         }
     }
 

@@ -84,7 +84,7 @@
  - vdb:message (string) mandatory
  
 [vdb:translators] > nt:unstructured
- + vdb:translator (vdb:translator) copy
+ + * (vdb:translator) copy
  
  // translator name is node name
 [vdb:translator] > nt:unstructured
@@ -114,7 +114,7 @@
  + * (nt:file) copy
 
 [vdb:permissions] > nt:unstructured
- + vdb:permission (vdb:permission) copy
+ + * (vdb:permission) copy
 
 // permission resource path is node path
 [vdb:permission] > nt:unstructured
@@ -129,20 +129,20 @@
  + vdb:masks (vdb:masks) = vdb:masks copy
 
 [vdb:conditions] > nt:unstructured
- + vdb:condition (vdb:condition) copy
+ + * (vdb:condition) copy
 
 [vdb:condition] > nt:unstructured
  - vdb:constraint (boolean) = 'true' autocreated
 
 [vdb:masks] > nt:unstructured
- + vdb:mask (vdb:mask) copy
+ + * (vdb:mask) copy
 
 [vdb:mask] > nt:unstructured
  - vdb:order (string)
 
 // group node for the VDBs that are imported by a VDB
 [vdb:importVdbs] > nt:unstructured
- + vdb:importVdb (vdb:importVdb) copy
+ + * (vdb:importVdb) copy
  
 // imported VDB name is node path
 [vdb:importVdb] > nt:unstructured

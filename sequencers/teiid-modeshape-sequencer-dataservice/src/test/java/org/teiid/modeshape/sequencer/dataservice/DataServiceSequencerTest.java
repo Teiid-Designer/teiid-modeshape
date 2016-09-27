@@ -106,7 +106,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
                                   true );
     }
 
-    private void assertReferencedResource( final Node node,
+    private Node assertReferencedResource( final Node node,
                                            final String nameOfPropertyWithRefValue,
                                            final String typeOfResource,
                                            final DataServiceEntry.PublishPolicy deployPolicy,
@@ -126,7 +126,11 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
                 assertThat( ref.hasNode( JcrConstants.JCR_CONTENT ), is( true ) );
                 assertThat( ref.getNode( JcrConstants.JCR_CONTENT ).hasProperty( JcrConstants.JCR_DATA ), is( true ) );
             }
+
+            return ref;
         }
+
+        return null;
     }
 
     private void assertResource( final Node dataServiceNode,
@@ -206,7 +210,7 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
     @Test
     public void shouldSequenceDataService() throws Exception {
         createNodeWithContentFromFile( "MyDataService.zip", "dataservice/sample-ds.zip" );
-        final Node outputNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip" );
+        final Node outputNode = getOutputNode( this.rootNode, "dataservices/MyDataService.zip", 200 );
         assertNotNull( outputNode );
         assertThat( outputNode.getPrimaryNodeType().getName(), is( DataVirtLexicon.DataService.NODE_TYPE ) );
 
@@ -262,24 +266,22 @@ public final class DataServiceSequencerTest extends AbstractSequencerTest {
             assertThat( serviceVdbEntryNode.getProperty( DataVirtLexicon.ServiceVdbEntry.VDB_VERSION ).getString(), is( "1" ) );
 
             // check reference
-            assertReferencedResource( serviceVdbEntryNode,
-                                      DataVirtLexicon.ServiceVdbEntry.VDB_REF,
-                                      VdbLexicon.Vdb.VIRTUAL_DATABASE,
-                                      PublishPolicy.IF_MISSING,
-                                      false );
-            final Node vdbNode = outputNode.getParent().getNode( "ServiceVdb" );
+            final Node vdbNode = assertReferencedResource( serviceVdbEntryNode,
+                                                           DataVirtLexicon.ServiceVdbEntry.VDB_REF,
+                                                           VdbLexicon.Vdb.VIRTUAL_DATABASE,
+                                                           PublishPolicy.IF_MISSING,
+                                                           false );
             assertThat( vdbNode.getProperty( VdbLexicon.Vdb.NAME ).getString(), is( "DynamicProducts" ) );
 
             // dependencies
             assertThat( serviceVdbEntryNode.getNodes().getSize(), is( 1L ) );
             final Node dependencyNode = serviceVdbEntryNode.getNodes().nextNode();
             assertThat( dependencyNode.getName(), is( "twitter-vdb.xml" ) );
-            assertReferencedResource( dependencyNode,
-                                      DataVirtLexicon.VdbEntry.VDB_REF,
-                                      VdbLexicon.Vdb.VIRTUAL_DATABASE,
-                                      PublishPolicy.IF_MISSING,
-                                      false );
-            final Node importVdbNode = outputNode.getParent().getNode( "twitter" );
+            final Node importVdbNode = assertReferencedResource( dependencyNode,
+                                                                 DataVirtLexicon.VdbEntry.VDB_REF,
+                                                                 VdbLexicon.Vdb.VIRTUAL_DATABASE,
+                                                                 PublishPolicy.IF_MISSING,
+                                                                 false );
             assertThat( importVdbNode.getProperty( VdbLexicon.Vdb.NAME ).getString(), is( "twitter" ) );
         }
 

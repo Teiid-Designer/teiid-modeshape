@@ -23,9 +23,6 @@ package org.teiid.modeshape.sequencer.vdb;
 
 import org.teiid.modeshape.i18n.AbstractI18nTest;
 
-/**
- * @author John Verhaeg
- */
 public class TeiidI18nTest extends AbstractI18nTest {
 
     public TeiidI18nTest() {

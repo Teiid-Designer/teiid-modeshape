@@ -47,6 +47,16 @@ public class DataServiceManifest implements VdbEntryContainer {
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern( DATE_PATTERN );
 
     /**
+     * The file name of the data service manifest. Value is {@value}.
+     */
+    public static final String MANIFEST_FILE = "dataservice.xml";
+
+    /**
+     * The entry path of the data service manifest.
+     */
+    public static final String MANIFEST_ZIP_PATH = ( "META-INF/" + MANIFEST_FILE );
+
+    /**
      * @param lastModifiedDate the string representation of the date being parsed (cannot be <code>null</code>)
      * @return the date (never <code>null</code>)
      * @throws DateTimeParseException if the input cannot be parsed
@@ -59,7 +69,7 @@ public class DataServiceManifest implements VdbEntryContainer {
         return new DataServiceManifestReader().read( stream );
     }
 
-    private final Collection< ConnectionEntry > dataSources = new ArrayList<>();
+    private final Collection< ConnectionEntry > connections = new ArrayList<>();
     private String description;
     private final Collection< DataServiceEntry > drivers = new ArrayList<>();
     private LocalDateTime lastModified;
@@ -73,10 +83,10 @@ public class DataServiceManifest implements VdbEntryContainer {
     private final Collection< VdbEntry > vdbs = new ArrayList<>();
 
     /**
-     * @param dataSourceEntry a connection entry (cannot be <code>null</code>)
+     * @param connectionEntry a connection entry (cannot be <code>null</code>)
      */
-    public void addDataSource( final ConnectionEntry dataSourceEntry ) {
-        this.dataSources.add( Objects.requireNonNull( dataSourceEntry, "dataSourceEntry" ) );
+    public void addConnection( final ConnectionEntry connectionEntry ) {
+        this.connections.add( Objects.requireNonNull( connectionEntry, "dataSourceEntry" ) );
     }
 
     /**
@@ -135,11 +145,11 @@ public class DataServiceManifest implements VdbEntryContainer {
      * @return the connection entries (never <code>null</code> but can be empty)
      */
     public ConnectionEntry[] getConnections() {
-        if ( this.dataSources.isEmpty() ) {
+        if ( this.connections.isEmpty() ) {
             return ConnectionEntry.NO_DATA_SOURCES;
         }
 
-        return this.dataSources.toArray( new ConnectionEntry[ this.dataSources.size() ] );
+        return this.connections.toArray( new ConnectionEntry[ this.connections.size() ] );
     }
 
     /**
