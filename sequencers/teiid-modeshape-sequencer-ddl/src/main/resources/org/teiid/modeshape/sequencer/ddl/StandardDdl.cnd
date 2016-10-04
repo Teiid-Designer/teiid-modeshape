@@ -40,7 +40,7 @@
 // =============================================================================
 // STATEMENT
 // =============================================================================
-[ddl:statement] mixin abstract
+[ddl:statement] mixin
   - ddl:expression (string) mandatory                       // The string fragment encompassing the statement expression.
   - ddl:originalExpression (string)               // The string fragment encompassing the original statement expression.
   - ddl:startLineNumber (long) mandatory                    // The starting line number for the statement
