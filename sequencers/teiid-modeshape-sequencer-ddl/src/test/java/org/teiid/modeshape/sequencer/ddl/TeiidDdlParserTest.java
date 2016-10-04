@@ -100,6 +100,105 @@ public class TeiidDdlParserTest extends DdlParserTestHelper implements TeiidDdlC
             assertMixinType(kids.get(0), TeiidDdlLexicon.CreateProcedure.PROCEDURE_STATEMENT);
         }
     }
+    
+    @Test
+    public void shouldKeepCacheHints() {
+	// @formatter :off
+	final String content = "CREATE VIEW internal_short_ttl (\n" 
+	        + "\tcustomer_id integer NOT NULL,\n"
+		+ "\ttotal_amount integer\n" 
+	        + ") OPTIONS (MATERIALIZED 'TRUE',\n"
+		+ "\t\"teiid_rel:MATVIEW_BEFORE_LOAD_SCRIPT\" 'execute Source.native(''INSERT INTO check_table(id,before_load) VALUES (''internal_short_ttl'',1) ON DUPLICATE KEY UPDATE before_load=before_load+1;'');',\n"
+		+ "\t\"teiid_rel:MATVIEW_AFTER_LOAD_SCRIPT\" 'execute Source.native(''INSERT INTO check_table(id,after_load) VALUES (''internal_short_ttl'',1) ON DUPLICATE KEY UPDATE after_load=after_load+1;'')'\n"
+		+ ")\n"
+		+ "\tAS /*+ cache(ttl:100)*/SELECT c.id AS customer_id, CONVERT(SUM(o.amount),biginteger) AS total_amount FROM customers c INNER JOIN orders o ON c.id = o.customer_id GROUP BY c.id;";
+	// @formatter :on
+	assertScoreAndParse(content, null, 1);
+
+	final List<AstNode> kids = getRootNode().childrenWithName("internal_short_ttl");
+	assertThat(kids.size(), is(1));
+	assertMixinType(kids.get(0), TeiidDdlLexicon.CreateTable.VIEW_STATEMENT);
+
+	final AstNode viewNode = kids.get(0);
+	assertProperty(viewNode, TeiidDdlLexicon.CreateTable.QUERY_EXPRESSION,
+		"/*+ cache(ttl:100)*/SELECT c.id AS customer_id, CONVERT(SUM(o.amount),biginteger) AS total_amount FROM customers c INNER JOIN orders o ON c.id = o.customer_id GROUP BY c.id");
+    }
+
+    @Test
+    public void shouldKeepDdlComments() {
+	final String content = "CREATE VIEW PRODUCTDATA (\n"
+		+ "\tINSTR_ID string(10) NOT NULL OPTIONS(NAMEINSOURCE '\"INSTR_ID\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tNAME string(60) OPTIONS(NAMEINSOURCE '\"NAME\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tTYPE string(15) OPTIONS(NAMEINSOURCE '\"TYPE\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tISSUER string(10) OPTIONS(NAMEINSOURCE '\"ISSUER\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tEXCHANGE string(10) OPTIONS(NAMEINSOURCE '\"EXCHANGE\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tISDJI bigdecimal(22) NOT NULL OPTIONS(NAMEINSOURCE '\"ISDJI\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tISSP500 bigdecimal(22) NOT NULL OPTIONS(NAMEINSOURCE '\"ISSP500\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tISNAS100 bigdecimal(22) NOT NULL OPTIONS(NAMEINSOURCE '\"ISNAS100\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tISAMEXINT bigdecimal(22) NOT NULL OPTIONS(NAMEINSOURCE '\"ISAMEXINT\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tPRIBUSINESS string(30) OPTIONS(NAMEINSOURCE '\"PRIBUSINESS\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tCONSTRAINT PK_PD_INSTR_ID PRIMARY KEY(INSTR_ID)\n"
+		+ ") OPTIONS(NAMEINSOURCE '\"PRODUCTS\".\"PRODUCTDATA\"', UPDATABLE 'FALSE') \n" + "AS\n"
+		+ "\t/* first comment in the product data*/\n" + "SELECT\n" + "\t\t*\n" + "\tFROM\n"
+		+ "\t\t/* second comment in the product data*/\n" + "\t\tProducts.PRODUCTDATA;\n" + "\t\t\n"
+		+ "CREATE VIEW PRODUCTSYMBOLS (\n"
+		+ "\tINSTR_ID string(10) NOT NULL OPTIONS(NAMEINSOURCE '\"INSTR_ID\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tSYMBOL_TYPE bigdecimal(22) OPTIONS(NAMEINSOURCE '\"SYMBOL_TYPE\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tSYMBOL string(10) NOT NULL OPTIONS(NAMEINSOURCE '\"SYMBOL\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tCUSIP string(10) OPTIONS(NAMEINSOURCE '\"CUSIP\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tCONSTRAINT PK_PS_INSTR_ID PRIMARY KEY(INSTR_ID),\n"
+		+ "\tCONSTRAINT FK_INSTR_ID FOREIGN KEY(INSTR_ID) REFERENCES PRODUCTDATA(INSTR_ID)\n"
+		+ ") OPTIONS(NAMEINSOURCE '\"PRODUCTS\".\"PRODUCTSYMBOLS\"', UPDATABLE 'FALSE') \n" + "AS\n"
+		+ "\t/* first comment in the product symbols*/\n" + "SELECT\n" + "\t\t*\n" + "\tFROM\n"
+		+ "\t\t/* second comment in the product symbols*/\n" + "\t\tProducts.PRODUCTSYMBOLS;\n" + "\t\t\n"
+		+ "CREATE VIEW TYPETEST (\n"
+		+ "\tCUSTOMERID string(12) NOT NULL OPTIONS(NAMEINSOURCE '\"CUSTOMERID\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tDATECOL date NOT NULL OPTIONS(NAMEINSOURCE '\"DATECOL\"', NATIVE_TYPE 'DATE', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tDATETIMECOL timestamp NOT NULL OPTIONS(NAMEINSOURCE '\"DATETIMECOL\"', NATIVE_TYPE 'TIMESTAMP(6)', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tTIMESTAMPWITHTZ timestamp OPTIONS(NAMEINSOURCE '\"TIMESTAMPWITHTZ\"', NATIVE_TYPE 'TIMESTAMP(6) WITH TIME ZONE', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tTIMESTAMP2WITHTZ timestamp OPTIONS(NAMEINSOURCE '\"TIMESTAMP2WITHTZ\"', NATIVE_TYPE 'TIMESTAMP(6) WITH TIME ZONE', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tDOUBLECOL float NOT NULL OPTIONS(NAMEINSOURCE '\"DOUBLECOL\"', NATIVE_TYPE 'FLOAT', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tDECIMAL3COL bigdecimal(3) NOT NULL OPTIONS(NAMEINSOURCE '\"DECIMAL3COL\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tDECIMAL22COL bigdecimal(22) NOT NULL OPTIONS(NAMEINSOURCE '\"DECIMAL22COL\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tBIGSTRINGCOL string(512) NOT NULL OPTIONS(NAMEINSOURCE '\"BIGSTRINGCOL\"', NATIVE_TYPE 'VARCHAR2', UPDATABLE 'FALSE'),\n"
+		+ "\tDECIMAL12COL bigdecimal(12) NOT NULL OPTIONS(NAMEINSOURCE '\"DECIMAL12COL\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tINTEGERCOL bigdecimal(22) NOT NULL OPTIONS(NAMEINSOURCE '\"INTEGERCOL\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE'),\n"
+		+ "\tDECIMAL22D2COL bigdecimal(22, 2) NOT NULL OPTIONS(NAMEINSOURCE '\"DECIMAL22D2COL\"', NATIVE_TYPE 'NUMBER', CASE_SENSITIVE 'FALSE', UPDATABLE 'FALSE', FIXED_LENGTH 'TRUE', SEARCHABLE 'ALL_EXCEPT_LIKE')\n"
+		+ ") OPTIONS(NAMEINSOURCE '\"PRODUCTS\".\"TYPETEST\"', UPDATABLE 'FALSE') \n" + "AS\n"
+		+ "\t/* first comment in the typetest*/\n" + "SELECT\n" + "\t\t*\n" + "\tFROM\n"
+		+ "\t\t/* second comment in the typetest*/\n" + "\t\tProducts.TYPETEST;";
+	assertScoreAndParse(content, null, 3);
+
+	{
+	    final List<AstNode> kids = getRootNode().childrenWithName("PRODUCTDATA");
+	    assertThat(kids.size(), is(1));
+	    assertMixinType(kids.get(0), TeiidDdlLexicon.CreateTable.VIEW_STATEMENT);
+
+	    final AstNode viewNode = kids.get(0);
+	    assertProperty(viewNode, TeiidDdlLexicon.CreateTable.QUERY_EXPRESSION,
+		    "/* first comment in the product data*/ SELECT * FROM /* second comment in the product data*/ Products.PRODUCTDATA");
+	}
+
+	{
+	    final List<AstNode> kids = getRootNode().childrenWithName("PRODUCTSYMBOLS");
+	    assertThat(kids.size(), is(1));
+	    assertMixinType(kids.get(0), TeiidDdlLexicon.CreateTable.VIEW_STATEMENT);
+
+	    final AstNode viewNode = kids.get(0);
+	    assertProperty(viewNode, TeiidDdlLexicon.CreateTable.QUERY_EXPRESSION,
+		    "/* first comment in the product symbols*/ SELECT * FROM /* second comment in the product symbols*/ Products.PRODUCTSYMBOLS");
+	}
+
+	{
+	    final List<AstNode> kids = getRootNode().childrenWithName("TYPETEST");
+	    assertThat(kids.size(), is(1));
+	    assertMixinType(kids.get(0), TeiidDdlLexicon.CreateTable.VIEW_STATEMENT);
+
+	    final AstNode viewNode = kids.get(0);
+	    assertProperty(viewNode, TeiidDdlLexicon.CreateTable.QUERY_EXPRESSION,
+		    "/* first comment in the typetest*/ SELECT * FROM /* second comment in the typetest*/ Products.TYPETEST");
+	}
+    }
 
     /**
      * See Teiid TestDDLParser#testMultipleCommands2()
@@ -380,7 +479,7 @@ public class TeiidDdlParserTest extends DdlParserTestHelper implements TeiidDdlC
         printTest("shouldSapHana()");
 
         String content = getFileContent(DDL_FILE_PATH + "sap-hana.ddl");
-        assertScoreAndParse(content, "teiid_test_statements_2", 2);
+        assertScoreAndParse(content, "teiid_test_statements_2", 5); // 2 tablse + 3 ignorable comments 
         
         { // test for parsing column named INDEX
             final List<AstNode> tables = getRootNode().childrenWithName("_SYS_STATISTICS.GLOBAL_COLUMN_TABLES_SIZE");

@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.teiid.modeshape.sequencer.ddl.DdlTokenStream.DdlTokenizer;
 import org.teiid.modeshape.sequencer.ddl.node.AstNode;
 
 /**
@@ -148,6 +149,9 @@ public final class TeiidDdlParser extends StandardDdlParser implements TeiidDdlC
                 return statementNode;
             }
         }
+        
+        // don't consume comment as super will do that for ignorable statements
+        if (tokens.matches(DdlTokenizer.COMMENT)) return null; // TODO these comments are being thrown out
 
         // Unparsable DDL statement
         throw new TeiidDdlParsingException(tokens, "Unparsable DDL statement");
