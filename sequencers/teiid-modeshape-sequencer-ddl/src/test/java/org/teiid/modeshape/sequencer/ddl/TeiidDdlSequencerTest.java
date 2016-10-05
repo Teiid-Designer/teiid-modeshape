@@ -724,7 +724,7 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
     @Test
     public void shouldSequenceLocalTemporaryTable() throws Exception {
         this.statementsNode = sequenceDdl("ddl/localTemporaryTable.ddl");
-        assertThat(this.statementsNode.getNodes().getSize(), is(2L)); // create table, create temp table
+        assertThat(this.statementsNode.getNodes().getSize(), is(3L)); // create table, create temp table, ignored comment
 
         final Node tempTableNode = this.statementsNode.getNode("x");
         verifyMixinType(tempTableNode, TeiidDdlLexicon.CreateTable.LOCAL_TEMP_TABLE_STATEMENT);
@@ -751,6 +751,10 @@ public class TeiidDdlSequencerTest extends AbstractDdlSequencerTest {
         } else {
             fail();
         }
+        
+        final Node ignored = this.statementsNode.getNode("IGNORED_1");
+        assertThat(ignored.getProperty(StandardDdlLexicon.DDL_EXPRESSION).getString(),
+                   is("// this first statement is needed so that the Teiid parser is picked"));
     }
 
     @Ignore

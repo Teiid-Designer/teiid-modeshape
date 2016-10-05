@@ -141,6 +141,8 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
      */
     public static final String ID = "SQL92";
 
+    private static final String IGNORED_STATEMENT_NAME = "IGNORED_";
+
     private boolean testMode = false;
     private final List<DdlParserProblem> problems;
     private final AstNodeFactory nodeFactory;
@@ -150,6 +152,8 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
     private String terminator = DEFAULT_TERMINATOR;
     private boolean useTerminator = false;
     private Position currentMarkedPosition;
+    private boolean includeComments = true;
+    private int ignoredStatementSuffix = 1;
 
     public StandardDdlParser() {
         super();
@@ -218,8 +222,7 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
 
         // Create the state of this parser ...
         problems.clear();
-        boolean includeComments = true;
-        DdlTokenStream tokens = new DdlTokenStream(ddl, DdlTokenStream.ddlTokenizer(includeComments), false);
+        DdlTokenStream tokens = new DdlTokenStream(ddl, DdlTokenStream.ddlTokenizer(this.includeComments), false);
         initializeTokenStream(tokens);
         tokens.start();
 
@@ -273,6 +276,7 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
         CheckArg.isNotNull(ddl, "ddl");
         CheckArg.isNotNull(rootNode, "rootNode");
         problems.clear();
+        this.ignoredStatementSuffix = 1;
         setRootNode(rootNode);
 
         DdlTokenStream tokens = null;
@@ -281,8 +285,7 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
             tokens.rewind();
         } else {
             // Need to create the token stream ...
-            boolean includeComments = false;
-            tokens = new DdlTokenStream(ddl, DdlTokenStream.ddlTokenizer(includeComments), false);
+            tokens = new DdlTokenStream(ddl, DdlTokenStream.ddlTokenizer(this.includeComments), false);
             initializeTokenStream(tokens);
             tokens.start();
         }
@@ -297,7 +300,7 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
             AstNode stmtNode = parseNextStatement(tokens, rootNode);
             if (stmtNode == null) {
                 markStartOfStatement(tokens);
-                String stmtName = tokens.consume();
+                final String stmtName = ( IGNORED_STATEMENT_NAME + this.ignoredStatementSuffix++ );
                 stmtNode = parseIgnorableStatement(tokens, stmtName, rootNode);
                 markEndOfStatement(tokens, stmtNode);
             }
@@ -388,10 +391,14 @@ public class StandardDdlParser implements DdlParser, DdlConstants, DdlConstants.
         // Check to see if any more tokens exists
         if (tokens.hasNext()) {
             while (tokens.hasNext()) {
-                if (tokens.canConsume(DdlTokenizer.COMMENT)) continue;
+				if (!this.includeComments && tokens.matches(DdlTokenizer.COMMENT)) {
+					final String comment = tokens.consume();
+					LOGGER.debug("consumed comment: " + comment);
+					continue;
+				}
 
                 // If the next toke is a STATEMENT_KEY, then stop
-                if (!tokens.matches(DdlTokenizer.STATEMENT_KEY)) {
+                if (!tokens.matches(DdlTokenizer.COMMENT) && !tokens.matches(DdlTokenizer.STATEMENT_KEY)) {
                     // If the next toke is NOT a statement, create a problem statement in case it can't be fully recognized as
                     // a statement.
                     if (problem == null) {
