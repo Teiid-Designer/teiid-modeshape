@@ -52,11 +52,6 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public final class ConnectionReader extends DefaultHandler {
 
-    /**
-     * The valid connection file extension. Value is {@value}.
-     */
-    public static final String FILE_EXTENSION = "-connection.xml"; //$NON-NLS-1$
-
     private static final String DATA_SOURCE_SCHEMA_FILE = "connection.xsd"; //$NON-NLS-1$
     private static final Logger LOGGER = Logger.getLogger( ConnectionReader.class );
 
