@@ -71,7 +71,7 @@ public class DataServiceExporter extends AbstractExporter {
     /**
      * The result data key whose value is a <code>String[]</code> of the file entry paths of the result outcome. Used only when
      * exporting file contents of the data service.
-     * 
+     *
      * @see Result#getData(String)
      * @see Result#getOutcome()
      */
@@ -938,8 +938,25 @@ public class DataServiceExporter extends AbstractExporter {
             } else if ( StringUtil.isBlank( entryFolder ) ) {
                 path = node.getName();
             } else {
-                path = ( entryFolder
-                         + node.getName() );
+                path = ( entryFolder + ( entryFolder.endsWith( "/" ) ? node.getName() : ( '/' + node.getName() ) ) );
+            }
+
+            // ensure VDB and connection entry paths have the required suffix
+            if ( ( ( entry instanceof VdbEntry ) || ( entry instanceof ServiceVdbEntry ) )
+                    && ( !path.endsWith( DataServiceManifest.VDB_ENTRY_SUFFIX ) ) ) {
+                if ( path.endsWith( ".xml" ) ) {
+                    path = ( path.substring( 0, path.lastIndexOf( ".xml" ) ) + DataServiceManifest.VDB_ENTRY_SUFFIX );
+                } else {
+                    path = ( path + DataServiceManifest.VDB_ENTRY_SUFFIX );
+                }
+            } else if ( ( entry instanceof ConnectionEntry )
+                    && ( !path.endsWith( DataServiceManifest.CONNECTION_ENTRY_SUFFIX ) ) ) {
+                if ( path.endsWith( ".xml" ) ) {
+                    path = ( path.substring( 0, path.lastIndexOf( ".xml" ) )
+                            + DataServiceManifest.CONNECTION_ENTRY_SUFFIX );
+                } else {
+                    path = ( path + DataServiceManifest.CONNECTION_ENTRY_SUFFIX );
+                }
             }
 
             entry.setPath( path );

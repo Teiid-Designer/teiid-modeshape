@@ -37,6 +37,11 @@ import org.modeshape.common.util.StringUtil;
 public class DataServiceManifest implements VdbEntryContainer {
 
     /**
+     * The required connection entry suffix. Value is {@value}.
+     */
+    public static final String CONNECTION_ENTRY_SUFFIX = "-connection.xml";
+
+    /**
      * The date pattern used for the last modified property.
      */
     public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
@@ -55,6 +60,11 @@ public class DataServiceManifest implements VdbEntryContainer {
      * The entry path of the data service manifest.
      */
     public static final String MANIFEST_ZIP_PATH = ( "META-INF/" + MANIFEST_FILE );
+
+    /**
+     * The required VDB entry suffix. Value is {@value}.
+     */
+    public static final String VDB_ENTRY_SUFFIX = "-vdb.xml";
 
     /**
      * @param lastModifiedDate the string representation of the date being parsed (cannot be <code>null</code>)
