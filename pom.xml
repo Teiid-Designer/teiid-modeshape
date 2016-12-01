@@ -37,6 +37,7 @@
         <modeshape.version>5.1.0.Final</modeshape.version>
         <slf4j.api.version>1.7.7</slf4j.api.version>
         <slf4j.log4j.version>1.7.7</slf4j.log4j.version>
+	<jbossNexus>repository.jboss.org</jbossNexus>
     </properties>
 
     <!-- ================================================================== -->
@@ -208,4 +209,22 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+       <repository>
+          <id>jboss-releases-repository</id>
+          <name>JBoss Release Staging Repository</name>
+          <uniqueVersion>false</uniqueVersion>
+          <url>https://${jbossNexus}/nexus/service/local/staging/deploy/maven2/</url>
+          <layout>default</layout>
+       </repository>
+
+       <snapshotRepository>
+          <id>jboss-snapshots-repository</id>
+          <name>JBoss Snapshot Repository</name>
+          <uniqueVersion>false</uniqueVersion>
+          <url>https://${jbossNexus}/nexus/content/repositories/snapshots/</url>
+          <layout>default</layout>
+       </snapshotRepository>
+    </distributionManagement>
 </project>
