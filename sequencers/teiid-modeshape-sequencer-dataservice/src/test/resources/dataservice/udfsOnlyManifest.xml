@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="UdfEntriesOnly">
+
+    <lastModified>2002-05-30T09:30:10</lastModified>
+
+    <property name="propA">Value A</property>
+    <property name="propB">Value B</property>
+    <property name="propC">Value C</property>
+
+    <udfs>
+        <udf-file
+            path="udf.jar"
+            publish="ifMissing" />
+    </udfs>
+
+</dataservice>

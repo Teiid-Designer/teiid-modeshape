@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="MetadataEntriesOnly">
+
+    <description>This is my metadata entries only description</description>
+
+    <metadata>
+        <ddl-file
+            path="my.ddl"
+            publish="ifMissing" />
+    </metadata>
+
+</dataservice>

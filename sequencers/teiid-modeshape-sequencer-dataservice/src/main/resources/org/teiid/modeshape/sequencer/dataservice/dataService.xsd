@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+>
+    <xs:element name="dataservice">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element
+                    name="description"
+                    type="xs:string"
+                    minOccurs="0" />
+
+                <xs:element
+                    name="lastModified"
+                    type="xs:dateTime"
+                    minOccurs="0" />
+
+                <xs:element
+                    name="modifiedBy"
+                    type="xs:string"
+                    minOccurs="0" />
+
+                <xs:element
+                    name="property"
+                    type="propertyType"
+                    minOccurs="0"
+                    maxOccurs="unbounded" />
+
+                <xs:choice>
+                    <xs:sequence>
+                        <xs:element
+                            name="service-vdb-file"
+                            type="serviceVdbType" />
+                        <xs:element
+                            name="metadata"
+                            type="metadataGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="connections"
+                            type="connectionGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="drivers"
+                            type="driverGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="udfs"
+                            type="udfGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="vdbs"
+                            type="vdbGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType"
+                            minOccurs="0" />
+                    </xs:sequence>
+
+                    <xs:sequence>
+                        <xs:element
+                            name="metadata"
+                            type="metadataGroupType" />
+                        <xs:element
+                            name="connections"
+                            type="connectionGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="drivers"
+                            type="driverGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="udfs"
+                            type="udfGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="vdbs"
+                            type="vdbGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType"
+                            minOccurs="0" />
+                    </xs:sequence>
+
+                    <xs:sequence>
+                        <xs:element
+                            name="connections"
+                            type="connectionGroupType" />
+                        <xs:element
+                            name="drivers"
+                            type="driverGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="udfs"
+                            type="udfGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="vdbs"
+                            type="vdbGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType"
+                            minOccurs="0" />
+                    </xs:sequence>
+
+                    <xs:sequence>
+                        <xs:element
+                            name="drivers"
+                            type="driverGroupType" />
+                        <xs:element
+                            name="udfs"
+                            type="udfGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="vdbs"
+                            type="vdbGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType"
+                            minOccurs="0" />
+                    </xs:sequence>
+
+                    <xs:sequence>
+                        <xs:element
+                            name="udfs"
+                            type="udfGroupType" />
+                        <xs:element
+                            name="vdbs"
+                            type="vdbGroupType"
+                            minOccurs="0" />
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType"
+                            minOccurs="0" />
+                    </xs:sequence>
+
+                    <xs:sequence>
+                        <xs:element
+                            name="vdbs"
+                            type="vdbGroupType" />
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType"
+                            minOccurs="0" />
+                    </xs:sequence>
+
+                    <xs:sequence>
+                        <xs:element
+                            name="resources"
+                            type="resourceGroupType" />
+                    </xs:sequence>
+                </xs:choice>
+            </xs:sequence>
+
+            <xs:attribute
+                name="name"
+                type="xs:string"
+                use="required"
+            >
+                <xs:annotation>
+                    <xs:documentation>The name of the Data Service.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+
+        <!-- Make sure the path attribute is unique across all entries -->
+        <xs:unique name="pathConstraint">
+            <xs:selector xpath=".//*" />
+            <xs:field xpath="@path" />
+        </xs:unique>
+
+        <!-- Make sure the JNDI name attribute is unique across all connection entries -->
+        <xs:unique name="jndiNameConstraint">
+            <xs:selector xpath=".//connection-file" />
+            <xs:field xpath="@jndiName" />
+        </xs:unique>
+
+        <!-- Make sure VDB entries have unique name and version -->
+        <xs:unique name="vdbNameVersionConstraint">
+            <xs:selector xpath=".//vdb-file" />
+            <xs:field xpath="@vdbName" />
+            <xs:field xpath="@vdbVersion" />
+        </xs:unique>
+    </xs:element>
+
+    <xs:complexType name="metadataGroupType">
+        <xs:sequence>
+            <xs:element
+                name="ddl-file"
+                type="entryType"
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>A grouping of metadata (DDL) file entries.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="connectionGroupType">
+        <xs:sequence>
+            <xs:element
+                name="connection-file"
+                type="connectionType"
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>A grouping of connection file entries.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="driverGroupType">
+        <xs:sequence>
+            <xs:element
+                name="driver-file"
+                type="entryType"
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>A grouping of driver file entries.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="udfGroupType">
+        <xs:sequence>
+            <xs:element
+                name="udf-file"
+                type="entryType"
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>A grouping of UDF file entries.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="resourceGroupType">
+        <xs:sequence>
+            <xs:element
+                name="resource-file"
+                type="entryType"
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>A grouping of resource file entries.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="serviceVdbType">
+        <xs:complexContent>
+            <xs:extension base="vdbType">
+                <xs:sequence>
+                    <xs:element
+                        name="dependencies"
+                        type="vdbGroupType"
+                        minOccurs="0"
+                    >
+                        <xs:annotation>
+                            <xs:documentation>A grouping of VDB dependency file entries.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="vdbGroupType">
+        <xs:sequence>
+            <xs:element
+                name="vdb-file"
+                type="vdbType"
+                minOccurs="1"
+                maxOccurs="unbounded"
+            >
+                <xs:annotation>
+                    <xs:documentation>A grouping of VDB file entries.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A VDB file entry. -->
+    <!-- -->
+    <xs:complexType name="vdbType">
+        <xs:complexContent>
+            <xs:extension base="entryType">
+                <xs:attribute
+                    name="vdbName"
+                    type="xs:string"
+                    use="required"
+                >
+                    <xs:annotation>
+                        <xs:documentation>The VDB name.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+
+                <xs:attribute
+                    name="vdbVersion"
+                    type="xs:string"
+                    use="required"
+                >
+                    <xs:annotation>
+                        <xs:documentation>The VDB version.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A connection file entry. -->
+    <!-- -->
+    <xs:complexType name="connectionType">
+        <xs:complexContent>
+            <xs:extension base="entryType">
+                <xs:attribute
+                    name="jndiName"
+                    type="xs:string"
+                    use="required"
+                >
+                    <xs:annotation>
+                        <xs:documentation>The connection's JNDI name.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A base type for a data service archive entry. -->
+    <!-- -->
+    <xs:complexType name="entryType">
+
+        <xs:attribute
+            name="path"
+            type="xs:string"
+            use="required"
+        >
+            <xs:annotation>
+                <xs:documentation>The path of the entry in the archive.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute
+            name="publish"
+            type="publishType"
+            default="ifMissing"
+        >
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- The publish type determines how the data service entry should be published. -->
+    <!-- -->
+    <xs:simpleType name="publishType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ifMissing" />
+            <xs:enumeration value="always" />
+            <xs:enumeration value="never" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- -->
+    <!-- A property with a non-empty value. -->
+    <!-- -->
+    <xs:complexType name="propertyType">
+        <xs:annotation>
+            <xs:documentation>A property with name attribute.</xs:documentation>
+        </xs:annotation>
+
+        <xs:simpleContent>
+            <xs:extension base="nonEmptyStringType">
+                <xs:attribute
+                    name="name"
+                    type="xs:string"
+                    use="required"
+                >
+                    <xs:annotation>
+                        <xs:documentation>The property name.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- -->
+    <!-- A non-empty string. -->
+    <!-- -->
+    <xs:simpleType name="nonEmptyStringType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

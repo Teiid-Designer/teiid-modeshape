@@ -249,6 +249,7 @@ abstract class DdlSequencer extends Sequencer {
             sequenceNode = parent.addNode(relativePath, astNode.getPrimaryType());
         } else {
             final Session session = (Session)parentNode.getSession();
+            preProcess(astNode, parentNode);
             String jcrName = astNode.getName();
 
             // if first character is a '{' then the name is prefixed by the namespace URL
@@ -272,6 +273,18 @@ abstract class DdlSequencer extends Sequencer {
         astNode.removeProperty(JcrConstants.JCR_MIXIN_TYPES);
         astNode.removeProperty(JcrConstants.JCR_PRIMARY_TYPE);
         return sequenceNode;
+    }
+
+    /**
+     * Default behavior is to do nothing.
+     * 
+     * @param astNode the {@link AstNode} whose JCR node will be created next (cannot be <code>null</code>)
+     * @param parentNode the JCR parent node where the node will be created (cannot be <code>null</code>)
+     * @throws RepositoryException if an error occurs
+     */
+    protected void preProcess( final AstNode astNode,
+                               final Node parentNode ) throws RepositoryException {
+        // do nothing
     }
 
     private List<Value> convertToPropertyValues( Object objectValue,

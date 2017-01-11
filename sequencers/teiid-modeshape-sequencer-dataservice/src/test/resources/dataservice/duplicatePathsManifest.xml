@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="MyDataService">
+
+    <description>This is my data service description</description>
+    <lastModified>2002-05-30T09:30:10</lastModified>
+    <modifiedBy>elvis</modifiedBy>
+
+    <property name="propA">Value A</property>
+
+    <service-vdb-file
+        path="duplicatePath-vdb.xml"
+        publish="ifMissing"
+        vdbName="ServiceVdb"
+        vdbVersion="1"
+    >
+        <dependencies>
+            <vdb-file
+                path="blah-vdb.xml"
+                publish="ifMissing"
+                vdbName="Blah"
+                vdbVersion="1" />
+        </dependencies>
+    </service-vdb-file>
+
+    <metadata>
+        <ddl-file
+            path="firstDdl.ddl"
+            publish="always" />
+        <ddl-file
+            path="secondDdl.ddl"
+            publish="always" />
+    </metadata>
+
+    <connections>
+        <connection-file
+            path="first-connection.xml"
+            publish="ifMissing"
+            jndiName="firstConnection" />
+        <connection-file
+            path="second-connection.xml"
+            publish="ifMissing"
+            jndiName="secondDS" />
+    </connections>
+
+    <drivers>
+        <driver-file path="firstDriver.jar" />
+        <driver-file path="secondDriver.jar" />
+    </drivers>
+
+    <udfs>
+        <udf-file
+            path="firstUdf.jar"
+            publish="never" />
+        <udf-file path="secondUdf.jar" />
+    </udfs>
+
+    <vdbs>
+        <vdb-file
+            path="duplicatePath-vdb.xml"
+            publish="ifMissing"
+            vdbName="FirstVdb"
+            vdbVersion="1" />
+        <vdb-file
+            path="second-vdb.xml"
+            vdbName="SecondVdb"
+            vdbVersion="1" />
+    </vdbs>
+
+    <resources>
+        <resource-file path="firstResource.xml" />
+        <resource-file
+            path="secondResource.xml"
+            publish="always" />
+    </resources>
+
+</dataservice>

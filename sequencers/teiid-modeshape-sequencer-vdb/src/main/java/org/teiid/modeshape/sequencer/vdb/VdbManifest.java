@@ -125,6 +125,11 @@ public class VdbManifest implements Comparable<VdbManifest> {
 
     static final Logger LOGGER = Logger.getLogger(VdbManifest.class);
 
+    /**
+     * The default VDB version. Value is {@value}.
+     */
+    public static final String DEFAULT_VERSION = "1";
+
     public static VdbManifest read( final InputStream stream,
                                     final Context context ) throws Exception {
 
@@ -133,9 +138,9 @@ public class VdbManifest implements Comparable<VdbManifest> {
 
     private final String name;
     private String description;
-    private String connectionType = "BY_VERSION";
+    private String connectionType;
     private final Map<String, String> properties = new HashMap<String, String>();
-    private int version = 1;
+    private int version = Integer.parseInt( DEFAULT_VERSION );
 
     private final List<VdbDataRole> dataRoles = new ArrayList<VdbDataRole>();
     private final List<VdbEntry> entries = new ArrayList<VdbEntry>();
@@ -408,13 +413,22 @@ public class VdbManifest implements Comparable<VdbManifest> {
                     } else if (VdbLexicon.ManifestIds.DESCRIPTION.equals(elementName)) {
                         final String description = streamReader.getElementText();
                         model.setDescription(description);
-                    } else if (VdbLexicon.ManifestIds.METADATA.equals(elementName)) {
-                        if (streamReader.getAttributeCount() == 1) {
-                            model.setMetadataType(streamReader.getAttributeValue(0));
-                        }
+                    } else if ( VdbLexicon.ManifestIds.METADATA.equals( elementName ) ) {
+                        final String metadataType = ( streamReader.getAttributeCount() == 1 ) ? streamReader.getAttributeValue( 0 )
+                                                                                              : VdbModel.DEFAULT_METADATA_TYPE;
+                        model.setMetadataType( metadataType );
 
-                        final String metadata = streamReader.getElementText().trim();
-                        model.setModelDefinition(metadata.replaceAll("\\s{2,}", " ")); // collapse whitespace
+                        // if metadata type is DDL the actual DDL is the element text
+                        // if metadata type is DDL-FILE the path of the DDL file in the archive is the text
+                        // - the sequencer uses the archive path of the DDL file to find the appropriate model
+                        // - then the sequencer reads the DDL file and its content (DDL) is used to set the model definition
+                        if ( VdbModel.DDL_FILE_METADATA_TYPE.equals( metadataType ) ) {
+                            final String entryPath = streamReader.getElementText().trim();
+                            model.setDdlFileEntryPath( entryPath );
+                        } else {
+                            final String metadata = streamReader.getElementText().trim();
+                            model.setModelDefinition( metadata.replaceAll( "\\s{2,}", " " ) ); // collapse whitespace
+                        }
                     } else {
                         LOGGER.debug("**** unexpected model element={0}", elementName);
                     }
@@ -658,6 +672,9 @@ public class VdbManifest implements Comparable<VdbManifest> {
                     if (VdbLexicon.ManifestIds.DESCRIPTION.equals(elementName)) {
                         final String description = streamReader.getElementText();
                         manifest.setDescription(description);
+                    } else if (VdbLexicon.ManifestIds.CONNECTION_TYPE.equals(elementName)) {
+                        final String connectionType = streamReader.getElementText();
+                        manifest.setConnectionType(connectionType);
                     } else if (VdbLexicon.ManifestIds.MODEL.equals(elementName)) {
                         final VdbModel model = parseModel(streamReader);
                         assert (model != null) : "model is null";
@@ -1115,8 +1132,11 @@ public class VdbManifest implements Comparable<VdbManifest> {
                     }
                 }
             } finally {
-                if (streamReader != null)
-                    streamReader.close();
+                try {
+                    if (streamReader != null) streamReader.close();
+                } catch ( final Exception e ) {
+                    // do nothing
+                }
             }
 
             return manifest;

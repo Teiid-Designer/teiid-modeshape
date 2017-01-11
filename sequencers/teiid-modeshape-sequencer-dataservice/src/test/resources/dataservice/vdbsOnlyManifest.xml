@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataservice name="VdbEntriesOnly">
+
+    <description>This is my VDB entries only description</description>
+    <lastModified>2016-10-30T10:05:33</lastModified>
+    <modifiedBy>sledge</modifiedBy>
+
+    <vdbs>
+        <vdb-file
+            path="red-vdb.xml"
+            publish="ifMissing"
+            vdbName="Red"
+            vdbVersion="1" />
+        <vdb-file
+            path="white-vdb.xml"
+            publish="always"
+            vdbName="White"
+            vdbVersion="1" />
+        <vdb-file
+            path="blue-vdb.xml"
+            publish="never"
+            vdbName="Blue"
+            vdbVersion="1" />
+    </vdbs>
+
+</dataservice>

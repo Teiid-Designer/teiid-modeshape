@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 
 <modelExtensionDefinition = "http://www.jboss.org/teiiddesigner/ext/2012">
+<xmi = "http://www.omg.org/XMI">
 
 [modelExtensionDefinition:propertyDefinition] > nt:unstructured orderable
   - modelExtensionDefinition:advanced (boolean) = 'false' autocreated
