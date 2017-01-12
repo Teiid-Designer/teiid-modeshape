@@ -22,20 +22,20 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 import static org.teiid.modeshape.sequencer.dataservice.DataServiceManifest.MANIFEST_ZIP_PATH;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import javax.jcr.Binary;
 import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
@@ -44,6 +44,7 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
+
 import org.modeshape.common.annotation.ThreadSafe;
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.StringUtil;
@@ -465,8 +466,9 @@ public class DataServiceSequencer extends Sequencer {
 
         // last modified date
         if ( manifest.getLastModified() != null ) {
-            final LocalDateTime modifiedDate = manifest.getLastModified();
-            final Calendar calendar = GregorianCalendar.from( modifiedDate.atZone( ZoneId.systemDefault() ) );
+            final Date modifiedDate = manifest.getLastModified();
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTime( modifiedDate );
             outputNode.setProperty( DataVirtLexicon.DataService.LAST_MODIFIED, calendar );
         }
 

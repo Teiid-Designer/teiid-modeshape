@@ -22,13 +22,14 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
+
 import org.modeshape.common.util.StringUtil;
 
 /**
@@ -49,7 +50,7 @@ public class DataServiceManifest implements VdbEntryContainer {
     /**
      * The date formatter for the last modified property.
      */
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern( DATE_PATTERN );
+    public static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat( DATE_PATTERN );
 
     /**
      * The file name of the data service manifest. Value is {@value}.
@@ -69,10 +70,10 @@ public class DataServiceManifest implements VdbEntryContainer {
     /**
      * @param lastModifiedDate the string representation of the date being parsed (cannot be <code>null</code>)
      * @return the date (never <code>null</code>)
-     * @throws DateTimeParseException if the input cannot be parsed
+     * @throws ParseException if the input cannot be parsed
      */
-    public static LocalDateTime parse( final String lastModifiedDate ) throws DateTimeParseException {
-        return LocalDateTime.parse( Objects.requireNonNull( lastModifiedDate, "lastModifiedDate" ), DATE_FORMATTER );
+    public static Date parse( final String lastModifiedDate ) throws ParseException {
+        return DATE_FORMATTER.parse( lastModifiedDate );
     }
 
     static DataServiceManifest read( final InputStream stream ) throws Exception {
@@ -82,7 +83,7 @@ public class DataServiceManifest implements VdbEntryContainer {
     private final Collection< ConnectionEntry > connections = new ArrayList< ConnectionEntry >();
     private String description;
     private final Collection< DataServiceEntry > drivers = new ArrayList< DataServiceEntry >();
-    private LocalDateTime lastModified;
+    private Date lastModified;
     private final Collection< DataServiceEntry > metadata = new ArrayList< DataServiceEntry >();
     private String modifiedBy;
     private String name;
@@ -196,7 +197,7 @@ public class DataServiceManifest implements VdbEntryContainer {
     /**
      * @return the last time the manifest was modified (can be <code>null</code>)
      */
-    public LocalDateTime getLastModified() {
+    public Date getLastModified() {
         return this.lastModified;
     }
 
@@ -367,8 +368,8 @@ public class DataServiceManifest implements VdbEntryContainer {
     /**
      * @param lastModified the new last modified date with the nanoseconds stripped off (can be <code>null</code> or empty)
      */
-    public void setLastModified( final LocalDateTime lastModified ) {
-        this.lastModified = ( ( lastModified == null ) ? lastModified : lastModified.withNano( 0 ) );
+    public void setLastModified( final Date lastModified ) {
+        this.lastModified = lastModified;
     }
 
     /**

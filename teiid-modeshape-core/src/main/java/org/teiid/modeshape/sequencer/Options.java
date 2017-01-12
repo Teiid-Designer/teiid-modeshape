@@ -177,7 +177,6 @@ public class Options {
     /**
      * Filters the properties that will be exported.
      */
-    @FunctionalInterface
     public interface PropertyFilter {
 
         /**

@@ -34,6 +34,7 @@ public final class TeiidI18n {
     public static I18n errorExportingDataServiceManifest;
     public static I18n errorExportingDataServiceServiceVdb;
     public static I18n errorExportingDataServiceZip;
+    public static I18n errorParsingManifestLastModifiedDate;
     public static I18n noServiceVdbToExport;
     public static I18n unhandledErrorDuringDataServiceExport;
 
