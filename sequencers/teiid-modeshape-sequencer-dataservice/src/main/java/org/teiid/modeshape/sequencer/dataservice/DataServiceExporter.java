@@ -22,24 +22,21 @@
 package org.teiid.modeshape.sequencer.dataservice;
 
 import static org.teiid.modeshape.sequencer.dataservice.DataServiceManifest.MANIFEST_ZIP_PATH;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -52,6 +49,7 @@ import javax.jcr.query.QueryResult;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
 import org.modeshape.common.logging.Logger;
 import org.modeshape.common.util.StringUtil;
 import org.modeshape.jcr.api.JcrConstants;
@@ -79,7 +77,6 @@ public class DataServiceExporter extends AbstractExporter {
     public static final String RESULT_ENTRY_PATHS = "data-service-exporter.result-entry-paths";
 
     private static final String DEFAULT_CONNECTIONS_FOLDER = "connections/";
-    private static final SimpleDateFormat DEFAULT_DATE_FORMATTER = new SimpleDateFormat( DataServiceManifest.DATE_PATTERN );
     private static final String DEFAULT_DRIVERS_EXPORT_FOLDER = "drivers/";
     private static final String DEFAULT_METADATA_FOLDER = "metadata/";
     private static final String DEFAULT_RESOURCES_FOLDER = "resources/";
@@ -120,8 +117,7 @@ public class DataServiceExporter extends AbstractExporter {
 
         // lastModified is optional
         if ( dataService.hasProperty( DataVirtLexicon.DataService.LAST_MODIFIED ) ) {
-            final Date date = dataService.getProperty( DataVirtLexicon.DataService.LAST_MODIFIED ).getDate().getTime();
-            final LocalDateTime lastModified = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDateTime();
+            final Date lastModified = dataService.getProperty( DataVirtLexicon.DataService.LAST_MODIFIED ).getDate().getTime();
             manifest.setLastModified( lastModified );
         }
 
@@ -644,9 +640,9 @@ public class DataServiceExporter extends AbstractExporter {
             if ( manifest.getLastModified() != null ) {
                 xmlWriter.writeStartElement( DataVirtLexicon.DataServiceManifestId.LAST_MODIFIED );
 
-                final LocalDateTime modifiedDate = manifest.getLastModified();
-                final Calendar calendar = GregorianCalendar.from( modifiedDate.atZone( ZoneId.systemDefault() ) );
-                xmlWriter.writeCharacters( getDateFormatter( options ).format( calendar.getTime() ) );
+                final Date modifiedDate = manifest.getLastModified();
+                final String formattedDate = getDateFormatter( options ).format( modifiedDate );
+                xmlWriter.writeCharacters( formattedDate );
                 xmlWriter.writeEndElement();
             }
 
@@ -894,10 +890,10 @@ public class DataServiceExporter extends AbstractExporter {
 
     private DateFormat getDateFormatter( final Options options ) {
         assert ( options != null );
-        final Object temp = options.get( OptionName.DATE_FORMATTER, DEFAULT_DATE_FORMATTER );
+        final Object temp = options.get( OptionName.DATE_FORMATTER, DataServiceManifest.DATE_FORMATTER );
 
         if ( !( temp instanceof DateFormat ) ) {
-            return DEFAULT_DATE_FORMATTER;
+            return DataServiceManifest.DATE_FORMATTER;
         }
 
         return ( DateFormat )temp;

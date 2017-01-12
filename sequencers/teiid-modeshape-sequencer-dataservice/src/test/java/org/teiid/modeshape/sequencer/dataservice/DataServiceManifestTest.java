@@ -27,15 +27,36 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+
 import java.io.InputStream;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+
 import org.junit.Test;
 import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.xml.sax.SAXParseException;
 
 public final class DataServiceManifestTest {
+
+    private Date createDate( final int year,
+    		                     final int month,
+    		                     final int day,
+    		                     final int hour,
+    		                     final int minute,
+    		                     final int second ) {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.set( Calendar.YEAR, year );
+        calendar.set( Calendar.MONTH, month );
+        calendar.set( Calendar.DAY_OF_MONTH, day );
+        calendar.set( Calendar.HOUR, hour );
+        calendar.set( Calendar.MINUTE, minute );
+        calendar.set( Calendar.SECOND, second );
+        calendar.set( Calendar.MILLISECOND, 0 );
+        
+        return calendar.getTime();
+    }
 
     private DataServiceEntry findEntry( final DataServiceEntry[] entries,
                                         final String path ) {
@@ -101,7 +122,7 @@ public final class DataServiceManifestTest {
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "MyDataService" ) );
         assertThat( manifest.getDescription(), is( "This is my data service description" ) );
-        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2002, 5, 30, 9, 30, 10 ) ) );
+        assertThat( manifest.getLastModified(), is( createDate( 2002, 4, 30, 9, 30, 10 ) ) );
         assertThat( manifest.getModifiedBy(), is( "elvis" ) );
 
         assertThat( manifest.getProperties().size(), is( 1 ) );
@@ -193,7 +214,7 @@ public final class DataServiceManifestTest {
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "DriverEntriesOnly" ) );
         assertThat( manifest.getDescription(), is( "This is my driver entries only description" ) );
-        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2002, 5, 30, 9, 30, 10 ) ) );
+        assertThat( manifest.getLastModified(), is( createDate( 2002, 4, 30, 9, 30, 10 ) ) );
         assertThat( manifest.getModifiedBy(), is( nullValue() ) );
 
         assertThat( manifest.getProperties().size(), is( 1 ) );
@@ -244,7 +265,7 @@ public final class DataServiceManifestTest {
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "ResourceEntriesOnly" ) );
         assertThat( manifest.getDescription(), is( "This is my resources entries only description" ) );
-        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2002, 5, 30, 9, 30, 10 ) ) );
+        assertThat( manifest.getLastModified(), is( createDate( 2002, 4, 30, 9, 30, 10 ) ) );
         assertThat( manifest.getModifiedBy(), is( "elvis" ) );
 
         assertThat( manifest.getProperties().size(), is( 0 ) );
@@ -269,7 +290,7 @@ public final class DataServiceManifestTest {
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "UdfEntriesOnly" ) );
         assertThat( manifest.getDescription(), is( nullValue() ) );
-        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2002, 5, 30, 9, 30, 10 ) ) );
+        assertThat( manifest.getLastModified(), is( createDate( 2002, 4, 30, 9, 30, 10 ) ) );
         assertThat( manifest.getModifiedBy(), is( nullValue() ) );
 
         assertThat( manifest.getProperties().size(), is( 3 ) );
@@ -297,7 +318,8 @@ public final class DataServiceManifestTest {
         assertThat( manifest, is( notNullValue() ) );
         assertThat( manifest.getName(), is( "VdbEntriesOnly" ) );
         assertThat( manifest.getDescription(), is( "This is my VDB entries only description" ) );
-        assertThat( manifest.getLastModified(), is( LocalDateTime.of( 2016, 10, 30, 10, 5, 33 ) ) );
+        
+        assertThat( manifest.getLastModified(), is( createDate( 2016, 9, 30, 10, 5, 33 ) ) );
         assertThat( manifest.getModifiedBy(), is( "sledge" ) );
 
         assertThat( manifest.getProperties().size(), is( 0 ) );

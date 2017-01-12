@@ -26,9 +26,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.time.LocalDateTime;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
@@ -170,8 +171,12 @@ public final class DataServiceManifestReader extends DefaultHandler {
         } else if ( DataVirtLexicon.DataServiceManifestId.DESCRIPTION.equals( localName ) ) {
             this.manifest.setDescription( this.description.toString() );
         } else if ( DataVirtLexicon.DataServiceManifestId.LAST_MODIFIED.equals( localName ) ) {
-            final LocalDateTime lastModifiedDate = DataServiceManifest.parse( this.lastModified.toString() );
-            this.manifest.setLastModified( lastModifiedDate );
+            try {
+                final Date lastModifiedDate = DataServiceManifest.parse( this.lastModified.toString() );
+                this.manifest.setLastModified( lastModifiedDate );
+            } catch ( final ParseException e ) {
+                LOGGER.error( TeiidI18n.errorParsingManifestLastModifiedDate, this.lastModified.toString() );
+            }
         } else if ( DataVirtLexicon.DataServiceManifestId.MODIFIED_BY.equals( localName ) ) {
             this.manifest.setModifiedBy( this.modifiedBy.toString() );
         } else if ( DataVirtLexicon.DataServiceManifestId.PROPERTY.equals( localName ) ) {
