@@ -44,6 +44,7 @@ import javax.xml.validation.Validator;
 import org.modeshape.common.logging.Logger;
 import org.teiid.modeshape.sequencer.dataservice.DataServiceEntry.PublishPolicy;
 import org.teiid.modeshape.sequencer.dataservice.lexicon.DataVirtLexicon;
+import org.teiid.modeshape.util.FileUtil;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -298,8 +299,11 @@ public final class DataServiceManifestReader extends DefaultHandler {
     }
 
     private void initParser() throws Exception {
+        // create schema file
         final URL schemaUrl = getClass().getResource( DATA_SERVICE_SCHEMA_FILE );
-        this.schemaFile = new File( schemaUrl.toURI() );
+        this.schemaFile = File.createTempFile( "dataServiceSchemaFile", ".xsd" );
+        this.schemaFile.deleteOnExit();
+        FileUtil.write( schemaUrl.openStream(), this.schemaFile );
 
         // create parser
         final SAXParserFactory factory = SAXParserFactory.newInstance();
