@@ -184,6 +184,10 @@ public class VdbSequencer extends Sequencer {
             }
         } catch ( final Exception e ) {
             throw new RuntimeException( TeiidI18n.errorReadingVdbFile.text( inputProperty.getPath(), e.getMessage() ), e );
+        } finally {
+            if ( vdbStream != null ) {
+                vdbStream.close();
+            }
         }
 
         // make sure there was a manifest
@@ -216,6 +220,10 @@ public class VdbSequencer extends Sequencer {
                 }
             } catch ( final Exception e ) {
                 throw new RuntimeException( TeiidI18n.errorReadingVdbFile.text( inputProperty.getPath(), e.getMessage() ), e );
+            } finally {
+                if ( vdbStream != null ) {
+                    vdbStream.close();
+                }
             }
         }
 
