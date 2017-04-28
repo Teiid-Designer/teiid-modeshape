@@ -34,7 +34,7 @@
         <jboss.vdb.location>dataVirtualization/vdb</jboss.vdb.location>
         <junit.version>4.11</junit.version>
         <log4j.version>1.2.16</log4j.version>
-        <modeshape.version>3.8.4.GA-redhat-5</modeshape.version>
+        <modeshape.version>3.8.4.GA-redhat-18</modeshape.version>
         <slf4j.api.version>1.7.2</slf4j.api.version>
         <slf4j.log4j.version>1.7.2</slf4j.log4j.version>
     </properties>
@@ -108,13 +108,6 @@
             </dependency>
 
             <!-- ModeShape Test -->            
-            <dependency>
-                <groupId>org.modeshape</groupId>
-                <artifactId>modeshape-schematic</artifactId>
-                <version>${modeshape.version}</version>
-                <scope>test</scope>
-            </dependency>
-
             <dependency>
                 <groupId>org.modeshape</groupId>
                 <artifactId>modeshape-jcr</artifactId>

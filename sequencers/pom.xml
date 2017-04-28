@@ -27,12 +27,6 @@
     <!-- ================================================================== -->
     <dependencies>
         <dependency>
-            <groupId>org.jboss.teiid.modeshape</groupId>
-            <artifactId>teiid-modeshape-utils</artifactId>
-            <type>test-jar</type>
-        </dependency>
-
-        <dependency>
             <groupId>org.modeshape</groupId>
             <artifactId>modeshape-common</artifactId>
         </dependency>
@@ -52,6 +46,7 @@
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -69,12 +64,14 @@
             <groupId>org.jboss.teiid.modeshape</groupId>
             <artifactId>teiid-modeshape-utils</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.modeshape</groupId>
-            <artifactId>modeshape-schematic</artifactId>
+            <groupId>org.jboss.teiid.modeshape</groupId>
+            <artifactId>teiid-modeshape-utils</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
 
         <!-- Logging -->
