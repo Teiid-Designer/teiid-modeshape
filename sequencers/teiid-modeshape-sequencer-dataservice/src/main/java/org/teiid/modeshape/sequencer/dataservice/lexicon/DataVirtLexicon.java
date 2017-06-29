@@ -291,6 +291,88 @@ public interface DataVirtLexicon {
     }
 
     /**
+     * JCR identifiers relating to the template.
+     */
+    interface Template {
+
+        /**
+         * The name of the template node type. Value is {@value}.
+         */
+        String NODE_TYPE = PREFIX + ":template";
+    }
+
+    /**
+     * JCR identifiers relating to a template's single property definition.
+     */
+    interface TemplateEntry {
+
+        /**
+         * The name of the connection entry node type. Value is {@value}.
+         */
+        String NODE_TYPE = PREFIX + ":templateEntry";
+
+        /**
+         * The description property
+         */
+        String DESCRIPTION = PREFIX + ":description";
+
+        /**
+         * The display name of the entry
+         */
+        String DISPLAY_NAME = PREFIX + ":displayName";
+
+        /**
+         * The allowed values property
+         */
+        String ALLOWED_VALUES = PREFIX + ":allowedValues";
+
+        /**
+         * The category property
+         */
+        String CATEGORY = PREFIX + ":category";
+
+        /**
+         * The default value property 
+         */
+        String DEFAULT_VALUE = PREFIX + ":defaultValue";
+
+        /**
+         * The class name of the type property
+         */
+        String TYPE_CLASS_NAME = PREFIX + ":typeClassName";
+
+        /**
+         * The constrained property
+         */
+        String CONSTRAINED_TO_ALLOWED_VALUES = PREFIX + ":constrainedToAllowedValues";
+        
+        /**
+         * The advanced property
+         */
+        String ADVANCED = PREFIX + ":advanced";
+
+        /**
+         * The masked property
+         */
+        String MASKED = PREFIX + ":masked";
+
+        /**
+         * The modifiable property
+         */
+        String MODIFIABLE = PREFIX + ":modifiable";
+
+        /**
+         * The required property
+         */
+        String REQUIRED = PREFIX + ":required";
+
+        /**
+         * The properties property
+         */
+        String PROPERTIES = PREFIX + ":properties";
+    }
+
+    /**
      * XML IDs for connection <code>-connection.xml</code> files.
      */
     interface ConnectionXmlId {
